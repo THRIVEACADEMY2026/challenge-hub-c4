@@ -21,11 +21,19 @@ The single biggest earlier error was type weight. The guide says "Title, Raleway
 
 Other corrections: photography was missing entirely, so the page had no Thrive warmth in it. Sharla's image now anchors the hero. Bordered cards were replaced with whitespace and hairline rules.
 
-**The hero is Sharla's own `#00AEEF`, lit.** It uses the exact cyan her photo was shot on, so she sits in the field rather than on top of it, deepening to a touch of navy at the left edge where the type sits. That is what keeps it from looking cheap: a flat cyan field with white text on it would, but a single lit scene with the copy over the deep end does not. Two soft radial layers add the bloom behind her and the falloff at the corner.
+**Built on the Client Attraction Summit banner.** Ella pointed at that banner as the reference and it settles the palette question. Values sampled straight off `Summit-2026-05-banner-2-.png`:
 
-On mobile there is no figure, so the field runs top to bottom instead of left to right: deep behind the logo and headline, opening to cyan at the foot. Same idea, different axis.
+| | Value | Role |
+|---|---|---|
+| Ground | `#DAD6DA` | warm neutral, the whole field |
+| Band | `#1A325C` | navy as a **band**, never a field |
+| Accent | `#00AEEF` | the highlighted words inside the band |
 
-Everything below the hero stays white and quiet, so the colour is an event rather than wallpaper. The Summit band is a warm off-white with a gold rule.
+That is the thing worth keeping: the banner uses navy, but only as a horizontal strip roughly a tenth of its height, with the people standing in front of it. Navy as a band reads premium. Navy as a background does not. The hero here does the same - warm neutral ground, thin wide-tracked type, a navy strip across the foot with Sharla overlapping it.
+
+Her teal against that warm neutral is the contrast the banner is built on, which is why the cutout sits on it so well.
+
+The banner itself now leads the Summit block, where it is on-topic rather than decorative.
 
 **Sharla's photo is a cutout.** The source image (`sharla-glitter-ig.png` in the C3 repo) sits on a solid `#00AEEF` block, which read as a pasted-on square. `sharla-cutout.png` was produced by an edge-connected flood fill, not a global colour key, so her turquoise hat and top survive; the fringe was then despilled. Alpha-transparent, so it drops onto any background.
 

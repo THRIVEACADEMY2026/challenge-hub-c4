@@ -31,12 +31,14 @@
   --ink:#1A325C; --body:#5C6570; --soft:#8A939E;
   --line:#E3E7EB; --hair:#EDF0F3;
   --wash-warm:linear-gradient(165deg,#FBFAF6 0%,#FFFFFF 70%);
-  /* Hero: Sharla's own #00AEEF behind her, deepening to a touch of navy at the
-     left edge so the type has contrast. One lit scene, not a flat colour block. */
+  /* Taken from the Client Attraction Summit banner: a warm neutral ground with
+     navy used as a BAND, never as a field. Sharla's teal against this neutral is
+     the contrast that makes the banner work. */
+  --ground:#DAD6DA;
+  --ground-soft:#E6E3E6;
   --hero-field:
-    radial-gradient(112% 86% at 76% 52%, rgba(255,255,255,.34) 0%, rgba(255,255,255,0) 58%),
-    radial-gradient(90% 120% at 4% 8%, rgba(10,38,72,.55) 0%, rgba(10,38,72,0) 62%),
-    linear-gradient(102deg,#0C3A5E 0%,#0E5C87 30%,#0C8FC6 56%,#00AEEF 82%,#2ABAF2 100%);
+    radial-gradient(105% 95% at 72% 42%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 62%),
+    linear-gradient(168deg,#E4E1E4 0%,#DAD6DA 58%,#D2CDD3 100%);
   --grad-gold:linear-gradient(90deg,#9D6903,#FDD276 35%,#875300 55%,#D6B146 78%,#DAB044);
   --gold:#D6B146;
   --ok:#0F7B4F;
@@ -78,26 +80,30 @@ a{color:var(--teal)}
 .acct{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Oswald,sans-serif;
   font-weight:300;color:var(--soft);text-align:right;line-height:1.9}
 .acct button{background:none;border:0;color:var(--teal);font:inherit;letter-spacing:2px;cursor:pointer;padding:0}
-.onDark .acct{color:rgba(255,255,255,.72)}
-.onDark .acct button{color:#fff}
+.onDark .acct{color:#6B7681}
+.onDark .acct button{color:var(--cerulean)}
 
 /* ---------- hero ---------- */
-.hero{position:relative;background:var(--hero-field);color:rgba(255,255,255,.86);
+.hero{position:relative;background:var(--hero-field);color:var(--body);
   overflow:hidden;margin-top:-92px;padding-top:92px;border-bottom:0}
-/* soft fade into the white content below, so the band never ends on a hard line */
-.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;z-index:1;
-  background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.16) 100%);pointer-events:none}
-.hero .in{max-width:1180px;margin:0 auto;padding:70px 28px 76px;display:grid;grid-template-columns:1fr;gap:34px;align-items:center;position:relative;z-index:2}
+/* the navy band: a device carried straight over from the Summit banner */
+.hero .band-strip{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#1A325C;
+  padding:17px 28px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:baseline}
+.hero .band-strip span{font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
+  letter-spacing:4px;text-transform:uppercase;color:#fff;white-space:nowrap}
+.hero .band-strip span.hi{color:#00AEEF}
+.hero .in{max-width:1180px;margin:0 auto;padding:70px 28px 104px;display:grid;grid-template-columns:1fr;gap:34px;align-items:center;position:relative;z-index:2}
 .hero .figure{display:none}
 @media (min-width:900px){
-  .hero .in{grid-template-columns:1.12fr .88fr;gap:56px;padding:88px 28px 0;align-items:end}
+  .hero .in{grid-template-columns:1.12fr .88fr;gap:56px;padding:88px 28px 104px;align-items:end}
+  .hero .figure{margin-bottom:-104px;position:relative;z-index:4}
   .hero .figure{display:block;justify-self:end;align-self:end;max-width:430px;margin-right:-28px}
   .hero .figure img{width:430px}
 }
-.hero h1{color:#fff}
-.hero p.lede{color:rgba(255,255,255,.88);max-width:44ch}
-.hero .figure img{filter:drop-shadow(0 22px 46px rgba(4,32,58,.30))}
-.hero .small{color:rgba(255,255,255,.62)}
+.hero h1{color:var(--ink)}
+.hero p.lede{color:#4A5560;max-width:44ch}
+.hero .figure img{filter:drop-shadow(0 24px 44px rgba(26,50,92,.22))}
+.hero .small{color:#6B7681}
 
 /* ---------- type ---------- */
 h1{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(36px,5.4vw,66px);line-height:1.08;
@@ -107,7 +113,7 @@ h2.sec{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(28px,3.6vw
   letter-spacing:.5px;color:var(--ink);margin:0 0 18px;text-wrap:balance}
 .eyebrow{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:9px;
   text-transform:uppercase;color:var(--teal);margin:0 0 20px}
-.hero .eyebrow{color:rgba(255,255,255,.72)}
+.hero .eyebrow{color:var(--cerulean)}
 h3.lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:13px;letter-spacing:7px;
   text-transform:uppercase;color:var(--teal);margin:0 0 16px}
 p{margin:0 0 18px}
@@ -115,10 +121,10 @@ p{margin:0 0 18px}
 .small{font-size:14px;line-height:1.65;color:var(--soft)}
 .count{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(40px,7vw,64px);line-height:1;
   letter-spacing:1px;color:var(--ink);font-variant-numeric:tabular-nums;margin:0 0 8px}
-.hero .count{color:#fff}
+.hero .count{color:var(--ink)}
 .count-lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:6px;
   text-transform:uppercase;color:var(--soft);margin:0 0 30px}
-.hero .count-lbl{color:rgba(255,255,255,.68)}
+.hero .count-lbl{color:#6B7681}
 
 /* ---------- buttons: ghost, wide tracking, square ---------- */
 .btn{display:inline-block;font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
@@ -134,16 +140,13 @@ p{margin:0 0 18px}
 .btn-quiet:hover{background:var(--ink);border-color:var(--ink);color:#fff}
 .btn[disabled],.btn.is-locked{border-color:var(--hair);color:#B9C1C9;cursor:not-allowed;background:transparent}
 .btn[disabled]:hover,.btn.is-locked:hover{background:transparent;color:#B9C1C9}
-.hero .btn{border-color:rgba(255,255,255,.85);color:#fff;background:transparent}
-.hero .btn:hover{background:#fff;color:#0C3A5E}
-.hero .btn-quiet{border-color:rgba(255,255,255,.42);color:rgba(255,255,255,.92)}
-.hero .btn-quiet:hover{background:rgba(255,255,255,.14);border-color:#fff;color:#fff}
-.hero input[type=email]{color:#fff;border-bottom-color:rgba(255,255,255,.55)}
-.hero input::placeholder{color:rgba(255,255,255,.55)}
-.hero input:focus{border-bottom-color:#fff}
-.hero label.fl{color:rgba(255,255,255,.66)}
-.hero .msg{color:rgba(255,255,255,.88);border-left-color:#FFD98A}
-.hero .msg a{color:#fff}
+.hero .btn{border-color:var(--ink);color:var(--ink);background:transparent}
+.hero .btn:hover{background:var(--ink);color:#fff}
+.hero .btn-quiet{border-color:rgba(26,50,92,.38);color:#3E4A57}
+.hero .btn-quiet:hover{background:var(--ink);border-color:var(--ink);color:#fff}
+.hero input[type=email]{color:var(--ink);border-bottom-color:rgba(26,50,92,.45)}
+.hero input::placeholder{color:#8B939C}
+.hero label.fl{color:#6B7681}
 .btns{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 8px}
 .btns .btn{flex:0 0 auto}
 @media (max-width:520px){ .btns{flex-direction:column} .btns .btn{width:100%} }
@@ -214,6 +217,8 @@ main{display:block}
 /* ---------- summit ---------- */
 .summit{background:var(--wash-warm);color:var(--body);border-top:1px solid var(--line)}
 .summit .inner{max-width:1180px;margin:0 auto;padding:76px 28px}
+.summit-art{display:block;margin:0 0 34px;max-width:820px;border:1px solid rgba(26,50,92,.10)}
+.summit-art img{width:100%;height:auto}
 .summit h2.sec{color:var(--ink)}
 .summit p{color:var(--body);max-width:52ch}
 .summit .eyebrow{color:#9A7B22}
@@ -262,9 +267,11 @@ footer.site .in{max-width:1180px;margin:0 auto;padding:34px 28px;font-family:Osw
    right: deep behind the logo and headline, opening to Sharla's cyan at the foot. */
 @media (max-width:899px){
   .hero{background:
-    radial-gradient(130% 55% at 78% 104%, rgba(255,255,255,.26) 0%, rgba(255,255,255,0) 62%),
-    linear-gradient(168deg,#0A3454 0%,#0E5C87 40%,#0C8FC6 76%,#00AEEF 100%)}
-  .hero .in{padding:56px 24px 60px}
+    radial-gradient(120% 60% at 70% 8%, rgba(255,255,255,.60) 0%, rgba(255,255,255,0) 64%),
+    linear-gradient(168deg,#E7E4E7 0%,#DAD6DA 62%,#D0CBD1 100%)}
+  .hero .in{padding:52px 24px 92px}
+  .hero .band-strip{padding:14px 24px}
+  .hero .band-strip span{font-size:12px;letter-spacing:3px}
   .eyebrow{letter-spacing:4px;font-size:11px}
   h3.lbl{letter-spacing:4px;font-size:12px}
   .count-lbl{letter-spacing:4px}
@@ -345,7 +352,7 @@ function masthead(onDark){
     ? esc(S.email)+'<br><button id="signout">Sign out</button>'
     : 'Not signed in';
   return '<header class="masthead'+(onDark?' onDark':'')+'"><div class="in">'+
-    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+(onDark?'logo-white.png':'logo-navy.png')+'" alt="Thrive Academy" width="98"></a>'+
+    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+'logo-navy.png'+'" alt="Thrive Academy" width="98"></a>'+
     '<div class="acct">'+acct+'</div></div></header>';
 }
 function concierge(){
@@ -371,7 +378,8 @@ function vLogin(err){
       '<a class="btn" href="#/hub" id="magic" class="btn btn-quiet">Use my magic link</a></div>'+
     '</form>'+
     '<p class="small" style="margin-top:26px">Review note: try sarah@email.com. Anything else shows the error state.</p>'+
-  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+footer();
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div>'+
+  '<div class="band-strip">'+'<span>September 7 to 11</span>'+'<span>|</span>'+'<span class="hi">10:00am PT / 1:00pm ET</span>'+'</div>'+'</section>'+footer();
 }
 
 function vPre(){
@@ -381,7 +389,8 @@ function vPre(){
     '<h1>You are in,<br><em>'+esc(S.first)+'</em></h1>'+
     '<p class="lede">The Challenge begins Monday September 7. Two small things now, and you will be ready for Day 1.</p>'+
     (S.day>=1?'<div class="btns"><a class="btn" href="#/hub">Go to my Hub</a></div>':'')+
-  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div>'+
+  '<div class="band-strip">'+'<span>Starts Monday September 7</span>'+'<span>|</span>'+'<span class="hi">10:00am PT</span>'+'</div>'+'</section>'+
 
   '<main id="main"><div class="band"><div class="split"><div>'+
     '<h3 class="lbl">First</h3>'+
@@ -430,7 +439,8 @@ function vHub(){
       : '')+
     '<p class="lede">'+(t>0?'Everything you need is here. Pick up where you left off.'
       :'Everything you need is here. Complete a day\'s Quest to earn your first Golden Ticket.')+'</p>'+
-  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div>'+
+  '<div class="band-strip">'+'<span>September 7 to 11</span>'+'<span>|</span>'+'<span class="hi">Live daily 10:00am PT</span>'+'</div>'+'</section>'+
 
   '<main id="main"><div class="band">'+
     '<h3 class="lbl">Your five days</h3>'+
@@ -441,9 +451,11 @@ function vHub(){
     concierge()+
   '</div>'+
   '<section class="summit"><div class="inner">'+
-    '<p class="eyebrow">September 18 to 20</p>'+
+    '<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
+      '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790" loading="lazy">'+
+    '</a>'+
     '<h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede">The Client Attraction Summit is three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
+    '<p class="lede">Three days with Sharla and Jesse, live, building the client attraction system behind everything you are learning this week.</p>'+
     '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
   '</div></section></main>'+footer();
 }
@@ -509,8 +521,11 @@ function vDay(n){
       }).join('')+'</ul></div>'+
   '</div></div></div>'+
   '<section class="summit"><div class="inner">'+
-    '<p class="eyebrow">September 18 to 20</p><h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede">Three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
+    '<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
+      '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790" loading="lazy">'+
+    '</a>'+
+    '<h2 class="sec">Go further than five days</h2>'+
+    '<p class="lede">Three days with Sharla and Jesse, live, building the client attraction system behind everything you are learning this week.</p>'+
     '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
   '</div></section></main>'+footer();
 }
