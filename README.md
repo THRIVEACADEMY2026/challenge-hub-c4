@@ -38,7 +38,7 @@ They appear on the welcome page only, cut from the Summit banner as **complete p
 
 - The crop stops 4px above the navy band, so no band pixel and no band shadow enters the file. An earlier crop ran down through the band and left navy artifacts welded to Jesse's shoulder, where his arm walled them off from the flood fill.
 - On the page they are **inset from the frame edges**, never bled off them. Verified fully inside the viewport at 1440px and 375px. An earlier mobile rule used a negative offset and sliced Sharla's arm off at the screen edge.
-- The navy band covers the lower edge of both portraits. That is the banner's own device, not a crop.
+- **The navy band never crosses them.** They stand on top of it, not behind it. Both are positioned at `bottom: var(--band-h)` so their lower edge meets the band's top edge exactly. An earlier version had them at `bottom: 0` with the band drawn over them, which sliced both of them across the chest. Measuring "fully inside the viewport" missed it entirely, because the clipping was a sibling element painted on top, not an overflow. Check coverage, not just bounds.
 - They are **not** squeezed into the masthead on inside pages. A cropped headshot strip chopped them at the shoulders and looked worse than no photo at all.
 
 **Do not reintroduce negative offsets, overflow crops, or fixed heights on these two images.** Size them by width; the cutouts are near square.

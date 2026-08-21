@@ -32,6 +32,7 @@
   --gold:#D6B146; --ok:#0F7B4F; --orange:#F16736;
   --shell:#F4F4F5;
   --measure:70ch;
+  --band-h:48px;
 }
 *{box-sizing:border-box;border-radius:0}
 html{-webkit-text-size-adjust:100%}
@@ -96,7 +97,7 @@ body.is-login .acct{display:none}
 
 /* the pair: sized by WIDTH, since these crops are near square. Grounded at the
    foot of the section so the band crosses their lower third, as on the banner. */
-.hero .cast{position:absolute;bottom:0;z-index:3;display:none;pointer-events:none}
+.hero .cast{position:absolute;bottom:var(--band-h);z-index:3;display:none;pointer-events:none}
 .hero .cast img{width:100%;height:auto;display:block;filter:drop-shadow(0 18px 38px rgba(26,50,92,.20))}
 @media (min-width:1000px){
   .hero{min-height:600px}
@@ -115,7 +116,8 @@ body.is-login .acct{display:none}
 
 /* the navy band, crossing their lower third exactly as on the banner */
 .hero .band-strip{position:absolute;left:0;right:0;bottom:0;z-index:4;background:var(--ink);
-  padding:15px 24px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:baseline}
+  min-height:var(--band-h);box-sizing:border-box;
+  padding:15px 24px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:center}
 .hero .band-strip span{font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:12px;
   letter-spacing:4px;text-transform:uppercase;color:#fff;white-space:nowrap}
 .hero .band-strip span.hi{color:var(--sky)}
@@ -142,7 +144,7 @@ body.is-login .acct{display:none}
   .hero .eyebrow{letter-spacing:4px;font-size:11px}
   .hero h1{font-size:clamp(30px,7.4vw,42px)}
   .hero .hint{margin-top:22px}
-  .hero .cast{display:block;bottom:0}
+  .hero .cast{display:block;bottom:var(--band-h)}
   .hero .cast.l{left:3%;width:37%;max-width:168px}
   .hero .cast.r{right:3%;width:37%;max-width:170px}
   .hero .band-strip{bottom:0;padding:13px 18px;gap:9px}
