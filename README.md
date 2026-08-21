@@ -6,17 +6,24 @@ The content control centre for the Book 5 Consults in 5 Days Challenge.
 
 One responsive page. Desktop gets a sticky day-nav sidebar plus a two-column day layout; mobile collapses to a single column with the day list inline. Same file, no separate mobile build to keep in sync.
 
-## The rules this is built to
+## The design basis
 
-Thrive Brand Guidelines 2024 (Canva, 26pp), plus two standing overrides from Sharla and Ella.
+Sharla called the first version off-brand and she was right. This one is built to specs **measured off the live thrive-academy.com**, not interpreted from the guide. The live site is the brand in market.
 
-- **Raleway is the primary family. Oswald is the accent family, used sparingly** (subheads, buttons, small labels). Not the other way round.
-- **Buttons are `#1D74BD` on light grounds.** Strict rule from the guide.
-- Header type `#019ACD`, body text `#636363`, headings Delft Blue `#1A325C`.
-- **60 / 30 / 10** colour ratio: white ground, `#019ACD` headers, `#1D74BD` CTAs.
-- **90 degree corners everywhere.** `border-radius: 0` is set globally in the reset.
-- **No dark navy grounds.** Navy is type only. Premium emphasis comes from the approved gold gradient used as a rule, never a dark panel.
-- The Hub is where you learn. The Facebook Group is where you do. The Group is never named as a place to watch anything, and the word "replay" is not used.
+| | Live site | What this build uses |
+|---|---|---|
+| Display type | Raleway **200**, 66-80px, ~1px tracking | Raleway 200, clamp(36px, 5.4vw, 66px) |
+| Eyebrow | Oswald **300**, letter-spacing **11px**, uppercase | Oswald 300, 9px tracking |
+| Buttons | Oswald **400**, letter-spacing **5px**, transparent, 1px border, 0 radius | identical |
+| Corners | 0px on every button | 0 globally |
+
+The single biggest earlier error was type weight. The guide says "Title, Raleway Semibold". The live site actually ships weight **200**, and that lightness is most of what makes Thrive read as high-end. The first build used semibold with heavy uppercase Oswald throughout, which read as a funnel page.
+
+Other corrections: photography was missing entirely, so the page had no Thrive warmth in it. Sharla's image now anchors the hero. Bordered cards were replaced with whitespace and hairline rules.
+
+Palette and gradients from Thrive Brand Guidelines 2024. Dark grounds are **gradient or photographic, never a flat navy fill** - that distinction is what Sharla was objecting to, not darkness itself. The guide's own pages are deep blue-to-teal gradients.
+
+Editorial rules that still hold: the Hub is where you learn, the Facebook Group is where you do; the Group is never named as a place to watch anything; the word "replay" is not used.
 
 ## What works
 
