@@ -21,7 +21,11 @@ The single biggest earlier error was type weight. The guide says "Title, Raleway
 
 Other corrections: photography was missing entirely, so the page had no Thrive warmth in it. Sharla's image now anchors the hero. Bordered cards were replaced with whitespace and hairline rules.
 
-**No navy grounds at all.** Sharla ruled out the dark navy look entirely, so every band on this page is light. The hero and Summit bands use barely-there light washes rather than flat white, so the page still has depth. Navy appears only as type. The gold gradient carries premium emphasis on the Summit band and the Golden Ticket.
+**The hero is Sharla's own `#00AEEF`, lit.** It uses the exact cyan her photo was shot on, so she sits in the field rather than on top of it, deepening to a touch of navy at the left edge where the type sits. That is what keeps it from looking cheap: a flat cyan field with white text on it would, but a single lit scene with the copy over the deep end does not. Two soft radial layers add the bloom behind her and the falloff at the corner.
+
+On mobile there is no figure, so the field runs top to bottom instead of left to right: deep behind the logo and headline, opening to cyan at the foot. Same idea, different axis.
+
+Everything below the hero stays white and quiet, so the colour is an event rather than wallpaper. The Summit band is a warm off-white with a gold rule.
 
 **Sharla's photo is a cutout.** The source image (`sharla-glitter-ig.png` in the C3 repo) sits on a solid `#00AEEF` block, which read as a pasted-on square. `sharla-cutout.png` was produced by an edge-connected flood fill, not a global colour key, so her turquoise hat and top survive; the fringe was then despilled. Alpha-transparent, so it drops onto any background.
 

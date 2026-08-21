@@ -30,8 +30,13 @@
   --sky:#00AEEF;
   --ink:#1A325C; --body:#5C6570; --soft:#8A939E;
   --line:#E3E7EB; --hair:#EDF0F3;
-  --wash:linear-gradient(165deg,#F1F8FC 0%,#FBFDFE 55%,#FFFFFF 100%);
   --wash-warm:linear-gradient(165deg,#FBFAF6 0%,#FFFFFF 70%);
+  /* Hero: Sharla's own #00AEEF behind her, deepening to a touch of navy at the
+     left edge so the type has contrast. One lit scene, not a flat colour block. */
+  --hero-field:
+    radial-gradient(112% 86% at 76% 52%, rgba(255,255,255,.34) 0%, rgba(255,255,255,0) 58%),
+    radial-gradient(90% 120% at 4% 8%, rgba(10,38,72,.55) 0%, rgba(10,38,72,0) 62%),
+    linear-gradient(102deg,#0C3A5E 0%,#0E5C87 30%,#0C8FC6 56%,#00AEEF 82%,#2ABAF2 100%);
   --grad-gold:linear-gradient(90deg,#9D6903,#FDD276 35%,#875300 55%,#D6B146 78%,#DAB044);
   --gold:#D6B146;
   --ok:#0F7B4F;
@@ -73,11 +78,15 @@ a{color:var(--teal)}
 .acct{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Oswald,sans-serif;
   font-weight:300;color:var(--soft);text-align:right;line-height:1.9}
 .acct button{background:none;border:0;color:var(--teal);font:inherit;letter-spacing:2px;cursor:pointer;padding:0}
-.onDark .acct{color:var(--soft)}
-.onDark .acct button{color:var(--teal)}
+.onDark .acct{color:rgba(255,255,255,.72)}
+.onDark .acct button{color:#fff}
 
 /* ---------- hero ---------- */
-.hero{position:relative;background:var(--wash);color:var(--body);overflow:hidden;margin-top:-92px;padding-top:92px;border-bottom:1px solid var(--line)}
+.hero{position:relative;background:var(--hero-field);color:rgba(255,255,255,.86);
+  overflow:hidden;margin-top:-92px;padding-top:92px;border-bottom:0}
+/* soft fade into the white content below, so the band never ends on a hard line */
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;z-index:1;
+  background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.16) 100%);pointer-events:none}
 .hero .in{max-width:1180px;margin:0 auto;padding:70px 28px 76px;display:grid;grid-template-columns:1fr;gap:34px;align-items:center;position:relative;z-index:2}
 .hero .figure{display:none}
 @media (min-width:900px){
@@ -85,9 +94,10 @@ a{color:var(--teal)}
   .hero .figure{display:block;justify-self:end;align-self:end;max-width:430px;margin-right:-28px}
   .hero .figure img{width:430px}
 }
-.hero h1{color:var(--ink)}
-.hero p.lede{color:var(--body);max-width:44ch}
-.hero .figure img{mix-blend-mode:normal}
+.hero h1{color:#fff}
+.hero p.lede{color:rgba(255,255,255,.88);max-width:44ch}
+.hero .figure img{filter:drop-shadow(0 22px 46px rgba(4,32,58,.30))}
+.hero .small{color:rgba(255,255,255,.62)}
 
 /* ---------- type ---------- */
 h1{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(36px,5.4vw,66px);line-height:1.08;
@@ -97,7 +107,7 @@ h2.sec{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(28px,3.6vw
   letter-spacing:.5px;color:var(--ink);margin:0 0 18px;text-wrap:balance}
 .eyebrow{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:9px;
   text-transform:uppercase;color:var(--teal);margin:0 0 20px}
-.hero .eyebrow{color:var(--teal)}
+.hero .eyebrow{color:rgba(255,255,255,.72)}
 h3.lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:13px;letter-spacing:7px;
   text-transform:uppercase;color:var(--teal);margin:0 0 16px}
 p{margin:0 0 18px}
@@ -105,10 +115,10 @@ p{margin:0 0 18px}
 .small{font-size:14px;line-height:1.65;color:var(--soft)}
 .count{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(40px,7vw,64px);line-height:1;
   letter-spacing:1px;color:var(--ink);font-variant-numeric:tabular-nums;margin:0 0 8px}
-.hero .count{color:var(--ink)}
+.hero .count{color:#fff}
 .count-lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:6px;
   text-transform:uppercase;color:var(--soft);margin:0 0 30px}
-.hero .count-lbl{color:var(--soft)}
+.hero .count-lbl{color:rgba(255,255,255,.68)}
 
 /* ---------- buttons: ghost, wide tracking, square ---------- */
 .btn{display:inline-block;font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
@@ -124,6 +134,16 @@ p{margin:0 0 18px}
 .btn-quiet:hover{background:var(--ink);border-color:var(--ink);color:#fff}
 .btn[disabled],.btn.is-locked{border-color:var(--hair);color:#B9C1C9;cursor:not-allowed;background:transparent}
 .btn[disabled]:hover,.btn.is-locked:hover{background:transparent;color:#B9C1C9}
+.hero .btn{border-color:rgba(255,255,255,.85);color:#fff;background:transparent}
+.hero .btn:hover{background:#fff;color:#0C3A5E}
+.hero .btn-quiet{border-color:rgba(255,255,255,.42);color:rgba(255,255,255,.92)}
+.hero .btn-quiet:hover{background:rgba(255,255,255,.14);border-color:#fff;color:#fff}
+.hero input[type=email]{color:#fff;border-bottom-color:rgba(255,255,255,.55)}
+.hero input::placeholder{color:rgba(255,255,255,.55)}
+.hero input:focus{border-bottom-color:#fff}
+.hero label.fl{color:rgba(255,255,255,.66)}
+.hero .msg{color:rgba(255,255,255,.88);border-left-color:#FFD98A}
+.hero .msg a{color:#fff}
 .btns{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 8px}
 .btns .btn{flex:0 0 auto}
 @media (max-width:520px){ .btns{flex-direction:column} .btns .btn{width:100%} }
@@ -236,6 +256,30 @@ footer.site .in{max-width:1180px;margin:0 auto;padding:34px 28px;font-family:Osw
   color:#fff;padding:15px 26px;font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:3px;
   text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:80;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- narrow screens (kept last so it wins the cascade) ----------
+   No figure on mobile, so the field runs top to bottom instead of left to
+   right: deep behind the logo and headline, opening to Sharla's cyan at the foot. */
+@media (max-width:899px){
+  .hero{background:
+    radial-gradient(130% 55% at 78% 104%, rgba(255,255,255,.26) 0%, rgba(255,255,255,0) 62%),
+    linear-gradient(168deg,#0A3454 0%,#0E5C87 40%,#0C8FC6 76%,#00AEEF 100%)}
+  .hero .in{padding:56px 24px 60px}
+  .eyebrow{letter-spacing:4px;font-size:11px}
+  h3.lbl{letter-spacing:4px;font-size:12px}
+  .count-lbl{letter-spacing:4px}
+  .band{padding:48px 24px}
+  .masthead .in{padding:22px 24px}
+  .summit .inner{padding:56px 24px}
+}
+@media (max-width:560px){
+  .eyebrow{letter-spacing:3px}
+  .days a,.days span.row{grid-template-columns:auto 1fr;gap:14px;padding:20px 2px}
+  .days .meta{grid-column:2;justify-self:start;margin-top:8px}
+  .days .num{font-size:26px;min-width:34px}
+  .days .ttl{font-size:17px}
+  .days .sub{margin-top:5px}
+}
 </style>
 </head>
 <body>
@@ -301,7 +345,7 @@ function masthead(onDark){
     ? esc(S.email)+'<br><button id="signout">Sign out</button>'
     : 'Not signed in';
   return '<header class="masthead'+(onDark?' onDark':'')+'"><div class="in">'+
-    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+'logo-navy.png'+'" alt="Thrive Academy" width="98"></a>'+
+    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+(onDark?'logo-white.png':'logo-navy.png')+'" alt="Thrive Academy" width="98"></a>'+
     '<div class="acct">'+acct+'</div></div></header>';
 }
 function concierge(){
