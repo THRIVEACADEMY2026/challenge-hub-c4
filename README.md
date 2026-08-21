@@ -32,16 +32,17 @@ Palette sampled off the Client Attraction Summit banner and the live thrive-acad
 - **Buttons are Oswald 400 at 5px tracking**, 1px border, square corners, matching the live site exactly.
 - **Labels are Oswald 300 at 6 to 8px tracking.** The wide tracking is the brand signature.
 - Navy appears as the strip under the masthead and as type. Never as a page background - that is the distinction Sharla was drawing.
-### Sharla and Jesse: show them whole
+### The welcome page uses b-roll, not cutouts
 
-They appear on the welcome page only, cut from the Summit banner as **complete portraits**. Nothing about them is clipped, and that is a rule, not a preference.
+Cutouts kept getting cut. Footage does not. The welcome page now runs real b-roll of Sharla working at her desk, so **nothing of her is ever cropped, covered or pasted** - the frame simply shows what the camera saw.
 
-- The crop stops 4px above the navy band, so no band pixel and no band shadow enters the file. An earlier crop ran down through the band and left navy artifacts welded to Jesse's shoulder, where his arm walled them off from the flood fill.
-- On the page they are **inset from the frame edges**, never bled off them. Verified fully inside the viewport at 1440px and 375px. An earlier mobile rule used a negative offset and sliced Sharla's arm off at the screen edge.
-- **The navy band never crosses them.** They stand on top of it, not behind it. Both are positioned at `bottom: var(--band-h)` so their lower edge meets the band's top edge exactly. An earlier version had them at `bottom: 0` with the band drawn over them, which sliced both of them across the chest. Measuring "fully inside the viewport" missed it entirely, because the clipping was a sibling element painted on top, not an overflow. Check coverage, not just bounds.
-- They are **not** squeezed into the masthead on inside pages. A cropped headshot strip chopped them at the shoulders and looked worse than no photo at all.
+- Source: `Smiling and typing at desk b-roll.MOV` from the Thrive b-roll Drive, July-Aug 2026 folder. Shot vertical at 2160x3840; a landscape slice was taken from the middle band (`crop=2160:1215:0:1150`), trimmed to a 10 second loop and encoded to **580KB**.
+- `hero-poster.jpg` is the still fallback. It shows if the video is slow, blocked, or the viewer has asked for reduced motion.
+- **She sits on the left of the frame, so the copy sits on the right.** The scrim is opaque under the words and clears toward her, which is what keeps her visible and the type readable. Flipping one without the other buries her.
+- On mobile there is no room to run footage behind the words without burying her face under the scrim, so it becomes its own band above the navy strip instead.
+- Reduced-motion viewers get the poster, held. There is also a play nudge on first interaction, because some engines hold muted autoplay until the user has touched the page and a frozen first frame reads as broken.
 
-**Do not reintroduce negative offsets, overflow crops, or fixed heights on these two images.** Size them by width; the cutouts are near square.
+The transparent portraits `sharla-summit.png` and `jesse-summit.png` are still in the repo and are clean, reusable assets, but nothing references them now.
 
 **Font weights are requested, not assumed.** The stylesheet asks for Raleway 200-600 and Oswald 300-500, matching every weight the CSS actually uses. Worth checking after any edit: if a weight is used but not requested, the browser silently synthesises it from the nearest face and the light display type quietly stops being light. That happened once here and was invisible until measured.
 
