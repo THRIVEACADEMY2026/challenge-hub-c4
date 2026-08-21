@@ -30,8 +30,8 @@
   --sky:#00AEEF;
   --ink:#1A325C; --body:#5C6570; --soft:#8A939E;
   --line:#E3E7EB; --hair:#EDF0F3;
-  --grad-deep:linear-gradient(135deg,#001826 0%,#0B2748 55%,#1A325C 100%);
-  --grad-teal:linear-gradient(135deg,#003554 0%,#016D92 100%);
+  --wash:linear-gradient(165deg,#F1F8FC 0%,#FBFDFE 55%,#FFFFFF 100%);
+  --wash-warm:linear-gradient(165deg,#FBFAF6 0%,#FFFFFF 70%);
   --grad-gold:linear-gradient(90deg,#9D6903,#FDD276 35%,#875300 55%,#D6B146 78%,#DAB044);
   --gold:#D6B146;
   --ok:#0F7B4F;
@@ -73,11 +73,11 @@ a{color:var(--teal)}
 .acct{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Oswald,sans-serif;
   font-weight:300;color:var(--soft);text-align:right;line-height:1.9}
 .acct button{background:none;border:0;color:var(--teal);font:inherit;letter-spacing:2px;cursor:pointer;padding:0}
-.onDark .acct{color:rgba(255,255,255,.72)}
-.onDark .acct button{color:#fff}
+.onDark .acct{color:var(--soft)}
+.onDark .acct button{color:var(--teal)}
 
 /* ---------- hero ---------- */
-.hero{position:relative;background:var(--grad-deep);color:#fff;overflow:hidden;margin-top:-92px;padding-top:92px}
+.hero{position:relative;background:var(--wash);color:var(--body);overflow:hidden;margin-top:-92px;padding-top:92px;border-bottom:1px solid var(--line)}
 .hero .in{max-width:1180px;margin:0 auto;padding:70px 28px 76px;display:grid;grid-template-columns:1fr;gap:34px;align-items:center;position:relative;z-index:2}
 .hero .figure{display:none}
 @media (min-width:900px){
@@ -85,8 +85,8 @@ a{color:var(--teal)}
   .hero .figure{display:block;justify-self:end;align-self:end;max-width:430px;margin-right:-28px}
   .hero .figure img{width:430px}
 }
-.hero h1{color:#fff}
-.hero p.lede{color:rgba(255,255,255,.80);max-width:44ch}
+.hero h1{color:var(--ink)}
+.hero p.lede{color:var(--body);max-width:44ch}
 .hero .figure img{mix-blend-mode:normal}
 
 /* ---------- type ---------- */
@@ -97,7 +97,7 @@ h2.sec{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(28px,3.6vw
   letter-spacing:.5px;color:var(--ink);margin:0 0 18px;text-wrap:balance}
 .eyebrow{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:9px;
   text-transform:uppercase;color:var(--teal);margin:0 0 20px}
-.hero .eyebrow{color:var(--sky)}
+.hero .eyebrow{color:var(--teal)}
 h3.lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:13px;letter-spacing:7px;
   text-transform:uppercase;color:var(--teal);margin:0 0 16px}
 p{margin:0 0 18px}
@@ -105,10 +105,10 @@ p{margin:0 0 18px}
 .small{font-size:14px;line-height:1.65;color:var(--soft)}
 .count{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(40px,7vw,64px);line-height:1;
   letter-spacing:1px;color:var(--ink);font-variant-numeric:tabular-nums;margin:0 0 8px}
-.hero .count{color:#fff}
+.hero .count{color:var(--ink)}
 .count-lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:6px;
   text-transform:uppercase;color:var(--soft);margin:0 0 30px}
-.hero .count-lbl{color:rgba(255,255,255,.62)}
+.hero .count-lbl{color:var(--soft)}
 
 /* ---------- buttons: ghost, wide tracking, square ---------- */
 .btn{display:inline-block;font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
@@ -163,13 +163,13 @@ main{display:block}
   text-transform:uppercase;color:var(--soft);white-space:nowrap}
 
 /* ---------- video ---------- */
-.video{position:relative;width:100%;aspect-ratio:16/9;background:var(--grad-deep);border:0;padding:0;
+.video{position:relative;width:100%;aspect-ratio:16/9;background:#ECF1F5;border:1px solid var(--line);padding:0;
   cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 0 20px}
-.video .play{width:74px;height:74px;border:1px solid rgba(255,255,255,.75);display:flex;
+.video .play{width:74px;height:74px;border:1px solid var(--teal);display:flex;
   align-items:center;justify-content:center;transition:background .2s}
-.video .play::after{content:"";width:0;height:0;border-left:17px solid #fff;
+.video .play::after{content:"";width:0;height:0;border-left:17px solid var(--teal);
   border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:4px}
-.video:hover .play{background:rgba(255,255,255,.14)}
+.video:hover .play{background:rgba(41,142,165,.10)}
 .video.playing{background:#000}
 .video.playing .play{display:none}
 
@@ -192,11 +192,13 @@ main{display:block}
 .ticket b{font-weight:600}
 
 /* ---------- summit ---------- */
-.summit{background:var(--grad-teal);color:#fff}
+.summit{background:var(--wash-warm);color:var(--body);border-top:1px solid var(--line)}
 .summit .inner{max-width:1180px;margin:0 auto;padding:76px 28px}
-.summit h2.sec{color:#fff}
-.summit p{color:rgba(255,255,255,.82);max-width:52ch}
-.summit .eyebrow{color:#8FE3FF}
+.summit h2.sec{color:var(--ink)}
+.summit p{color:var(--body);max-width:52ch}
+.summit .eyebrow{color:#9A7B22}
+.summit .inner{position:relative}
+.summit .inner::before{content:"";display:block;width:52px;height:2px;background:var(--grad-gold);margin:0 0 26px}
 
 /* ---------- concierge ---------- */
 .concierge{border-top:1px solid var(--line);padding:40px 0 0;margin:60px 0 0}
@@ -299,7 +301,7 @@ function masthead(onDark){
     ? esc(S.email)+'<br><button id="signout">Sign out</button>'
     : 'Not signed in';
   return '<header class="masthead'+(onDark?' onDark':'')+'"><div class="in">'+
-    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+(onDark?'logo-white.png':'logo-navy.png')+'" alt="Thrive Academy" width="98"></a>'+
+    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+'logo-navy.png'+'" alt="Thrive Academy" width="98"></a>'+
     '<div class="acct">'+acct+'</div></div></header>';
 }
 function concierge(){
@@ -316,16 +318,16 @@ function vLogin(err){
     '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
     '<h1>Welcome back<br>to the Challenge</h1>'+
     '<p class="lede">Enter the email you registered with and we will take you straight to your Hub.</p>'+
-    (err?'<div class="msg err" style="border-left-color:#F16736;color:rgba(255,255,255,.85)">We do not see a Challenge registration for that email. Check any email we have sent you for the link that signs you in automatically, or <a href="'+OPTIN+'" target="_blank" rel="noopener" style="color:#8FE3FF">register here</a>.</div>':'')+
+    (err?'<div class="msg err" >We do not see a Challenge registration for that email. Check any email we have sent you for the link that signs you in automatically, or <a href="'+OPTIN+'" target="_blank" rel="noopener" >register here</a>.</div>':'')+
     '<form id="loginForm" novalidate style="max-width:560px">'+
       '<div class="field"><label class="fl" for="em">Your email</label>'+
       '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required '+
-      'style="color:#fff;border-bottom-color:rgba(255,255,255,.5)"></div>'+
-      '<div class="btns"><button class="btn btn-light" type="submit">Enter the Hub</button>'+
-      '<a class="btn btn-light" href="#/hub" id="magic" style="border-color:rgba(255,255,255,.4)">Use my magic link</a></div>'+
+      '></div>'+
+      '<div class="btns"><button class="btn" type="submit">Enter the Hub</button>'+
+      '<a class="btn" href="#/hub" id="magic" class="btn btn-quiet">Use my magic link</a></div>'+
     '</form>'+
-    '<p class="small" style="color:rgba(255,255,255,.5);margin-top:26px">Review note: try sarah@email.com. Anything else shows the error state.</p>'+
-  '</div><div class="figure"><img src="sharla-glitter-ig.png" alt="Sharla Jacobs" width="390"></div></div></section>'+footer();
+    '<p class="small" style="margin-top:26px">Review note: try sarah@email.com. Anything else shows the error state.</p>'+
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+footer();
 }
 
 function vPre(){
@@ -334,8 +336,8 @@ function vPre(){
     '<p class="eyebrow">You are registered</p>'+
     '<h1>You are in,<br><em>'+esc(S.first)+'</em></h1>'+
     '<p class="lede">The Challenge begins Monday September 7. Two small things now, and you will be ready for Day 1.</p>'+
-    (S.day>=1?'<div class="btns"><a class="btn btn-light" href="#/hub">Go to my Hub</a></div>':'')+
-  '</div><div class="figure"><img src="sharla-glitter-ig.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
+    (S.day>=1?'<div class="btns"><a class="btn" href="#/hub">Go to my Hub</a></div>':'')+
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
 
   '<main id="main"><div class="band"><div class="split"><div>'+
     '<h3 class="lbl">First</h3>'+
@@ -379,9 +381,12 @@ function vHub(){
   '<section class="hero"><div class="in"><div>'+
     '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
     '<h1>Welcome back,<br><em>'+esc(S.first)+'</em></h1>'+
-    '<p class="count">'+t+'</p><p class="count-lbl">Golden Ticket'+(t===1?"":"s")+' earned</p>'+
-    '<p class="lede">Everything you need is here. Pick up where you left off.</p>'+
-  '</div><div class="figure"><img src="sharla-glitter-ig.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
+    (t>0
+      ? '<p class="count">'+t+'</p><p class="count-lbl">Golden Ticket'+(t===1?"":"s")+' earned</p>'
+      : '')+
+    '<p class="lede">'+(t>0?'Everything you need is here. Pick up where you left off.'
+      :'Everything you need is here. Complete a day\'s Quest to earn your first Golden Ticket.')+'</p>'+
+  '</div><div class="figure"><img src="sharla-cutout.png" alt="Sharla Jacobs" width="390"></div></div></section>'+
 
   '<main id="main"><div class="band">'+
     '<h3 class="lbl">Your five days</h3>'+
@@ -394,8 +399,8 @@ function vHub(){
   '<section class="summit"><div class="inner">'+
     '<p class="eyebrow">September 18 to 20</p>'+
     '<h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede" style="color:rgba(255,255,255,.82)">The Client Attraction Summit is three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
-    '<div class="btns"><a class="btn btn-light" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
+    '<p class="lede">The Client Attraction Summit is three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
+    '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
   '</div></section></main>'+footer();
 }
 
@@ -461,8 +466,8 @@ function vDay(n){
   '</div></div></div>'+
   '<section class="summit"><div class="inner">'+
     '<p class="eyebrow">September 18 to 20</p><h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede" style="color:rgba(255,255,255,.82)">Three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
-    '<div class="btns"><a class="btn btn-light" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
+    '<p class="lede">Three days with Sharla, live, building the client attraction system behind everything you are learning this week.</p>'+
+    '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
   '</div></section></main>'+footer();
 }
 

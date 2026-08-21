@@ -21,7 +21,9 @@ The single biggest earlier error was type weight. The guide says "Title, Raleway
 
 Other corrections: photography was missing entirely, so the page had no Thrive warmth in it. Sharla's image now anchors the hero. Bordered cards were replaced with whitespace and hairline rules.
 
-Palette and gradients from Thrive Brand Guidelines 2024. Dark grounds are **gradient or photographic, never a flat navy fill** - that distinction is what Sharla was objecting to, not darkness itself. The guide's own pages are deep blue-to-teal gradients.
+**No navy grounds at all.** Sharla ruled out the dark navy look entirely, so every band on this page is light. The hero and Summit bands use barely-there light washes rather than flat white, so the page still has depth. Navy appears only as type. The gold gradient carries premium emphasis on the Summit band and the Golden Ticket.
+
+**Sharla's photo is a cutout.** The source image (`sharla-glitter-ig.png` in the C3 repo) sits on a solid `#00AEEF` block, which read as a pasted-on square. `sharla-cutout.png` was produced by an edge-connected flood fill, not a global colour key, so her turquoise hat and top survive; the fringe was then despilled. Alpha-transparent, so it drops onto any background.
 
 Editorial rules that still hold: the Hub is where you learn, the Facebook Group is where you do; the Group is never named as a place to watch anything; the word "replay" is not used.
 
