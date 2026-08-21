@@ -8,6 +8,11 @@ One responsive page. Desktop gets a sticky day-nav sidebar plus a two-column day
 
 ## Layout
 
+**Welcome page and inside are deliberately different.**
+
+- **Welcome page** (signed out): the Summit banner composition, full bleed. Sharla left, centred type, Jesse right, navy strip across the foot with the two of them standing in front of it. Warm neutral ground.
+- **Inside** (signed in): the sidebar layout. That is the working part of the product and it does not carry a hero.
+
 **The sidebar layout is the design.** Persistent left nav with the five days, Golden Ticket progress and the Concierge block; content on the right. That was settled early and it stays. On mobile the sidebar drops and the day list appears inline on the Hub.
 
 The branding below is applied *on top of* that layout. It does not change it.
@@ -27,7 +32,9 @@ Palette sampled off the Client Attraction Summit banner and the live thrive-acad
 - **Buttons are Oswald 400 at 5px tracking**, 1px border, square corners, matching the live site exactly.
 - **Labels are Oswald 300 at 6 to 8px tracking.** The wide tracking is the brand signature.
 - Navy appears as the strip under the masthead and as type. Never as a page background - that is the distinction Sharla was drawing.
-- Sharla and Jesse sit quietly at the right of the masthead, cut out of the Summit banner itself. They appear at 1080px and up, where there is room for them.
+- Sharla and Jesse appear at full height on the welcome page only, cut out of the Summit banner itself. They are not cropped into the masthead on the inside pages; a cropped headshot strip looked worse than no photo at all.
+
+**Font weights are requested, not assumed.** The stylesheet asks for Raleway 200-600 and Oswald 300-500, matching every weight the CSS actually uses. Worth checking after any edit: if a weight is used but not requested, the browser silently synthesises it from the nearest face and the light display type quietly stops being light. That happened once here and was invisible until measured.
 
 ## What works
 
