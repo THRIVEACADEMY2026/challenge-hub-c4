@@ -30,7 +30,9 @@ Thrive Brand Guidelines 2024 (Canva, 26pp), plus two standing overrides from Sha
 
 ## Wired to real URLs
 
-Playbooks (all 5 verified live), Quest posts (`giftfromthrive.com/day1` to `day5`), the Zoom room, and the September Summit order page.
+Playbooks (all 5 verified live), Quest posts (`giftfromthrive.com/day1` to `day5`), and the September Summit order page.
+
+**The Zoom join link is deliberately not in this repo.** It carries an embedded `?pwd=` password, so committing it to a public repo would let anyone read it from source and join the live session. The `ZOOM` constant is a placeholder and the Join button says so. Inject the real link server-side behind the magic-link gate, or paste it only into a private production build.
 
 ## Before launch
 
