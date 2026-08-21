@@ -43,16 +43,26 @@ img{max-width:100%;height:auto;display:block}
 .skip{position:absolute;left:-9999px;top:0;background:#fff;color:var(--btn);padding:12px 18px;z-index:100}
 .skip:focus{left:8px;top:8px}
 
-/* ---------- review bar (delete before launch) ---------- */
-#demo{position:sticky;top:0;z-index:60;background:#E4E8ED;color:#4A5A6B;border-bottom:1px dashed #A9B6C4;
-  font-family:Oswald,Impact,sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-#demo .in{max-width:1200px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
-#demo .lbl{color:#8494A4}
-#demo button{font:inherit;background:#fff;color:#4A5A6B;border:1px solid #B9C4CF;padding:5px 9px;cursor:pointer}
-#demo button:hover{border-color:var(--btn);color:var(--btn)}
-#demo button[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff;font-weight:600}
-#demo .grow{flex:1}
-#demo .note{text-transform:none;letter-spacing:0;font-family:Raleway,Arial,sans-serif;font-size:11.5px;color:#8494A4}
+/* ---------- review tools (delete this whole block before launch) ---------- */
+#rev{position:fixed;right:14px;bottom:14px;z-index:70;font-family:Oswald,Impact,sans-serif;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:flex;flex-direction:column;
+  align-items:flex-end;gap:8px}
+#revToggle{font:inherit;background:#fff;color:#6B7A8A;border:1px solid #C4CED8;padding:7px 11px;
+  cursor:pointer;box-shadow:0 2px 10px rgba(0,24,38,.10)}
+#revToggle:hover{color:var(--btn);border-color:var(--btn)}
+#revPanel{background:#fff;border:1px solid #C4CED8;box-shadow:0 8px 30px rgba(0,24,38,.16);
+  padding:13px 14px;max-width:260px}
+#revPanel[hidden]{display:none}
+#revPanel .lbl{display:block;color:#9AA7B4;margin:0 0 5px}
+#revPanel .lbl+.lbl{margin-top:12px}
+#revPanel .row{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 4px}
+#revPanel button{font:inherit;background:#fff;color:#4A5A6B;border:1px solid #C4CED8;
+  padding:5px 8px;cursor:pointer}
+#revPanel button:hover{border-color:var(--btn);color:var(--btn)}
+#revPanel button[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff;font-weight:600}
+#revPanel .wide{width:100%;margin-top:6px}
+#revPanel .note{display:block;text-transform:none;letter-spacing:0;font-family:Raleway,Arial,sans-serif;
+  font-size:11px;color:#9AA7B4;line-height:1.45;margin:12px 0 0}
 
 /* ---------- masthead ---------- */
 .masthead{background:#fff;border-bottom:1px solid var(--hairline);box-shadow:inset 0 -4px 0 var(--header)}
@@ -238,19 +248,19 @@ footer.site{max-width:1200px;margin:0 auto;padding:22px 20px 40px;font-size:11.5
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<div id="demo">
-  <div class="in">
-    <span class="lbl">Review</span>
+<div id="rev">
+  <div id="revPanel" hidden>
     <span class="lbl">Day</span>
-    <button data-day="0">Pre</button>
-    <button data-day="1">1</button><button data-day="2">2</button><button data-day="3">3</button>
-    <button data-day="4">4</button><button data-day="5">5</button>
+    <div class="row">
+      <button data-day="0">Pre</button><button data-day="1">1</button><button data-day="2">2</button>
+      <button data-day="3">3</button><button data-day="4">4</button><button data-day="5">5</button>
+    </div>
     <span class="lbl">Session</span>
-    <button id="tgLive">Before the live</button>
-    <span class="grow"></span>
-    <button id="tgReset">Reset</button>
-    <span class="note">Review controls. Delete this bar before launch.</span>
+    <button id="tgLive" class="wide">Before the live</button>
+    <button id="tgReset" class="wide">Reset</button>
+    <span class="note">Preview only. Delete the review block before launch.</span>
   </div>
+  <button id="revToggle" aria-expanded="false" aria-controls="revPanel">Review tools</button>
 </div>
 
 <header class="masthead">
@@ -566,13 +576,13 @@ function wire(){
 
 /* ---------------- review bar ---------------- */
 function syncDemo(){
-  Array.prototype.forEach.call(document.querySelectorAll("#demo [data-day]"),function(b){
+  Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
     b.setAttribute("aria-pressed",(+b.getAttribute("data-day"))===S.day?"true":"false");});
   var t=document.getElementById("tgLive");
   t.setAttribute("aria-pressed",S.live?"true":"false");
   t.textContent=S.live?"After the live":"Before the live";
 }
-Array.prototype.forEach.call(document.querySelectorAll("#demo [data-day]"),function(b){
+Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
   b.onclick=function(){
     S.day=+b.getAttribute("data-day"); save();
     var m=location.hash.match(/^#\/day\/([1-5])$/);
@@ -584,6 +594,12 @@ Array.prototype.forEach.call(document.querySelectorAll("#demo [data-day]"),funct
 document.getElementById("tgLive").onclick=function(){S.live=!S.live;save();render();};
 document.getElementById("tgReset").onclick=function(){
   S={day:2,live:false,email:null,first:null,progress:{}};save();location.hash="#/login";render();toast("Reset");};
+
+var rt=document.getElementById("revToggle"), rp=document.getElementById("revPanel");
+rt.onclick=function(){var open=rp.hasAttribute("hidden");
+  if(open){rp.removeAttribute("hidden");}else{rp.setAttribute("hidden","");}
+  rt.setAttribute("aria-expanded",open?"true":"false");
+  rt.textContent=open?"Hide review tools":"Review tools";};
 
 window.addEventListener("hashchange",function(){render();});
 render();

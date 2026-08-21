@@ -34,7 +34,7 @@ Playbooks (all 5 verified live), Quest posts (`giftfromthrive.com/day1` to `day5
 
 ## Before launch
 
-1. **Delete the review bar.** Remove the `<div id="demo">` block and the review-bar script section at the bottom. It is clearly marked.
+1. **Delete the review tools.** Remove the `<div id="rev">` block, its CSS section, and the review-tools script section at the bottom. All three are clearly marked. They sit in a collapsed panel in the bottom-right corner, not at the top of the page.
 2. **Supply the Facebook Group URL.** The `FBGROUP` constant is a placeholder; the field is blank in both the Aug 17-23 and Sept 7-13 Notebooks.
 3. **Swap the video placeholders** for the real embeds. Use Fathom immediately after each session rather than waiting for the Zoom render.
 4. **Replace the Quest post URLs** with the direct Facebook post URLs if we want the "ugly" URLs Sharla asked for. The pretty URLs work today.
