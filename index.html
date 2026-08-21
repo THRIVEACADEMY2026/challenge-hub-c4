@@ -9,301 +9,259 @@
 <link rel="icon" href="https://d2saw6je89goi1.cloudfront.net/uploads/digital_asset/file/664695/THRIVE_FAVICON_CROP_4_FA.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500&family=Raleway:wght@200;300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap">
 
 <style>
-/* ==========================================================================
+/* ============================================================
    Thrive Challenge Hub
-
-   Type and button specs measured off the live thrive-academy.com, not
-   invented. That site is the brand in market:
-     Display    Raleway 200, 66-80px, ~1px tracking
-     Eyebrow    Oswald 300, letter-spacing 11px, uppercase
-     Button     Oswald 400, 16px, letter-spacing 5px, uppercase,
-                transparent with a 1px border, 0 radius
-   Palette and gradients from Thrive Brand Guidelines 2024.
-   Dark grounds are gradient or photographic, never a flat navy fill.
-   ========================================================================== */
+   Built to Thrive Brand Guidelines 2024.
+   Raleway = primary family. Oswald = accent, used sparingly.
+   Buttons #1D74BD on light. 90 degree corners everywhere.
+   No dark navy grounds (Sharla, Aug 2026). Navy is type only.
+   ============================================================ */
 :root{
-  --delft:#1A325C; --cerulean:#016D92; --indigo:#044470;
-  --teal:#298EA5;              /* live-site accent */
-  --sky:#00AEEF;
-  --ink:#1A325C; --body:#5C6570; --soft:#8A939E;
-  --line:#E3E7EB; --hair:#EDF0F3;
-  --wash-warm:linear-gradient(165deg,#FBFAF6 0%,#FFFFFF 70%);
-  /* Taken from the Client Attraction Summit banner: a warm neutral ground with
-     navy used as a BAND, never as a field. Sharla's teal against this neutral is
-     the contrast that makes the banner work. */
-  --ground:#DAD6DA;
-  --ground-soft:#E6E3E6;
-  --hero-field:
-    radial-gradient(105% 95% at 72% 42%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 62%),
-    linear-gradient(168deg,#E4E1E4 0%,#DAD6DA 58%,#D2CDD3 100%);
+  /* Palette sampled off the Client Attraction Summit banner and the live site.
+     Navy is a BAND and a type colour. It is never a background field. */
+  --delft:#1A325C; --ink:#1A325C; --cerulean:#016D92; --indigo:#044470;
+  --teal:#298EA5; --sky:#00AEEF;
+  --btn:#1D74BD; --btn-hover:#17629F;
+  --header:#019ACD; --body:#5C6570; --soft:#8A939E;
+  --ground:#DAD6DA; --ground-soft:#EFEDEF;
+  --line:#E3E7EB; --hair:#EDF0F3; --locked-bg:#F1F2F4; --locked-ink:#A8B0B8;
   --grad-gold:linear-gradient(90deg,#9D6903,#FDD276 35%,#875300 55%,#D6B146 78%,#DAB044);
-  --gold:#D6B146;
-  --ok:#0F7B4F;
+  --gold:#D6B146; --ok:#0F7B4F; --orange:#F16736;
+  --shell:#F4F4F5;
+  --measure:70ch;
 }
 *{box-sizing:border-box;border-radius:0}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:#fff;color:var(--body);
-  font-family:Raleway,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.7;
-  font-weight:400;-webkit-font-smoothing:antialiased}
+body{
+  margin:0;background:var(--shell);color:var(--body);
+  font-family:Raleway,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+a{color:var(--btn)}
+:focus-visible{outline:3px solid var(--header);outline-offset:2px}
 img{max-width:100%;height:auto;display:block}
-a{color:var(--teal)}
-:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-.skip{position:absolute;left:-9999px;background:#fff;color:var(--ink);padding:14px 20px;z-index:100}
-.skip:focus{left:10px;top:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-9999px;top:0;background:#fff;color:var(--btn);padding:12px 18px;z-index:100}
+.skip:focus{left:8px;top:8px}
 
 /* ---------- review tools (delete this whole block before launch) ---------- */
-#rev{position:fixed;right:16px;bottom:16px;z-index:70;font-family:Oswald,sans-serif;font-size:10px;
-  letter-spacing:2px;text-transform:uppercase;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-#revToggle{font:inherit;letter-spacing:2px;background:rgba(255,255,255,.94);color:var(--soft);
-  border:1px solid var(--line);padding:9px 13px;cursor:pointer;box-shadow:0 3px 16px rgba(0,24,38,.10)}
-#revToggle:hover{color:var(--teal);border-color:var(--teal)}
-#revPanel{background:#fff;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,24,38,.16);padding:16px;max-width:250px}
+#rev{position:fixed;right:14px;bottom:14px;z-index:70;font-family:Oswald,Impact,sans-serif;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:flex;flex-direction:column;
+  align-items:flex-end;gap:8px}
+#revToggle{font:inherit;background:#fff;color:#6B7A8A;border:1px solid #C4CED8;padding:7px 11px;
+  cursor:pointer;box-shadow:0 2px 10px rgba(0,24,38,.10)}
+#revToggle:hover{color:var(--btn);border-color:var(--btn)}
+#revPanel{background:#fff;border:1px solid #C4CED8;box-shadow:0 8px 30px rgba(0,24,38,.16);
+  padding:13px 14px;max-width:260px}
 #revPanel[hidden]{display:none}
-#revPanel .lbl{display:block;color:var(--soft);margin:0 0 7px}
-#revPanel .lbl+.lbl{margin-top:14px}
-#revPanel .row{display:flex;flex-wrap:wrap;gap:5px}
-#revPanel button{font:inherit;letter-spacing:1px;background:#fff;color:var(--body);border:1px solid var(--line);padding:6px 9px;cursor:pointer}
-#revPanel button:hover{border-color:var(--teal);color:var(--teal)}
-#revPanel button[aria-pressed=true]{background:var(--indigo);border-color:var(--indigo);color:#fff}
-#revPanel .wide{width:100%;margin-top:7px}
-#revPanel .note{display:block;text-transform:none;letter-spacing:0;font-family:Raleway,sans-serif;
-  font-size:11px;color:var(--soft);line-height:1.5;margin:14px 0 0}
+#revPanel .lbl{display:block;color:#9AA7B4;margin:0 0 5px}
+#revPanel .lbl+.lbl{margin-top:12px}
+#revPanel .row{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 4px}
+#revPanel button{font:inherit;background:#fff;color:#4A5A6B;border:1px solid #C4CED8;
+  padding:5px 8px;cursor:pointer}
+#revPanel button:hover{border-color:var(--btn);color:var(--btn)}
+#revPanel button[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff;font-weight:600}
+#revPanel .wide{width:100%;margin-top:6px}
+#revPanel .note{display:block;text-transform:none;letter-spacing:0;font-family:Raleway,Arial,sans-serif;
+  font-size:11px;color:#9AA7B4;line-height:1.45;margin:12px 0 0}
 
 /* ---------- masthead ---------- */
-.masthead{position:relative;z-index:20}
-.masthead .in{max-width:1180px;margin:0 auto;padding:26px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.masthead img{width:98px}
-.acct{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Oswald,sans-serif;
-  font-weight:300;color:var(--soft);text-align:right;line-height:1.9}
-.acct button{background:none;border:0;color:var(--teal);font:inherit;letter-spacing:2px;cursor:pointer;padding:0}
-.onDark .acct{color:#6B7681}
-.onDark .acct button{color:var(--cerulean)}
+.masthead{background:linear-gradient(168deg,#E9E7E9 0%,var(--ground) 100%);position:relative;overflow:hidden}
+.masthead .in{max-width:1200px;margin:0 auto;padding:18px 20px;display:flex;align-items:center;
+  justify-content:space-between;gap:16px;position:relative;z-index:3}
+.masthead .logo{width:102px}
+/* the pair, quietly, at the right of the masthead: the banner's cast without its scale */
+.masthead .cast{position:absolute;right:0;bottom:0;z-index:2;display:none;align-items:flex-end;gap:0;pointer-events:none}
+.masthead .cast img{height:118px;width:auto;display:block}
+.masthead .cast img.j{margin-left:-14px}
+@media (min-width:1080px){ .masthead .cast{display:flex} .masthead .in{padding-right:300px} }
+/* the navy band: the device carried over from the Summit banner */
+.strip{background:var(--ink);position:relative;z-index:4}
+.strip .in{max-width:1200px;margin:0 auto;padding:13px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.strip span{font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:12px;letter-spacing:4px;
+  text-transform:uppercase;color:#fff;white-space:nowrap}
+.strip span.hi{color:var(--sky)}
+.strip .sep{opacity:.45}
+@media (max-width:560px){ .strip .in{padding:11px 16px;gap:8px} .strip span{font-size:11px;letter-spacing:3px} .strip .sep{display:none} }
+.acct{font-size:12px;color:var(--body);text-align:right;line-height:1.4}
+.acct button{background:none;border:0;color:var(--btn);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 
-/* ---------- hero ---------- */
-.hero{position:relative;background:var(--hero-field);color:var(--body);
-  overflow:hidden;margin-top:-92px;padding-top:92px;border-bottom:0}
-/* the navy band: a device carried straight over from the Summit banner */
-.hero .band-strip{position:absolute;left:0;right:0;bottom:0;z-index:3;background:#1A325C;
-  padding:17px 28px;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;align-items:baseline}
-.hero .band-strip span{font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
-  letter-spacing:4px;text-transform:uppercase;color:#fff;white-space:nowrap}
-.hero .band-strip span.hi{color:#00AEEF}
-.hero .in{max-width:1240px;margin:0 auto;padding:60px 24px 96px;display:grid;grid-template-columns:1fr;
-  gap:30px;align-items:end;position:relative;z-index:2}
-.hero .cast{display:none}
-.hero .copy{text-align:left}
-@media (min-width:900px){
-  .hero .in{grid-template-columns:minmax(0,.72fr) minmax(0,1.62fr) minmax(0,.78fr);
-    gap:18px;padding:64px 24px 104px;align-items:end}
-  .hero .copy{text-align:center;padding-bottom:8px}
-  .hero .copy .lede,.hero .copy .measure{margin-left:auto;margin-right:auto}
-  .hero .copy .btns,.hero .copy form{justify-content:center;margin-left:auto;margin-right:auto}
-  .hero .copy .btns{justify-content:center}
-  .hero .cast{display:block;position:relative;z-index:4;margin-bottom:-104px;align-self:end}
-  .hero .cast img{width:100%;height:auto;filter:drop-shadow(0 18px 34px rgba(26,50,92,.16))}
-  .hero .cast.l{justify-self:start;max-width:352px;margin-left:-30px}
-  .hero .cast.r{justify-self:end;max-width:376px;margin-right:-30px}
+/* ---------- layout ---------- */
+.shell{max-width:1200px;margin:0 auto;background:#fff;min-height:70vh;display:grid;grid-template-columns:1fr}
+.side{display:none}
+main{padding:26px 20px 44px;min-width:0}
+.measure{max-width:var(--measure)}
+
+@media (min-width:1024px){
+  .shell{grid-template-columns:288px 1fr;box-shadow:0 0 60px rgba(0,24,38,.10)}
+  .side{display:block;border-right:1px solid var(--line);padding:32px 24px 44px;background:var(--ground-soft)}
+  .side .stick{position:sticky;top:32px}
+  main{padding:34px 44px 64px}
 }
-.hero h1{color:var(--ink);font-size:clamp(32px,3.9vw,56px)}
-.hero p.lede{color:#4A5560;max-width:44ch}
-.hero .figure img{filter:drop-shadow(0 24px 44px rgba(26,50,92,.22))}
-.hero .small{color:#6B7681}
 
-/* ---------- type ---------- */
-h1{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(36px,5.4vw,66px);line-height:1.08;
-  letter-spacing:.5px;color:var(--ink);margin:0 0 20px;text-wrap:balance}
-h1 em{font-style:normal;font-weight:400}
-h2.sec{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(28px,3.6vw,46px);line-height:1.12;
-  letter-spacing:.5px;color:var(--ink);margin:0 0 18px;text-wrap:balance}
-.eyebrow{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:9px;
-  text-transform:uppercase;color:var(--teal);margin:0 0 20px}
-.hero .eyebrow{color:var(--cerulean)}
-h3.lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:13px;letter-spacing:7px;
-  text-transform:uppercase;color:var(--teal);margin:0 0 16px}
-p{margin:0 0 18px}
-.lede{font-size:clamp(17px,2vw,20px);font-weight:300;line-height:1.65;color:var(--body)}
-.small{font-size:14px;line-height:1.65;color:var(--soft)}
-.count{font-family:Raleway,sans-serif;font-weight:200;font-size:clamp(40px,7vw,64px);line-height:1;
-  letter-spacing:1px;color:var(--ink);font-variant-numeric:tabular-nums;margin:0 0 8px}
-.hero .count{color:var(--ink)}
-.count-lbl{font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:6px;
-  text-transform:uppercase;color:var(--soft);margin:0 0 30px}
-.hero .count-lbl{color:#6B7681}
+/* sidebar */
+.side h2{font-family:Oswald,Impact,sans-serif;font-weight:500;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--header);margin:0 0 12px}
+.side .navlist{display:flex;flex-direction:column;gap:6px;margin:0 0 26px}
+.navitem{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line);
+  background:#fff;text-decoration:none;color:inherit;font:inherit}
+.navitem:hover{border-color:var(--btn)}
+.navitem .n{font-family:Oswald,Impact,sans-serif;font-weight:500;font-size:13.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--delft);flex:1}
+.navitem .s{font-size:11px;color:var(--body)}
+.navitem[aria-current=page]{border-color:var(--btn);border-left-width:4px;background:var(--tint)}
+.navitem.live{background:var(--btn);border-color:var(--btn)}
+.navitem.live .n,.navitem.live .s{color:#fff}
+.navitem.locked{background:var(--locked-bg);border-color:var(--locked-bg);pointer-events:none}
+.navitem.locked .n,.navitem.locked .s{color:var(--locked-ink)}
+.navitem .ok{font-size:11px;color:var(--ok);font-weight:700}
+.navitem.live .ok{color:#fff}
 
-/* ---------- buttons: ghost, wide tracking, square ---------- */
-.btn{display:inline-block;font-family:Oswald,sans-serif;font-weight:400;font-size:14px;
-  letter-spacing:5px;text-transform:uppercase;padding:16px 30px 16px 35px;border:1px solid var(--ink);
-  color:var(--ink);background:transparent;text-decoration:none;cursor:pointer;
-  transition:background .2s,color .2s,border-color .2s;line-height:1.2;text-align:center}
-.btn:hover{background:var(--ink);color:#fff}
-.btn-fill{background:var(--indigo);border-color:var(--indigo);color:#fff}
-.btn-fill:hover{background:#02324F;border-color:#02324F;color:#fff}
-.btn-light{border-color:#fff;color:#fff}
-.btn-light:hover{background:#fff;color:var(--ink)}
-.btn-quiet{border-color:var(--line);color:var(--body)}
-.btn-quiet:hover{background:var(--ink);border-color:var(--ink);color:#fff}
-.btn[disabled],.btn.is-locked{border-color:var(--hair);color:#B9C1C9;cursor:not-allowed;background:transparent}
-.btn[disabled]:hover,.btn.is-locked:hover{background:transparent;color:#B9C1C9}
-.hero .btn{border-color:var(--ink);color:var(--ink);background:transparent}
-.hero .btn:hover{background:var(--ink);color:#fff}
-.hero .btn-quiet{border-color:rgba(26,50,92,.38);color:#3E4A57}
-.hero .btn-quiet:hover{background:var(--ink);border-color:var(--ink);color:#fff}
-.hero input[type=email]{color:var(--ink);border-bottom-color:rgba(26,50,92,.45)}
-.hero input::placeholder{color:#8B939C}
-.hero label.fl{color:#6B7681}
-.btns{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 8px}
-.btns .btn{flex:0 0 auto}
-@media (max-width:520px){ .btns{flex-direction:column} .btns .btn{width:100%} }
+/* type */
+.eyebrow{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:12px;letter-spacing:8px;
+  text-transform:uppercase;color:var(--teal);margin:0 0 10px}
+h1{font-family:Raleway,Arial,sans-serif;font-weight:200;font-size:clamp(32px,4.4vw,52px);line-height:1.08;
+  letter-spacing:.5px;color:var(--ink);margin:0 0 14px;text-wrap:balance}
+h2.sub{font-family:Raleway,Arial,sans-serif;font-weight:200;font-size:clamp(22px,2.8vw,32px);line-height:1.18;
+  letter-spacing:.4px;color:var(--ink);margin:0 0 12px;text-wrap:balance}
+h3{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:14px;letter-spacing:6px;
+  text-transform:uppercase;color:var(--teal);margin:34px 0 12px}
+p{margin:0 0 14px}
+.lede{font-size:17px}
+.caption{font-size:12.5px;line-height:1.5}
+.time{font-family:Oswald,Impact,sans-serif;font-weight:500;letter-spacing:.05em;color:var(--cerulean);font-size:15px;margin:0 0 6px}
+.countdown{font-family:Oswald,Impact,sans-serif;font-size:clamp(30px,5vw,42px);letter-spacing:.05em;
+  color:var(--delft);font-variant-numeric:tabular-nums;margin:0 0 20px;line-height:1.05}
+.countdown small{display:block;font-family:Raleway,Arial,sans-serif;font-size:12.5px;letter-spacing:0;
+  color:var(--body);text-transform:none;margin-top:4px}
+.back{display:inline-flex;align-items:center;gap:7px;font-family:Oswald,Impact,sans-serif;font-size:12px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--btn);text-decoration:none;margin:0 0 18px}
 
-/* ---------- layout bands ---------- */
-main{display:block}
-.band{max-width:1180px;margin:0 auto;padding:64px 28px}
-.band.tight{padding-top:44px}
-.band.pale{background:#FAFBFC;max-width:none}
-.band.pale > .inner{max-width:1180px;margin:0 auto}
-.measure{max-width:62ch}
-.rule{height:1px;background:var(--line);border:0;margin:0}
+/* buttons */
+.btn{display:block;width:100%;text-align:center;padding:16px 20px;cursor:pointer;
+  font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:5px;
+  text-transform:uppercase;border:1px solid var(--ink);margin:0 0 14px;line-height:1.3;
+  text-decoration:none;transition:background .2s,color .2s,border-color .2s}
+.btn-primary{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.btn-primary:hover{background:#02324F;border-color:#02324F}
+.btn-outline{background:transparent;color:var(--ink);border-color:var(--ink)}
+.btn-outline:hover{background:var(--ink);color:#fff}
+.btn-sub{display:block;font-family:Raleway,Arial,sans-serif;font-weight:500;font-size:11.5px;
+  letter-spacing:.01em;text-transform:none;margin-top:4px;opacity:.92}
+.btnrow{display:flex;flex-direction:column;gap:0}
+@media (min-width:680px){
+  .btnrow{flex-direction:row;gap:12px}
+  .btnrow .btn{margin-bottom:12px}
+}
 
-/* ---------- day index ---------- */
-.days{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-.days li{border-bottom:1px solid var(--line)}
-.days a,.days span.row{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;
-  padding:26px 4px;text-decoration:none;color:inherit;transition:padding .2s,background .2s}
-.days a:hover{padding-left:14px;background:#FAFBFC}
-.days .num{font-family:Raleway,sans-serif;font-weight:200;font-size:34px;line-height:1;color:var(--ink);
-  min-width:52px;font-variant-numeric:tabular-nums}
-.days .ttl{font-family:Raleway,sans-serif;font-weight:400;font-size:19px;color:var(--ink);line-height:1.35}
-.days .sub{display:block;font-family:Oswald,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;
-  text-transform:uppercase;color:var(--soft);margin-top:6px}
-.days .meta{font-family:Oswald,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;
-  text-transform:uppercase;color:var(--soft);white-space:nowrap}
-.days .meta.live{color:var(--sky)}
-.days .meta.done{color:var(--ok)}
-.days li.locked .num,.days li.locked .ttl{color:#C2C9D0}
-.days li.locked .row{cursor:not-allowed}
+/* day cards (mobile hub) */
+.daylist{display:flex;flex-direction:column;gap:9px;margin:22px 0 0}
+.dayrow{display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);
+  background:#fff;text-decoration:none;color:inherit;font:inherit;transition:border-color .15s}
+.dayrow:hover{border-color:var(--btn)}
+.dayrow .n{font-family:Oswald,Impact,sans-serif;font-weight:500;font-size:15px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--delft);flex:1}
+.dayrow .d{font-size:12px;color:var(--body)}
+.dayrow.live{background:var(--btn);border-color:var(--btn)}
+.dayrow.live .n,.dayrow.live .d{color:#fff}
+.dayrow.live .d{font-weight:700}
+.dayrow.locked{background:var(--locked-bg);border-color:var(--locked-bg);pointer-events:none}
+.dayrow.locked .n,.dayrow.locked .d{color:var(--locked-ink)}
+.dayrow.done .n{color:var(--body)}
+.pill{font-family:Oswald,Impact,sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;background:#E7F4EC;color:var(--ok)}
+.dayrow.live .pill{background:rgba(255,255,255,.22);color:#fff}
+@media (min-width:1024px){ .hub-daylist{display:none} }
 
-/* ---------- progress ---------- */
-.prog{display:flex;align-items:center;gap:18px;margin:0 0 6px}
-.prog .track{flex:1;height:1px;background:var(--line);position:relative}
-.prog .fill{position:absolute;left:0;top:0;height:1px;background:var(--gold);transition:width .4s}
-.prog .n{font-family:Oswald,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;
-  text-transform:uppercase;color:var(--soft);white-space:nowrap}
+/* progress */
+.progress{display:flex;align-items:center;gap:10px;margin:20px 0 0}
+.track{flex:1;height:6px;background:var(--locked-bg)}
+.fill{height:6px;background:var(--header);transition:width .3s}
+.progress .lab{font-family:Oswald,Impact,sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  font-size:11px;color:var(--body);white-space:nowrap}
 
-/* ---------- video ---------- */
-.video{position:relative;width:100%;aspect-ratio:16/9;background:#ECF1F5;border:1px solid var(--line);padding:0;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 0 20px}
-.video .play{width:74px;height:74px;border:1px solid var(--teal);display:flex;
-  align-items:center;justify-content:center;transition:background .2s}
-.video .play::after{content:"";width:0;height:0;border-left:17px solid var(--teal);
-  border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:4px}
-.video:hover .play{background:rgba(41,142,165,.10)}
-.video.playing{background:#000}
+/* video */
+.video{background:#E4E9EE;aspect-ratio:16/9;width:100%;display:flex;align-items:center;justify-content:center;
+  margin:0 0 16px;position:relative;cursor:pointer;padding:0;border:1px solid var(--line)}
+.video .play{width:0;height:0;border-left:clamp(26px,4vw,40px) solid var(--btn);
+  border-top:clamp(17px,2.6vw,26px) solid transparent;border-bottom:clamp(17px,2.6vw,26px) solid transparent;
+  transition:transform .15s}
+.video:hover .play{transform:scale(1.1)}
+.video .tag{position:absolute;left:0;bottom:0;background:var(--btn);color:#fff;
+  font-family:Oswald,Impact,sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 11px}
+.video.playing{background:#111}
 .video.playing .play{display:none}
+.vnote{font-size:12.5px;margin:-8px 0 18px}
 
-/* ---------- quest steps ---------- */
-.steps{list-style:none;margin:26px 0 0;padding:0;border-top:1px solid var(--line)}
-.steps li{border-bottom:1px solid var(--line)}
-.steps label{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;padding:22px 2px;cursor:pointer}
-.steps input{width:18px;height:18px;margin:4px 0 0;accent-color:var(--indigo);cursor:pointer}
-.steps .k{display:block;font-family:Oswald,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;
-  text-transform:uppercase;color:var(--soft);margin-bottom:7px}
-.steps .t{font-size:17px;font-weight:300;line-height:1.6;color:var(--ink)}
-.steps .t b{font-weight:600}
-.steps li.on .t{color:var(--soft)}
-.steps li.on .k{color:var(--ok)}
+/* desktop 2 column split on day pages */
+.cols{display:grid;grid-template-columns:1fr;gap:0}
+@media (min-width:900px){
+  .cols{grid-template-columns:1.5fr .95fr;gap:34px;align-items:start}
+  .cols .aside{position:sticky;top:96px}
+}
 
-/* ---------- ticket ---------- */
-.ticket{margin:34px 0 0;padding:30px 0 0;border-top:1px solid var(--line)}
-.ticket .gold{width:44px;height:2px;background:var(--grad-gold);margin:0 0 18px}
-.ticket p{font-size:17px;font-weight:300;color:var(--ink);max-width:52ch;margin:0}
-.ticket b{font-weight:600}
+/* quest steps */
+.steps{border:1px solid var(--line);border-top:4px solid var(--header);padding:4px 18px;background:#FBFCFD}
+.step{display:flex;gap:13px;padding:15px 0;border-bottom:1px solid #EDF1F4;align-items:flex-start}
+.step:last-child{border-bottom:0}
+.step input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--btn);flex:0 0 auto;cursor:pointer}
+.step .txt{font-size:14.5px;line-height:1.45}
+.step .txt b{color:var(--delft)}
+.step .k{display:block;font-family:Oswald,Impact,sans-serif;font-weight:600;font-size:11px;
+  letter-spacing:.12em;color:var(--header);margin-bottom:3px}
+.step.checked .txt{opacity:.55;text-decoration:line-through}
 
-/* ---------- summit ---------- */
-.summit{background:var(--wash-warm);color:var(--body);border-top:1px solid var(--line)}
-.summit .inner{max-width:1180px;margin:0 auto;padding:76px 28px}
-.summit-art{display:block;margin:0 0 34px;max-width:820px;border:1px solid rgba(26,50,92,.10)}
-.summit-art img{width:100%;height:auto}
-.summit h2.sec{color:var(--ink)}
-.summit p{color:var(--body);max-width:52ch}
-.summit .eyebrow{color:#9A7B22}
-.summit .inner{position:relative}
-.summit .inner::before{content:"";display:block;width:52px;height:2px;background:var(--grad-gold);margin:0 0 26px}
+/* golden ticket */
+.ticket{background:var(--grad-gold);padding:2px;margin:18px 0 0}
+.ticket-in{background:#fff;padding:16px;font-size:13.5px;color:var(--delft);line-height:1.5}
+.ticket-in b{color:#875300}
+.ticket.earned .ticket-in{background:#FFFDF6}
 
-/* ---------- concierge ---------- */
-.concierge{border-top:1px solid var(--line);padding:40px 0 0;margin:60px 0 0}
-.concierge .t{font-family:Raleway,sans-serif;font-weight:400;font-size:18px;color:var(--ink);margin:0 0 10px}
-.concierge p{font-size:14px;color:var(--soft);margin:0 0 6px;max-width:56ch}
+/* cards */
+.card{border:1px solid var(--line);padding:20px;margin:0 0 18px;background:#fff}
+.card h3{margin-top:0}
+.card.gold{border-top:4px solid transparent;border-image:var(--grad-gold) 1}
+.card.tinted{background:var(--tint)}
 
-/* ---------- forms ---------- */
-.field{margin:0 0 22px}
-label.fl{display:block;font-family:Oswald,sans-serif;font-weight:300;font-size:11px;letter-spacing:5px;
-  text-transform:uppercase;color:var(--soft);margin:0 0 10px}
-input[type=email],input[type=url]{width:100%;border:0;border-bottom:1px solid var(--ink);padding:12px 0;
-  font-family:Raleway,sans-serif;font-weight:300;font-size:19px;color:var(--ink);background:transparent}
-input::placeholder{color:#B9C1C9}
-input:focus{outline:0;border-bottom-color:var(--teal)}
-.msg{border-left:2px solid var(--teal);padding:4px 0 4px 18px;margin:0 0 26px;font-size:15px;
-  font-weight:300;color:var(--body);max-width:56ch}
-.msg.err{border-left-color:#F16736}
-.msg.ok{border-left-color:var(--ok)}
-.merge{display:flex;align-items:center;justify-content:space-between;gap:16px;
-  border-bottom:1px solid var(--ink);padding:10px 0;margin:0 0 22px;max-width:440px}
-.merge code{font-family:Raleway,sans-serif;font-weight:300;font-size:19px;color:var(--ink)}
-.merge button{font-family:Oswald,sans-serif;font-weight:400;font-size:11px;letter-spacing:4px;
-  text-transform:uppercase;color:var(--teal);background:none;border:0;cursor:pointer;padding:4px}
-.merge button:hover{color:var(--ink)}
+/* concierge */
+.concierge{border-top:1px solid var(--line);margin-top:30px;padding-top:18px}
+.side .concierge{border-top:0;margin-top:0;padding-top:0}
+.concierge b{display:block;font-size:13.5px;color:var(--delft);margin-bottom:5px;font-weight:600}
+.concierge span{font-size:12px;line-height:1.55;display:block}
 
-.split{display:grid;grid-template-columns:1fr;gap:44px}
-@media (min-width:940px){ .split{grid-template-columns:1.45fr .8fr;gap:70px} .split .side{padding-top:6px} }
-.aside-blk{margin:0 0 40px}
+/* merge + forms */
+.merge{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px dashed var(--btn);
+  padding:13px 15px;margin:10px 0 14px;background:var(--tint)}
+.merge code{font-family:Oswald,monospace;font-size:14.5px;color:var(--btn);overflow:hidden;text-overflow:ellipsis}
+.merge button{font-family:Oswald,Impact,sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;background:var(--btn);padding:8px 12px;border:0;cursor:pointer;flex:0 0 auto}
+.merge button:hover{background:var(--btn-hover)}
+label.fl{display:block;font-family:Oswald,Impact,sans-serif;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--body);margin:0 0 6px}
+input[type=email],input[type=url]{width:100%;border:2px solid var(--delft);padding:14px;font:inherit;
+  font-size:15px;color:var(--delft);background:#fff;margin:0 0 14px}
+input::placeholder{color:#9BA7B4}
+.errorbox{border-left:4px solid var(--orange);background:#FEF3EF;padding:15px;margin:0 0 16px;
+  font-size:13.5px;color:#8A3A1B;line-height:1.5}
+.okbox{border-left:4px solid var(--ok);background:#EFF8F3;padding:15px;margin:0 0 16px;
+  font-size:13.5px;color:#14603F;line-height:1.5}
+.hint{font-size:12px;margin:-4px 0 16px}
+.hint code{font-family:Oswald,monospace;color:var(--btn)}
+.locked-msg{background:var(--locked-bg);padding:20px;margin:16px 0 0;font-size:13.5px}
 
-footer.site{border-top:1px solid var(--line);margin-top:20px}
-footer.site .in{max-width:1180px;margin:0 auto;padding:34px 28px;font-family:Oswald,sans-serif;
-  font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--soft)}
+/* login is single column even on desktop */
+.narrow{max-width:460px}
 
-#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);background:var(--ink);
-  color:#fff;padding:15px 26px;font-family:Oswald,sans-serif;font-weight:300;font-size:12px;letter-spacing:3px;
-  text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:80;max-width:90vw;text-align:center}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--delft);
+  color:#fff;padding:13px 22px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+  z-index:80;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ---------- narrow screens (kept last so it wins the cascade) ----------
-   No figure on mobile, so the field runs top to bottom instead of left to
-   right: deep behind the logo and headline, opening to Sharla's cyan at the foot. */
-@media (max-width:899px){
-  .hero{background:
-    radial-gradient(120% 60% at 70% 8%, rgba(255,255,255,.60) 0%, rgba(255,255,255,0) 64%),
-    linear-gradient(168deg,#E7E4E7 0%,#DAD6DA 62%,#D0CBD1 100%)}
-  /* copy on its own row, the two of them side by side beneath it, standing on the band */
-  .hero .in{padding:44px 22px 92px;grid-template-columns:1fr 1fr;gap:26px 6px;align-items:end}
-  .hero .copy{grid-column:1 / -1;grid-row:1;text-align:center}
-  .hero .copy .lede{margin-left:auto;margin-right:auto}
-  .hero .copy .btns,.hero .copy form{justify-content:center;margin-left:auto;margin-right:auto}
-  .hero .cast{display:block;position:relative;z-index:4;margin-bottom:-92px;align-self:end}
-  .hero .cast img{width:100%;height:auto}
-  .hero .cast.l{grid-column:1;grid-row:2;justify-self:end;max-width:196px}
-  .hero .cast.r{grid-column:2;grid-row:2;justify-self:start;max-width:208px}
-  .hero .band-strip .sep{display:none}
-  .hero .band-strip{padding:14px 24px}
-  .hero .band-strip span{font-size:12px;letter-spacing:3px}
-  .eyebrow{letter-spacing:4px;font-size:11px}
-  h3.lbl{letter-spacing:4px;font-size:12px}
-  .count-lbl{letter-spacing:4px}
-  .band{padding:48px 24px}
-  .masthead .in{padding:22px 24px}
-  .summit .inner{padding:56px 24px}
-}
-@media (max-width:560px){
-  .eyebrow{letter-spacing:3px}
-  .days a,.days span.row{grid-template-columns:auto 1fr;gap:14px;padding:20px 2px}
-  .days .meta{grid-column:2;justify-self:start;margin-top:8px}
-  .days .num{font-size:26px;min-width:34px}
-  .days .ttl{font-size:17px}
-  .days .sub{margin-top:5px}
-}
+footer.site{max-width:1200px;margin:0 auto;padding:22px 20px 40px;font-size:11.5px;color:#8A97A5}
 </style>
 </head>
 <body>
@@ -324,36 +282,60 @@ footer.site .in{max-width:1180px;margin:0 auto;padding:34px 28px;font-family:Osw
   <button id="revToggle" aria-expanded="false" aria-controls="revPanel">Review tools</button>
 </div>
 
-<div id="app"></div>
+<header class="masthead">
+  <div class="in">
+    <a href="#/hub"><img class="logo" src="logo-navy.png" alt="Thrive Academy" width="102"></a>
+    <div class="acct" id="acct"></div>
+  </div>
+  <div class="cast" aria-hidden="true">
+    <img src="sharla-summit.png" alt=""><img class="j" src="jesse-summit.png" alt="">
+  </div>
+</header>
+<div class="strip"><div class="in">
+  <span>Book 5 Consults in 5 Days</span><span class="sep">|</span>
+  <span>September 7 to 11</span><span class="sep">|</span>
+  <span class="hi">Live daily 10:00am PT</span>
+</div></div>
+
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main id="main"></main>
+</div>
+<footer class="site">&copy; 2026 Thrive Academy &middot; Questions? Text (831) 480-1290</footer>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function(){
 "use strict";
 
-var ZOOM="#zoom-link-to-be-injected"; /* carries an embedded password, never commit it */
+/* Zoom join link is deliberately NOT in this public repo. The link carries an
+   embedded password, so committing it would let anyone read it from source and
+   drop into the live session. Inject it server-side behind the magic-link gate,
+   or paste it here only in the private production build. */
+var ZOOM="#zoom-link-to-be-injected";
 var SUMMIT="https://secure.clientattractionsummit.com/order-form-challenge-step-1";
 var OPTIN="https://apply.clientattractionsummit.com/challenge-optin-organic-socials";
-var FBGROUP="#fb-group-url-needed";
+var FBGROUP="#/hub"; /* TODO Ella: real Challenge FB Group URL, blank in both Notebooks */
 var PB="https://thrive-downloads.s3.us-west-1.amazonaws.com/5DayChallenge/Day+";
 
 var DAYS=[
- {n:1,date:"Monday September 7",short:"Mon Sept 7",title:"Compelling Consult Name",
-  asset:"Compelling Consult Name",quest:"day1",post:"https://giftfromthrive.com/day1"},
- {n:2,date:"Tuesday September 8",short:"Tue Sept 8",title:"Create Intrigue",
-  asset:"Create Intrigue",quest:"std",post:"https://giftfromthrive.com/day2"},
- {n:3,date:"Wednesday September 9",short:"Wed Sept 9",title:"Trust and Transformation Story",
-  asset:"Trust and Transformation Story",quest:"std",post:"https://giftfromthrive.com/day3"},
+ {n:1,date:"Monday September 7",   short:"Mon Sept 7", title:"Compelling Consult Name",
+  asset:"Compelling Consult Name", quest:"day1", post:"https://giftfromthrive.com/day1"},
+ {n:2,date:"Tuesday September 8",  short:"Tue Sept 8", title:"Create Intrigue",
+  asset:"Create Intrigue", quest:"std", post:"https://giftfromthrive.com/day2"},
+ {n:3,date:"Wednesday September 9",short:"Wed Sept 9", title:"Trust &amp; Transformation Story",
+  asset:"Trust &amp; Transformation Story", quest:"std", post:"https://giftfromthrive.com/day3"},
  {n:4,date:"Thursday September 10",short:"Thu Sept 10",title:"Inspiring Invitation",
-  asset:"Inspiring Invitation",quest:"std",post:"https://giftfromthrive.com/day4"},
- {n:5,date:"Friday September 11",short:"Fri Sept 11",title:"Success Story",
-  asset:"Success Story or 2nd Inspiring Invitation",quest:"std",post:"https://giftfromthrive.com/day5"}
+  asset:"Inspiring Invitation", quest:"std", post:"https://giftfromthrive.com/day4"},
+ {n:5,date:"Friday September 11",  short:"Fri Sept 11",title:"Success Story",
+  asset:"Success Story or 2nd Inspiring Invitation", quest:"std", post:"https://giftfromthrive.com/day5"}
 ];
-DAYS.forEach(function(d){d.playbook=PB+d.n+"+Quest+Template.pdf";});
+DAYS.forEach(function(d){ d.playbook = PB + d.n + "+Quest+Template.pdf"; });
+
 var REGISTERED=["sarah@email.com","ella@thrive-academy.com","sj@thrive-academy.com"];
 
 var S={day:2,live:false,email:null,first:null,progress:{}};
-try{var r=localStorage.getItem("thriveHubC4");if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+try{var r=localStorage.getItem("thriveHubC4"); if(r) S=Object.assign(S,JSON.parse(r));}catch(e){}
 function save(){try{localStorage.setItem("thriveHubC4",JSON.stringify(S));}catch(e){}}
 function esc(s){return String(s).replace(/&(?!\w+;)/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function cap(e){var n=e.split("@")[0].replace(/[._-]+/g," ").trim();return n.charAt(0).toUpperCase()+n.slice(1);}
@@ -362,281 +344,265 @@ function open_(n){return S.day>=n;}
 function done_(n){var p=prog(n);return DAYS[n-1].quest==="day1"?p.quest===true:p.steps.length===4;}
 function tickets(){return DAYS.filter(function(d){return done_(d.n);}).length;}
 function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("on");
-  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("on");},2400);}
+  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("on");},2300);}
 
-function masthead(onDark){
-  var acct = S.email
-    ? esc(S.email)+'<br><button id="signout">Sign out</button>'
-    : 'Not signed in';
-  return '<header class="masthead'+(onDark?' onDark':'')+'"><div class="in">'+
-    '<a href="#/hub" aria-label="Thrive Academy"><img src="'+'logo-navy.png'+'" alt="Thrive Academy" width="98"></a>'+
-    '<div class="acct">'+acct+'</div></div></header>';
-}
 function concierge(){
-  return '<div class="concierge"><p class="t">Your Challenge Concierge is here for you.</p>'+
-   '<p>Text (831) 480-1290 or message us at <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">m.me/ThriveAcademy</a></p>'+
-   '<p>Please include your first and last name so we can find your registration and help you faster.</p></div>';
+  return '<div class="concierge"><b>Questions? Your Challenge Concierge is here for you.</b>'+
+   '<span>Text (831) 480-1290 or DM <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">m.me/ThriveAcademy</a></span>'+
+   '<span>Please include your first and last name so we can find your registration and help you faster.</span></div>';
 }
-function footer(){return '<footer class="site"><div class="in">&copy; 2026 Thrive Academy</div></footer>';}
+
+/* ---------------- sidebar (desktop) ---------------- */
+function sidebar(){
+  if(!S.email) return "";
+  var h=location.hash;
+  var items='<a class="navitem'+(h==="#/prechallenge"?'" aria-current="page':'')+'" href="#/prechallenge">'+
+            '<span class="n">Prepare</span>'+(S.day>=1?'<span class="ok">Done</span>':'')+'</a>';
+  items+=DAYS.map(function(d){
+    if(!open_(d.n)) return '<span class="navitem locked"><span class="n">Day '+d.n+'</span><span class="s">'+esc(d.short)+'</span></span>';
+    var live=(S.day===d.n&&!S.live), cur=(h==="#/day/"+d.n);
+    return '<a class="navitem'+(live?' live':'')+'"'+(cur?' aria-current="page"':'')+' href="#/day/'+d.n+'">'+
+      '<span class="n">Day '+d.n+'</span>'+
+      (live?'<span class="s">Live now</span>':(done_(d.n)?'<span class="ok">&#10003;</span>':'<span class="s">'+esc(d.short)+'</span>'))+'</a>';
+  }).join('');
+  var t=tickets(), tot=DAYS.filter(function(d){return open_(d.n);}).length;
+  return '<div class="stick"><h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
+    '<h2>Golden Tickets</h2><div class="progress"><span class="lab">'+t+' of '+tot+'</span>'+
+    '<span class="track"><span class="fill" style="width:'+(tot?Math.round(t/tot*100):0)+'%"></span></span></div>'+
+    '<div style="margin-top:28px">'+concierge()+'</div></div>';
+}
+
+function acct(){
+  if(!S.email) return '<span>Not signed in</span>';
+  return esc(S.email)+'<br><button id="signout">Sign out</button>';
+}
 
 /* ---------------- views ---------------- */
 function vLogin(err){
-  return masthead(true)+
-  '<section class="hero"><div class="in">'+
-    '<div class="cast l"><img src="sharla-summit.png" alt="Sharla Jacobs"></div>'+
-    '<div class="copy">'+
-    '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
-    '<h1>Welcome back<br>to the Challenge</h1>'+
-    '<p class="lede">Enter the email you registered with and we will take you straight to your Hub.</p>'+
-    (err?'<div class="msg err" >We do not see a Challenge registration for that email. Check any email we have sent you for the link that signs you in automatically, or <a href="'+OPTIN+'" target="_blank" rel="noopener" >register here</a>.</div>':'')+
-    '<form id="loginForm" novalidate style="max-width:560px">'+
-      '<div class="field"><label class="fl" for="em">Your email</label>'+
-      '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required '+
-      '></div>'+
-      '<div class="btns"><button class="btn" type="submit">Enter the Hub</button>'+
-      '<a class="btn" href="#/hub" id="magic" class="btn btn-quiet">Use my magic link</a></div>'+
-    '</form>'+
-    '<p class="small" style="margin-top:26px">Review note: try sarah@email.com. Anything else shows the error state.</p>'+
-  '</div>'+
-    '<div class="cast r"><img src="jesse-summit.png" alt="Jesse Koren"></div></div>'+
-  '<div class="band-strip">'+'<span>September 7 to 11</span>'+'<span class="sep">|</span>'+'<span class="hi">10:00am PT / 1:00pm ET</span>'+'</div>'+'</section>'+footer();
+  return '<div class="narrow"><p class="eyebrow">Book 5 Consults in 5 Days</p>'+
+   '<h1>Welcome to the Challenge Hub</h1>'+
+   '<p class="lede">Enter the email you used to register for the Challenge.</p>'+
+   (err?'<div class="errorbox">We don&rsquo;t see a Challenge registration for that email. Check any email we&rsquo;ve sent you for the link that logs you in automatically. Or <a href="'+OPTIN+'" target="_blank" rel="noopener">register for the Challenge here</a>.</div>':'')+
+   '<form id="loginForm" novalidate><label class="fl" for="em">Your email</label>'+
+   '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
+   '<button class="btn btn-primary" type="submit">Take me to the Challenge</button></form>'+
+   '<a class="btn btn-outline" href="#/hub" id="magic">Open my magic link<span class="btn-sub">Simulates tapping the button in our email</span></a>'+
+   '<p class="hint">Review note: registered demo addresses are <code>sarah@email.com</code> and <code>ella@thrive-academy.com</code>. Anything else shows the error state.</p></div>';
 }
 
 function vPre(){
-  return masthead(true)+
-  '<section class="hero"><div class="in">'+
-    '<div class="cast l"><img src="sharla-summit.png" alt="Sharla Jacobs"></div>'+
-    '<div class="copy">'+
-    '<p class="eyebrow">You are registered</p>'+
-    '<h1>You are in,<br><em>'+esc(S.first)+'</em></h1>'+
-    '<p class="lede">The Challenge begins Monday September 7. Two small things now, and you will be ready for Day 1.</p>'+
-    (S.day>=1?'<div class="btns"><a class="btn" href="#/hub">Go to my Hub</a></div>':'')+
-  '</div>'+
-    '<div class="cast r"><img src="jesse-summit.png" alt="Jesse Koren"></div></div>'+
-  '<div class="band-strip">'+'<span>Starts Monday September 7</span>'+'<span class="sep">|</span>'+'<span class="hi">10:00am PT</span>'+'</div>'+'</section>'+
-
-  '<main id="main"><div class="band"><div class="split"><div>'+
-    '<h3 class="lbl">First</h3>'+
-    '<h2 class="sec">Put the Challenge in your calendar</h2>'+
-    '<p class="lede">We go live at 10:00am PT, 1:00pm ET, every day from September 7 to 11.</p>'+
-    '<div class="btns"><button class="btn" id="addCal">Add to my calendar</button></div>'+
-
-    '<hr class="rule" style="margin:56px 0">'+
-
-    '<h3 class="lbl">Then</h3>'+
-    '<h2 class="sec">Join the private Facebook Group</h2>'+
-    '<p class="lede">This is where you meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
-    '<p class="small">The Group will ask for the email you registered with. Here it is.</p>'+
-    '<div class="merge"><code>'+esc(S.email)+'</code><button id="copyEmail" type="button">Copy</button></div>'+
-    '<div class="btns"><a class="btn btn-fill" href="'+FBGROUP+'" id="joinFb">Join the Group</a></div>'+
-    concierge()+
-  '</div><div class="side">'+
-    '<div class="aside-blk"><h3 class="lbl">Waiting inside</h3>'+
-    '<p class="small" style="margin-bottom:22px">Four short Pre-Challenge Quests. Each one earns a raffle ticket.</p>'+
-    '<ul class="days" style="border-top:1px solid var(--line)">'+
-      ["Show up for what matters","Introduce yourself","Invite a friend","Stay engaged"].map(function(t,i){
-      return '<li><span class="row" style="grid-template-columns:auto 1fr;padding:18px 0"><span class="num" style="font-size:22px;min-width:34px">'+(i+1)+'</span>'+
-             '<span class="ttl" style="font-size:16px">'+t+'</span></span></li>';}).join('')+
-    '</ul></div>'+
-  '</div></div></div></main>'+footer();
+  return '<div class="measure"><p class="eyebrow">You&rsquo;re registered</p>'+
+   '<h1>You&rsquo;re in, '+esc(S.first)+'!</h1>'+
+   '<button class="video" id="welcomeVid" aria-label="Play the welcome video from Sharla"><span class="play"></span><span class="tag">Welcome from Sharla</span></button>'+
+   '<p class="lede">The Challenge starts Monday September 7. Take these 2 steps now so you&rsquo;re ready on Day 1.</p>'+
+   '<h3>Step 1 &middot; Put it in your calendar</h3>'+
+   '<p>We go live at 10:00am PT / 1:00pm ET every day, September 7 to 11.</p>'+
+   '<button class="btn btn-outline" id="addCal" style="max-width:420px">Add the Challenge to my calendar</button>'+
+   '<h3>Step 2 &middot; Join the Facebook Group</h3>'+
+   '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
+   '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
+   '<div class="merge" style="max-width:420px"><code>'+esc(S.email)+'</code><button id="copyEmail" type="button">Copy</button></div>'+
+   '<a class="btn btn-primary" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
+   '<h3>Pre-Challenge Quests</h3>'+
+   '<p>Four short Quests are waiting inside the Group. Introduce yourself, meet the other Champions, and say hi to your Concierge.</p>'+
+   '<div class="daylist">'+
+     ["Show Up For What&rsquo;s Important","Introduce Yourself","Exponentially Increase Your Chances","Stay Engaged"]
+     .map(function(t,i){return '<a class="dayrow" href="'+FBGROUP+'" data-fb="1"><span class="n">Quest '+(i+1)+'</span><span class="d">'+t+'</span></a>';}).join('')+
+   '</div>'+
+   (S.day>=1?'<a class="btn btn-primary" href="#/hub" style="margin-top:26px;max-width:420px">Go to the Challenge Hub</a>':'')+
+   concierge()+'</div>';
 }
 
 function vHub(){
-  var t=tickets(), tot=DAYS.filter(function(d){return open_(d.n);}).length;
   var rows=DAYS.map(function(d){
-    if(!open_(d.n)) return '<li class="locked"><span class="row"><span class="num">'+d.n+'</span>'+
-      '<span><span class="ttl">Day '+d.n+'</span><span class="sub">'+esc(d.short)+'</span></span>'+
-      '<span class="meta">Opens 10am PT</span></span></li>';
+    if(!open_(d.n)) return '<span class="dayrow locked"><span class="n">Day '+d.n+'</span><span class="d">Opens '+esc(d.short)+', 10am PT</span></span>';
     var live=(S.day===d.n&&!S.live), dn=done_(d.n);
-    return '<li><a href="#/day/'+d.n+'"><span class="num">'+d.n+'</span>'+
-      '<span><span class="ttl">'+d.title+'</span><span class="sub">'+esc(d.short)+'</span></span>'+
-      '<span class="meta'+(live?' live':'')+(dn?' done':'')+'">'+(live?'Live now':(dn?'Complete':'Open'))+'</span></a></li>';
+    var right=live?'<span class="d">Live now</span>':(dn?'<span class="pill">Complete</span>':'<span class="d">'+esc(d.short)+'</span>');
+    return '<a class="dayrow'+(live?' live':'')+(dn?' done':'')+'" href="#/day/'+d.n+'"><span class="n">Day '+d.n+'</span>'+right+'</a>';
   }).join('');
-
-  return masthead(true)+
-  '<section class="hero"><div class="in">'+
-    '<div class="cast l"><img src="sharla-summit.png" alt="Sharla Jacobs"></div>'+
-    '<div class="copy">'+
-    '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
-    '<h1>Welcome back,<br><em>'+esc(S.first)+'</em></h1>'+
-    (t>0
-      ? '<p class="count">'+t+'</p><p class="count-lbl">Golden Ticket'+(t===1?"":"s")+' earned</p>'
-      : '')+
-    '<p class="lede">'+(t>0?'Everything you need is here. Pick up where you left off.'
-      :'Everything you need is here. Complete a day\'s Quest to earn your first Golden Ticket.')+'</p>'+
-  '</div>'+
-    '<div class="cast r"><img src="jesse-summit.png" alt="Jesse Koren"></div></div>'+
-  '<div class="band-strip">'+'<span>September 7 to 11</span>'+'<span class="sep">|</span>'+'<span class="hi">Live daily 10:00am PT</span>'+'</div>'+'</section>'+
-
-  '<main id="main"><div class="band">'+
-    '<h3 class="lbl">Your five days</h3>'+
-    '<div class="prog"><span class="n">'+t+' of '+tot+'</span>'+
-      '<span class="track"><span class="fill" style="width:'+(tot?Math.round(t/tot*100):0)+'%"></span></span></div>'+
-    '<ul class="days">'+rows+'</ul>'+
-    '<div class="btns" style="margin-top:38px"><a class="btn btn-quiet" href="#/prechallenge">Pre-Challenge Quests</a></div>'+
-    concierge()+
-  '</div>'+
-  '<section class="summit"><div class="inner">'+
-    '<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
-      '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790" loading="lazy">'+
-    '</a>'+
-    '<h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede">Three days with Sharla and Jesse, live, building the client attraction system behind everything you are learning this week.</p>'+
-    '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
-  '</div></section></main>'+footer();
+  var t=tickets(), tot=DAYS.filter(function(d){return open_(d.n);}).length;
+  return '<div class="measure"><p class="eyebrow">Book 5 Consults in 5 Days</p>'+
+   '<h1>Your Challenge Hub</h1>'+
+   '<p class="lede">Everything you need is here. Pick the day you&rsquo;re on.</p>'+
+   '<div class="progress"><span class="lab">'+t+' Golden Ticket'+(t===1?"":"s")+'</span>'+
+     '<span class="track"><span class="fill" style="width:'+(tot?Math.round(t/tot*100):0)+'%"></span></span></div>'+
+   '<div class="daylist hub-daylist">'+
+     '<a class="dayrow done" href="#/prechallenge"><span class="n">Prepare</span><span class="pill">Done</span></a>'+rows+
+   '</div>'+
+   '<div class="card gold" style="margin-top:30px"><h3>Go further than 5 days</h3>'+
+     '<p>The Client Attraction Summit is September 18 to 20. Three days with Sharla, live, building the client attraction system behind everything you&rsquo;re learning this week.</p>'+
+     '<a class="btn btn-primary" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
+   concierge()+'</div>';
 }
 
 function questBlock(d){
-  var p=prog(d.n), items;
+  var p=prog(d.n);
   if(d.quest==="day1"){
-    items='<li class="'+(p.quest?'on':'')+'"><label><input type="checkbox" id="q1"'+(p.quest?' checked':'')+'>'+
-      '<span><span class="k">Day 1 Quest</span><span class="t">I posted my <b>Compelling Consult Name</b> on the Quest post.</span></span></label></li>';
-  }else{
-    var L=['Encourage <b>5 or more Champions</b> by liking and commenting on their posts.',
-           'Post your <b>'+d.asset+'</b> on Facebook, Instagram, or LinkedIn.',
-           'Share your post link in the <b>Day '+d.n+' Quest</b> comments.',
-           'Comment on <b>5 or more Champions</b> to help boost each other.'];
-    items=L.map(function(t,i){var on=p.steps.indexOf(i)>-1;
-      return '<li class="'+(on?'on':'')+'"><label><input type="checkbox" data-step="'+i+'"'+(on?' checked':'')+'>'+
-        '<span><span class="k">Step '+(i+1)+'</span><span class="t">'+t+'</span></span></label></li>';}).join('');
+    return '<h3>Then complete your Day 1 Quest</h3>'+
+      '<p>Comment your Compelling Consult Name on our Day 1 Quest post, then claim your prize.</p>'+
+      '<a class="btn btn-primary" href="'+d.post+'" target="_blank" rel="noopener">Go to the Day 1 Quest post</a>'+
+      '<div class="steps"><div class="step'+(p.quest?' checked':'')+'">'+
+      '<input type="checkbox" id="q1"'+(p.quest?' checked':'')+'>'+
+      '<label class="txt" for="q1"><span class="k">Day 1 Quest</span>I posted my Compelling Consult Name on the Quest post.</label></div></div>';
   }
-  return '<h3 class="lbl">Today\'s Quest</h3>'+
-    '<h2 class="sec">'+(d.quest==="day1"?'Name your consult':'Post your '+d.asset)+'</h2>'+
-    '<div class="btns"><a class="btn btn-fill" href="'+d.post+'" target="_blank" rel="noopener">Open the Quest post</a></div>'+
-    '<ul class="steps">'+items+'</ul>';
+  var L=[
+   'Encourage <b>5+ Champions</b> by liking and commenting on their posts.',
+   'Post your <b>'+d.asset+'</b> on Facebook, Instagram, or LinkedIn.',
+   'Share your post link (permalink) in the <b>Day '+d.n+' Quest</b> comments.',
+   'Comment on <b>5+ more Champions</b> to help boost each other&rsquo;s visibility.'];
+  return '<h3>Then complete your Day '+d.n+' Quest</h3>'+
+   '<a class="btn btn-primary" href="'+d.post+'" target="_blank" rel="noopener">Go to the Day '+d.n+' Quest post</a>'+
+   '<div class="steps">'+L.map(function(t,i){
+     var on=p.steps.indexOf(i)>-1;
+     return '<div class="step'+(on?' checked':'')+'"><input type="checkbox" data-step="'+i+'" id="s'+i+'"'+(on?' checked':'')+'>'+
+       '<label class="txt" for="s'+i+'"><span class="k">Step '+(i+1)+'</span>'+t+'</label></div>';}).join('')+'</div>';
 }
 
 function vDay(n){
   var d=DAYS[n-1]; if(!d) return vHub();
   if(!open_(n)){
-    return masthead(false)+'<main id="main"><div class="band"><p class="eyebrow">Day '+n+'</p>'+
-      '<h1>Not open yet</h1><p class="lede measure">Day '+n+' opens '+esc(d.short)+' at 10:00am PT. We will email you the moment it does.</p>'+
-      '<div class="btns"><a class="btn btn-quiet" href="#/hub">Back to my Hub</a></div>'+concierge()+'</div></main>'+footer();
+    return '<div class="measure"><a class="back" href="#/hub">&larr; All days</a>'+
+     '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Not open yet</h1>'+
+     '<div class="locked-msg">Day '+n+' opens '+esc(d.short)+' at 10:00am PT. We&rsquo;ll email you the moment it does.</div>'+
+     concierge()+'</div>';
   }
-  var before=(S.day===n&&!S.live), dn=done_(n);
+  var before=(S.day===n && !S.live), dn=done_(n);
 
   var media = before
-   ? '<p class="count" id="cd">02:14:36</p><p class="count-lbl">Until we go live, 10:00am PT</p>'+
-     '<div class="btns"><a class="btn btn-fill" href="'+ZOOM+'" id="joinZoom" target="_blank" rel="noopener">Join the live session</a></div>'
-   : '<button class="video" id="vid" aria-label="Play the Day '+n+' session"><span class="play"></span></button>';
+   ? '<p class="time">Live at 10:00am PT / 1:00pm ET</p>'+
+     '<p class="countdown" id="cd">02:14:36<small>until we go live</small></p>'+
+     '<a class="btn btn-primary" href="'+ZOOM+'" id="joinZoom" target="_blank" rel="noopener">Join the live session</a>'
+   : '<button class="video" id="vid" aria-label="Play the Day '+n+' session"><span class="play"></span><span class="tag">Day '+n+' session</span></button>'+
+     '<p class="vnote">Watch this video first, then complete your Quest below.</p>';
 
   var quest = before
-   ? '<h3 class="lbl">Today\'s Quest</h3><h2 class="sec">Unlocks when we go live</h2>'+
-     '<p class="lede measure">Stay with me on the call and you will have it written before we finish.</p>'
+   ? '<h3>Today&rsquo;s Quest</h3><p>Your Quest unlocks when we go live. Stay with me on the call and you&rsquo;ll have it written before we finish.</p>'
    : questBlock(d);
 
   var ticket = before ? '' :
-   '<div class="ticket"><div class="gold"></div><p>'+
-   (dn?'<b>Golden Ticket earned.</b> That is Day '+n+' complete. You are in the draw for the Client Attraction Summit and two months in Platinum.'
-      :'Complete every step to earn <b>one Golden Ticket</b> toward the Client Attraction Summit and two months in Platinum.')+
-   '</p><p class="small" style="margin-top:18px">Not on Facebook? <a href="#/submit/'+n+'">Submit your post here instead.</a></p></div>';
+   '<div class="ticket'+(dn?' earned':'')+'"><div class="ticket-in">'+
+   (dn?'<b>Golden Ticket earned.</b> That&rsquo;s Day '+n+' done. You&rsquo;re in the draw for the Grand Prize: The Client Attraction Summit and 2 Months in Platinum.'
+      :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize: The Client Attraction Summit and 2 Months in Platinum.')+
+   '</div></div>'+
+   '<p class="caption" style="margin-top:14px">Not on Facebook? <a href="#/submit/'+n+'">Submit your post here instead.</a></p>';
 
-  return masthead(false)+
-  '<main id="main"><div class="band"><div class="split"><div>'+
-    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
-    '<h1>'+d.title+'</h1>'+
-    media+quest+ticket+concierge()+
-  '</div><div class="side">'+
-    '<div class="aside-blk"><h3 class="lbl">Playbook</h3>'+
-      '<p class="small" style="margin-bottom:22px">Follow along on the call and write your '+d.asset+' as we go.</p>'+
-      '<div class="btns"><a class="btn btn-quiet" href="'+d.playbook+'" target="_blank" rel="noopener">Download</a></div></div>'+
-    '<div class="aside-blk"><h3 class="lbl">All days</h3><ul class="days" style="border-top:1px solid var(--line)">'+
-      DAYS.map(function(x){
-        if(!open_(x.n)) return '<li class="locked"><span class="row" style="grid-template-columns:auto 1fr;padding:15px 0"><span class="num" style="font-size:20px;min-width:30px">'+x.n+'</span><span class="ttl" style="font-size:15px">Day '+x.n+'</span></span></li>';
-        return '<li><a href="#/day/'+x.n+'" style="grid-template-columns:auto 1fr;padding:15px 0"><span class="num" style="font-size:20px;min-width:30px">'+x.n+'</span><span class="ttl" style="font-size:15px">'+(x.n===n?'<b>'+x.title+'</b>':x.title)+'</span></a></li>';
-      }).join('')+'</ul></div>'+
-  '</div></div></div>'+
-  '<section class="summit"><div class="inner">'+
-    '<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
-      '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790" loading="lazy">'+
-    '</a>'+
-    '<h2 class="sec">Go further than five days</h2>'+
-    '<p class="lede">Three days with Sharla and Jesse, live, building the client attraction system behind everything you are learning this week.</p>'+
-    '<div class="btns"><a class="btn" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
-  '</div></section></main>'+footer();
+  var aside =
+   '<div class="aside">'+
+     '<div class="card"><h3>Today&rsquo;s Playbook</h3>'+
+       '<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+
+       '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div>'+
+     '<div class="card gold"><h3>Go further than 5 days</h3>'+
+       '<p class="caption">The Client Attraction Summit is September 18 to 20. Three days with Sharla, live.</p>'+
+       '<a class="btn btn-primary" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my seat</a></div>'+
+   '</div>';
+
+  return '<a class="back" href="#/hub">&larr; All days</a>'+
+   '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
+   '<h1>'+d.title+'</h1>'+
+   '<div class="cols"><div class="mainCol">'+media+quest+ticket+'</div>'+aside+'</div>'+
+   concierge();
 }
 
 function vSubmit(n,sent){
   var d=DAYS[n-1];
-  if(sent) return masthead(false)+'<main id="main"><div class="band measure">'+
-    '<p class="eyebrow">Day '+n+'</p><h1>Counted</h1>'+
-    '<div class="msg ok">Your Day '+n+' Quest is counted. See you tomorrow at 10:00am PT.</div>'+
-    '<div class="btns"><a class="btn" href="#/hub">Back to my Hub</a></div>'+concierge()+'</div></main>'+footer();
-  return masthead(false)+'<main id="main"><div class="band measure">'+
-    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Submit your Quest</h1>'+
-    '<p class="lede">Posted somewhere other than our Facebook Group? Drop the link here and we will count it toward your Golden Ticket.</p>'+
-    '<form id="subForm" novalidate>'+
-      '<div class="field"><label class="fl" for="se">Your email</label><input type="email" id="se" value="'+esc(S.email||"")+'" required></div>'+
-      '<div class="field"><label class="fl" for="su">Link to your post</label><input type="url" id="su" placeholder="https://" required></div>'+
-      '<div class="btns"><button class="btn btn-fill" type="submit">Count my Quest</button>'+
-      '<a class="btn btn-quiet" href="#/day/'+n+'">Back</a></div>'+
-    '</form>'+concierge()+'</div></main>'+footer();
+  if(sent) return '<div class="narrow"><a class="back" href="#/day/'+n+'">&larr; Back to Day '+n+'</a>'+
+    '<h1>Got it</h1><div class="okbox">Your Day '+n+' Quest is counted. See you tomorrow at 10:00am PT.</div>'+
+    '<a class="btn btn-primary" href="#/hub">Back to the Hub</a>'+concierge()+'</div>';
+  return '<div class="narrow"><a class="back" href="#/day/'+n+'">&larr; Back to Day '+n+'</a>'+
+   '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Submit your Quest</h1>'+
+   '<p>Posted somewhere other than our Facebook Group? Drop the link here and we&rsquo;ll count it toward your Golden Ticket.</p>'+
+   '<form id="subForm" novalidate><label class="fl" for="se">Your email</label>'+
+   '<input type="email" id="se" value="'+esc(S.email||"")+'" required>'+
+   '<label class="fl" for="su">Link to your post</label>'+
+   '<input type="url" id="su" placeholder="https://" required>'+
+   '<button class="btn btn-primary" type="submit">Count my Quest</button></form>'+concierge()+'</div>';
 }
 
 /* ---------------- router ---------------- */
 function render(keep){
-  var y=window.scrollY,h=location.hash||"#/login",html,m;
-  if(!S.email&&h!=="#/login"){location.hash="#/login";return;}
-  if(h==="#/login")html=vLogin(false);
-  else if(h==="#/prechallenge")html=vPre();
-  else if(h==="#/hub")html=vHub();
-  else if((m=h.match(/^#\/day\/([1-5])$/)))html=vDay(+m[1]);
-  else if((m=h.match(/^#\/submit\/([1-5])$/)))html=vSubmit(+m[1],false);
-  else{location.hash=S.day>=1?"#/hub":"#/prechallenge";return;}
-  document.getElementById("app").innerHTML=html;
-  window.scrollTo(0,keep?y:0);
-  wire();syncRev();
+  var y=window.scrollY, h=location.hash||"#/login", html, m;
+  if(!S.email && h!=="#/login"){location.hash="#/login";return;}
+  if(h==="#/login") html=vLogin(false);
+  else if(h==="#/prechallenge") html=vPre();
+  else if(h==="#/hub") html=vHub();
+  else if((m=h.match(/^#\/day\/([1-5])$/))) html=vDay(+m[1]);
+  else if((m=h.match(/^#\/submit\/([1-5])$/))) html=vSubmit(+m[1],false);
+  else {location.hash = S.day>=1 ? "#/hub" : "#/prechallenge"; return;}
+  document.getElementById("main").innerHTML=html;
+  document.getElementById("side").innerHTML=sidebar();
+  document.getElementById("acct").innerHTML=acct();
+  window.scrollTo(0, keep?y:0);
+  wire(); syncDemo();
 }
 
 function wire(){
   var q=function(i){return document.getElementById(i);};
-  var so=q("signout");if(so)so.onclick=function(){S.email=null;S.first=null;save();location.hash="#/login";render();};
+  var so=q("signout"); if(so) so.onclick=function(){S.email=null;S.first=null;save();location.hash="#/login";render();};
 
   var lf=q("loginForm");
-  if(lf)lf.onsubmit=function(e){e.preventDefault();
+  if(lf) lf.onsubmit=function(e){
+    e.preventDefault();
     var v=(q("em").value||"").trim().toLowerCase();
     if(REGISTERED.indexOf(v)>-1){S.email=v;S.first=cap(v);save();location.hash=S.day>=1?"#/hub":"#/prechallenge";render();}
-    else{document.getElementById("app").innerHTML=vLogin(true);wire();q("em").value=v;q("em").focus();}};
+    else{document.getElementById("main").innerHTML=vLogin(true);wire();q("em").value=v;q("em").focus();}
+  };
   var mg=q("magic");
-  if(mg)mg.onclick=function(e){e.preventDefault();S.email=REGISTERED[0];S.first=cap(REGISTERED[0]);save();
-    toast("Signed in from your magic link");location.hash=S.day>=1?"#/hub":"#/prechallenge";render();};
+  if(mg) mg.onclick=function(e){e.preventDefault();S.email=REGISTERED[0];S.first=cap(REGISTERED[0]);save();
+    toast("Logged in from your magic link");location.hash=S.day>=1?"#/hub":"#/prechallenge";render();};
 
   var ce=q("copyEmail");
-  if(ce)ce.onclick=function(){
+  if(ce) ce.onclick=function(){
     if(navigator.clipboard&&navigator.clipboard.writeText)
       navigator.clipboard.writeText(S.email).then(function(){toast("Email copied");},function(){toast(S.email);});
-    else toast(S.email);};
-  var ac=q("addCal");if(ac)ac.onclick=function(){toast("Calendar events added");};
-  var jf=q("joinFb");if(jf)jf.onclick=function(e){e.preventDefault();toast("Facebook Group link still to be supplied");};
-  var jz=q("joinZoom");if(jz&&ZOOM.charAt(0)==="#")jz.onclick=function(e){e.preventDefault();toast("Zoom link is injected in the production build");};
-  var v=q("vid");if(v)v.onclick=function(){v.classList.toggle("playing");toast(v.classList.contains("playing")?"Playing":"Paused");};
+    else toast(S.email);
+  };
+  var ac=q("addCal"); if(ac) ac.onclick=function(){toast("Calendar events added");};
+  var jz=q("joinZoom");
+  if(jz && ZOOM.charAt(0)==="#") jz.onclick=function(e){e.preventDefault();toast("Zoom link is injected in the production build");};
+
+  Array.prototype.forEach.call(document.querySelectorAll('#joinFb,[data-fb]'),function(a){
+    a.onclick=function(e){ if(a.getAttribute("href")==="#/hub"){e.preventDefault();toast("Facebook Group link still to be supplied");} };
+  });
+
+  [q("vid"),q("welcomeVid")].forEach(function(v){ if(v) v.onclick=function(){
+    v.classList.toggle("playing"); toast(v.classList.contains("playing")?"Playing":"Paused"); };});
 
   var m=location.hash.match(/^#\/day\/([1-5])$/);
   if(m){
-    var n=+m[1],p=prog(n),q1=q("q1");
-    if(q1)q1.onchange=function(){p.quest=q1.checked;save();render(true);if(p.quest)toast("Golden Ticket earned");};
+    var n=+m[1], p=prog(n), q1=q("q1");
+    if(q1) q1.onchange=function(){p.quest=q1.checked;save();render(true);if(p.quest)toast("Golden Ticket earned");};
     Array.prototype.forEach.call(document.querySelectorAll("[data-step]"),function(cb){
-      cb.onchange=function(){var i=+cb.getAttribute("data-step"),k=p.steps.indexOf(i);
+      cb.onchange=function(){
+        var i=+cb.getAttribute("data-step"), k=p.steps.indexOf(i);
         if(cb.checked&&k<0)p.steps.push(i);
         if(!cb.checked&&k>-1)p.steps.splice(k,1);
-        save();var now=done_(n);render(true);if(now)toast("Golden Ticket earned");};});
+        save(); var now=done_(n); render(true); if(now)toast("Golden Ticket earned");
+      };
+    });
     var cd=q("cd");
-    if(cd){var t=8076;clearInterval(window._cd);
+    if(cd){
+      var t=8076; clearInterval(window._cd);
       window._cd=setInterval(function(){
         if(!document.body.contains(cd)){clearInterval(window._cd);return;}
-        if(t>0)t--;var z=function(x){return String(x).padStart(2,"0");};
-        cd.textContent=z(Math.floor(t/3600))+":"+z(Math.floor(t%3600/60))+":"+z(t%60);},1000);}
+        if(t>0)t--;
+        var p2=function(x){return String(x).padStart(2,"0");};
+        cd.firstChild.nodeValue=p2(Math.floor(t/3600))+":"+p2(Math.floor(t%3600/60))+":"+p2(t%60);
+      },1000);
+    }
   }
 
   var sf=q("subForm");
-  if(sf)sf.onsubmit=function(e){e.preventDefault();
-    var n=+location.hash.match(/^#\/submit\/([1-5])$/)[1],p=prog(n);
-    if(DAYS[n-1].quest==="day1")p.quest=true;else p.steps=[0,1,2,3];
-    save();document.getElementById("app").innerHTML=vSubmit(n,true);wire();};
+  if(sf) sf.onsubmit=function(e){
+    e.preventDefault();
+    var n=+location.hash.match(/^#\/submit\/([1-5])$/)[1], p=prog(n);
+    if(DAYS[n-1].quest==="day1")p.quest=true; else p.steps=[0,1,2,3];
+    save(); document.getElementById("main").innerHTML=vSubmit(n,true);
+    document.getElementById("side").innerHTML=sidebar(); wire();
+  };
 }
 
-/* ---------------- review tools ---------------- */
-function syncRev(){
+/* ---------------- review bar ---------------- */
+function syncDemo(){
   Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
     b.setAttribute("aria-pressed",(+b.getAttribute("data-day"))===S.day?"true":"false");});
   var t=document.getElementById("tgLive");
@@ -644,19 +610,23 @@ function syncRev(){
   t.textContent=S.live?"After the live":"Before the live";
 }
 Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
-  b.onclick=function(){S.day=+b.getAttribute("data-day");save();
+  b.onclick=function(){
+    S.day=+b.getAttribute("data-day"); save();
     var m=location.hash.match(/^#\/day\/([1-5])$/);
-    if(S.day===0)location.hash="#/prechallenge";
-    else if(m&&+m[1]>S.day)location.hash="#/hub";
-    render();};});
+    if(S.day===0) location.hash="#/prechallenge";
+    else if(m && +m[1]>S.day) location.hash="#/hub";
+    render();
+  };
+});
 document.getElementById("tgLive").onclick=function(){S.live=!S.live;save();render();};
 document.getElementById("tgReset").onclick=function(){
   S={day:2,live:false,email:null,first:null,progress:{}};save();location.hash="#/login";render();toast("Reset");};
-var rt=document.getElementById("revToggle"),rp=document.getElementById("revPanel");
-rt.onclick=function(){var op=rp.hasAttribute("hidden");
-  if(op)rp.removeAttribute("hidden");else rp.setAttribute("hidden","");
-  rt.setAttribute("aria-expanded",op?"true":"false");
-  rt.textContent=op?"Hide":"Review tools";};
+
+var rt=document.getElementById("revToggle"), rp=document.getElementById("revPanel");
+rt.onclick=function(){var open=rp.hasAttribute("hidden");
+  if(open){rp.removeAttribute("hidden");}else{rp.setAttribute("hidden","");}
+  rt.setAttribute("aria-expanded",open?"true":"false");
+  rt.textContent=open?"Hide review tools":"Review tools";};
 
 window.addEventListener("hashchange",function(){render();});
 render();

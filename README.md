@@ -6,42 +6,28 @@ The content control centre for the Book 5 Consults in 5 Days Challenge.
 
 One responsive page. Desktop gets a sticky day-nav sidebar plus a two-column day layout; mobile collapses to a single column with the day list inline. Same file, no separate mobile build to keep in sync.
 
-## The design basis
+## Layout
 
-Sharla called the first version off-brand and she was right. This one is built to specs **measured off the live thrive-academy.com**, not interpreted from the guide. The live site is the brand in market.
+**The sidebar layout is the design.** Persistent left nav with the five days, Golden Ticket progress and the Concierge block; content on the right. That was settled early and it stays. On mobile the sidebar drops and the day list appears inline on the Hub.
 
-| | Live site | What this build uses |
-|---|---|---|
-| Display type | Raleway **200**, 66-80px, ~1px tracking | Raleway 200, clamp(36px, 5.4vw, 66px) |
-| Eyebrow | Oswald **300**, letter-spacing **11px**, uppercase | Oswald 300, 9px tracking |
-| Buttons | Oswald **400**, letter-spacing **5px**, transparent, 1px border, 0 radius | identical |
-| Corners | 0px on every button | 0 globally |
+The branding below is applied *on top of* that layout. It does not change it.
 
-The single biggest earlier error was type weight. The guide says "Title, Raleway Semibold". The live site actually ships weight **200**, and that lightness is most of what makes Thrive read as high-end. The first build used semibold with heavy uppercase Oswald throughout, which read as a funnel page.
+## The branding
 
-Other corrections: photography was missing entirely, so the page had no Thrive warmth in it. Sharla's image now anchors the hero. Bordered cards were replaced with whitespace and hairline rules.
-
-**Built on the Client Attraction Summit banner.** Ella pointed at that banner as the reference and it settles the palette question. Values sampled straight off `Summit-2026-05-banner-2-.png`:
+Palette sampled off the Client Attraction Summit banner and the live thrive-academy.com, not interpreted from the guide.
 
 | | Value | Role |
 |---|---|---|
-| Ground | `#DAD6DA` | warm neutral, the whole field |
-| Band | `#1A325C` | navy as a **band**, never a field |
-| Accent | `#00AEEF` | the highlighted words inside the band |
+| Ground | `#DAD6DA` | masthead and sidebar |
+| Band | `#1A325C` | navy as a **strip**, never a background field |
+| Accent | `#00AEEF` | highlighted words in the strip |
+| Buttons | `#044470` | filled; outline buttons are `#1A325C` hairline |
 
-That is the thing worth keeping: the banner uses navy, but only as a horizontal strip roughly a tenth of its height, with the people standing in front of it. Navy as a band reads premium. Navy as a background does not. The hero here does the same - warm neutral ground, thin wide-tracked type, a navy strip across the foot with Sharla overlapping it.
-
-**Both founders are on the hero**, in the banner's own composition: Sharla left, centred type, Jesse right, navy strip across the foot with the two of them standing in front of it.
-
-They were cut out of the banner itself (`sharla-summit.png`, `jesse-summit.png`) by the same edge-connected flood fill used before. Each crop deliberately runs *down into* the navy band, so the leftover navy in the file is the identical `#1A325C` and merges invisibly with the strip on the page. That is what produces the real overlap rather than the pair sitting on top of a bar. It also avoids keying Jesse's dark navy suit, which a global colour key would have eaten.
-
-On mobile there is no room for three columns, so the copy takes its own row and the two of them stand side by side beneath it, still on the band.
-
-The banner itself now leads the Summit block, where it is on-topic rather than decorative.
-
-**Sharla's photo is a cutout.** The source image (`sharla-glitter-ig.png` in the C3 repo) sits on a solid `#00AEEF` block, which read as a pasted-on square. `sharla-cutout.png` was produced by an edge-connected flood fill, not a global colour key, so her turquoise hat and top survive; the fringe was then despilled. Alpha-transparent, so it drops onto any background.
-
-Editorial rules that still hold: the Hub is where you learn, the Facebook Group is where you do; the Group is never named as a place to watch anything; the word "replay" is not used.
+- **Display type is Raleway 200**, not semibold. The live site ships weight 200 and that lightness is most of what makes Thrive read as high-end.
+- **Buttons are Oswald 400 at 5px tracking**, 1px border, square corners, matching the live site exactly.
+- **Labels are Oswald 300 at 6 to 8px tracking.** The wide tracking is the brand signature.
+- Navy appears as the strip under the masthead and as type. Never as a page background - that is the distinction Sharla was drawing.
+- Sharla and Jesse sit quietly at the right of the masthead, cut out of the Summit banner itself. They appear at 1080px and up, where there is room for them.
 
 ## What works
 
