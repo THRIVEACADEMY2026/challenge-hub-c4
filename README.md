@@ -32,7 +32,16 @@ Palette sampled off the Client Attraction Summit banner and the live thrive-acad
 - **Buttons are Oswald 400 at 5px tracking**, 1px border, square corners, matching the live site exactly.
 - **Labels are Oswald 300 at 6 to 8px tracking.** The wide tracking is the brand signature.
 - Navy appears as the strip under the masthead and as type. Never as a page background - that is the distinction Sharla was drawing.
-- Sharla and Jesse appear at full height on the welcome page only, cut out of the Summit banner itself. They are not cropped into the masthead on the inside pages; a cropped headshot strip looked worse than no photo at all.
+### Sharla and Jesse: show them whole
+
+They appear on the welcome page only, cut from the Summit banner as **complete portraits**. Nothing about them is clipped, and that is a rule, not a preference.
+
+- The crop stops 4px above the navy band, so no band pixel and no band shadow enters the file. An earlier crop ran down through the band and left navy artifacts welded to Jesse's shoulder, where his arm walled them off from the flood fill.
+- On the page they are **inset from the frame edges**, never bled off them. Verified fully inside the viewport at 1440px and 375px. An earlier mobile rule used a negative offset and sliced Sharla's arm off at the screen edge.
+- The navy band covers the lower edge of both portraits. That is the banner's own device, not a crop.
+- They are **not** squeezed into the masthead on inside pages. A cropped headshot strip chopped them at the shoulders and looked worse than no photo at all.
+
+**Do not reintroduce negative offsets, overflow crops, or fixed heights on these two images.** Size them by width; the cutouts are near square.
 
 **Font weights are requested, not assumed.** The stylesheet asks for Raleway 200-600 and Oswald 300-500, matching every weight the CSS actually uses. Worth checking after any edit: if a weight is used but not requested, the browser silently synthesises it from the nearest face and the light display type quietly stops being light. That happened once here and was invisible until measured.
 
