@@ -31,7 +31,11 @@ Other corrections: photography was missing entirely, so the page had no Thrive w
 
 That is the thing worth keeping: the banner uses navy, but only as a horizontal strip roughly a tenth of its height, with the people standing in front of it. Navy as a band reads premium. Navy as a background does not. The hero here does the same - warm neutral ground, thin wide-tracked type, a navy strip across the foot with Sharla overlapping it.
 
-Her teal against that warm neutral is the contrast the banner is built on, which is why the cutout sits on it so well.
+**Both founders are on the hero**, in the banner's own composition: Sharla left, centred type, Jesse right, navy strip across the foot with the two of them standing in front of it.
+
+They were cut out of the banner itself (`sharla-summit.png`, `jesse-summit.png`) by the same edge-connected flood fill used before. Each crop deliberately runs *down into* the navy band, so the leftover navy in the file is the identical `#1A325C` and merges invisibly with the strip on the page. That is what produces the real overlap rather than the pair sitting on top of a bar. It also avoids keying Jesse's dark navy suit, which a global colour key would have eaten.
+
+On mobile there is no room for three columns, so the copy takes its own row and the two of them stand side by side beneath it, still on the band.
 
 The banner itself now leads the Summit block, where it is on-topic rather than decorative.
 
