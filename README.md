@@ -36,7 +36,7 @@ Palette sampled off the Client Attraction Summit banner and the live thrive-acad
 
 Cutouts kept getting cut. Footage does not. The welcome page now runs real b-roll of Sharla working at her desk, so **nothing of her is ever cropped, covered or pasted** - the frame simply shows what the camera saw.
 
-- Source: `SharlaTealDesignDress 9-11 s laugh.MOV`, from the **Sharla B-roll Mar-Jun 2026** folder. That folder is the professional shoot and it is a different class of footage from the phone clips; shot 1920x1080 at 60fps with real depth of field. Her dress is brand teal, which is why this clip in particular works.
+- Source: `Bahia bar.MOV`, from the **Sharla B-roll Mar-Jun 2026** folder (Ella's pick). Solid brand-teal dress, warm hotel bar interior. That folder is the professional shoot and it is a different class of footage from the phone clips; shot 1920x1080 at 60fps with real depth of field. Her dress is brand teal, which is why this clip in particular works.
 - Cut `crop=1470:674:450:20` to **2.18:1**, matching the hero's own aspect so the browser barely crops it, and shifted right so she sits about a third in, leaving the right for the copy. 6 second loop, **480KB**.
 - The window is 4.2s to 10.2s. Earlier than that the photographer is visible in shot; later she doubles over laughing and her face leaves frame. The crop keeps 20px of headroom because her head rises as she laughs.
 - `hero-poster.jpg` is the still fallback. It shows if the video is slow, blocked, or the viewer has asked for reduced motion.
@@ -45,6 +45,27 @@ Cutouts kept getting cut. Footage does not. The welcome page now runs real b-rol
 - Reduced-motion viewers get the poster, held. There is also a play nudge on first interaction, because some engines hold muted autoplay until the user has touched the page and a frozen first frame reads as broken.
 
 The transparent portraits `sharla-summit.png` and `jesse-summit.png` are still in the repo and are clean, reusable assets, but nothing references them now.
+
+### Type scale
+
+One scale, tokens at the top of the stylesheet. Before this pass there were **six sizes between 11 and 14px** doing no work, Oswald ran at four weights, and label tracking had six different values for one role.
+
+| Token | Size | Role |
+|---|---|---|
+| `--t-display` | clamp 34-52 | h1, Raleway 200 |
+| `--t-title` | clamp 24-34 | h2, Raleway 200 |
+| `--t-lede` | clamp 17-19 | intro paragraphs, Raleway 300 |
+| `--t-body` | 16.5 | reading text, Raleway 400 |
+| `--t-small` | 14 | captions |
+| `--t-micro` | 12 | labels, Oswald 300 |
+
+Tracking is one value per role, not per element: `--ls-eyebrow` .62em, `--ls-label` .42em, `--ls-btn` .34em, `--ls-micro` .24em. The wide eyebrow tracking is deliberate; it is where the live site's airiness comes from.
+
+**Oswald is 300 for labels and 400 for buttons. Nothing else.** 500 and 600 were off-system and are gone.
+
+**Body text was the real problem.** Inside pages had no comfortable reading size at all: the scale jumped from 14px straight to 52px, so Quest steps and ticket copy were being read at 12-13.5px. They are 16.5px now.
+
+**Measure is capped.** Concierge lines were running 127 characters per line. Reading text now tops out at 73 on desktop and 52 on mobile.
 
 **Font weights are requested, not assumed.** The stylesheet asks for Raleway 200-600 and Oswald 300-500, matching every weight the CSS actually uses. Worth checking after any edit: if a weight is used but not requested, the browser silently synthesises it from the nearest face and the light display type quietly stops being light. That happened once here and was invisible until measured.
 
