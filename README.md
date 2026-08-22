@@ -36,7 +36,9 @@ Palette sampled off the Client Attraction Summit banner and the live thrive-acad
 
 Cutouts kept getting cut. Footage does not. The welcome page now runs real b-roll of Sharla working at her desk, so **nothing of her is ever cropped, covered or pasted** - the frame simply shows what the camera saw.
 
-- Source: `Smiling and typing at desk b-roll.MOV` from the Thrive b-roll Drive, July-Aug 2026 folder. Shot vertical at 2160x3840; a landscape slice was taken from the middle band (`crop=2160:1215:0:1150`), trimmed to a 10 second loop and encoded to **580KB**.
+- Source: `SharlaTealDesignDress 9-11 s laugh.MOV`, from the **Sharla B-roll Mar-Jun 2026** folder. That folder is the professional shoot and it is a different class of footage from the phone clips; shot 1920x1080 at 60fps with real depth of field. Her dress is brand teal, which is why this clip in particular works.
+- Cut `crop=1470:674:450:20` to **2.18:1**, matching the hero's own aspect so the browser barely crops it, and shifted right so she sits about a third in, leaving the right for the copy. 6 second loop, **480KB**.
+- The window is 4.2s to 10.2s. Earlier than that the photographer is visible in shot; later she doubles over laughing and her face leaves frame. The crop keeps 20px of headroom because her head rises as she laughs.
 - `hero-poster.jpg` is the still fallback. It shows if the video is slow, blocked, or the viewer has asked for reduced motion.
 - **She sits on the left of the frame, so the copy sits on the right.** The scrim is opaque under the words and clears toward her, which is what keeps her visible and the type readable. Flipping one without the other buries her.
 - On mobile there is no room to run footage behind the words without burying her face under the scrim, so it becomes its own band above the navy strip instead.
