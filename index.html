@@ -513,7 +513,7 @@ function vPre(){
    '<p class="lede">The Challenge starts Monday September 7. Take these 2 steps now so you&rsquo;re ready on Day 1.</p>'+
    '<h3>Step 1 &middot; Put it in your calendar</h3>'+
    '<p>We go live at 10:00am PT / 1:00pm ET every day, September 7 to 11.</p>'+
-   '<button class="btn btn-outline" id="addCal" style="max-width:420px">Add the Challenge to my calendar</button>'+
+   '<a class="btn btn-outline" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'+
    '<h3>Step 2 &middot; Join the Facebook Group</h3>'+
    '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
    '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
@@ -688,7 +688,6 @@ function wire(){
       navigator.clipboard.writeText(S.email).then(function(){toast("Email copied");},function(){toast(S.email);});
     else toast(S.email);
   };
-  var ac=q("addCal"); if(ac) ac.onclick=function(){toast("Calendar events added");};
   var jz=q("joinZoom");
   if(jz && ZOOM.charAt(0)==="#") jz.onclick=function(e){e.preventDefault();toast("Zoom link is injected in the production build");};
 
