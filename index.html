@@ -413,36 +413,72 @@ footer.site{max-width:1200px;margin:0 auto;padding:24px 20px 40px;font-size:var(
 (function(){
 "use strict";
 
-/* Zoom join link is deliberately NOT in this public repo. The link carries an
-   embedded password, so committing it would let anyone read it from source and
-   drop into the live session. Inject it server-side behind the magic-link gate,
-   or paste it here only in the private production build. */
-var ZOOM="#zoom-link-to-be-injected";
-var SUMMIT="https://secure.clientattractionsummit.com/order-form-challenge-step-1";
-var OPTIN="https://apply.clientattractionsummit.com/challenge-optin-organic-socials";
-var FBGROUP="#fb-group-url-needed"; /* TODO Ella: real Challenge FB Group URL, blank in both Notebooks */
-var ADDCAL="https://apply.clientattractionsummit.com/add-events-page";
-var PB="https://thrive-downloads.s3.us-west-1.amazonaws.com/5DayChallenge/Day+";
+/* ============================================================================
+   CHALLENGE CONFIG
+   Everything that changes from one challenge to the next lives here and
+   nowhere else. To roll the Hub to the next round, edit this block only.
+   See "Rolling to the next challenge" in the README.
+   ============================================================================ */
+var CHALLENGE = {
+  id:        "c4",                  /* storage key + access tag. Bump every round. */
+  name:      "September 7 to 11",
+  tag:       "challenge-sept-2026", /* the GHL tag that grants access */
 
-var DAYS=[
- {n:1,date:"Monday September 7",   short:"Mon Sept 7", title:"Compelling Consult Name",
-  asset:"Compelling Consult Name", quest:"day1", post:"https://giftfromthrive.com/day1"},
- {n:2,date:"Tuesday September 8",  short:"Tue Sept 8", title:"Create Intrigue",
-  asset:"Create Intrigue", quest:"std", post:"https://giftfromthrive.com/day2"},
- {n:3,date:"Wednesday September 9",short:"Wed Sept 9", title:"Trust &amp; Transformation Story",
-  asset:"Trust &amp; Transformation Story", quest:"std", post:"https://giftfromthrive.com/day3"},
- {n:4,date:"Thursday September 10",short:"Thu Sept 10",title:"Inspiring Invitation",
-  asset:"Inspiring Invitation", quest:"std", post:"https://giftfromthrive.com/day4"},
- {n:5,date:"Friday September 11",  short:"Fri Sept 11",title:"Success Story",
-  asset:"Success Story or 2nd Inspiring Invitation", quest:"std", post:"https://giftfromthrive.com/day5"}
-];
-DAYS.forEach(function(d){ d.playbook = PB + d.n + "+Quest+Template.pdf"; });
+  /* Local dates. Day 1 is the first live day. */
+  days: [
+    {n:1, date:"Monday September 7",    short:"Mon Sept 7",  title:"Compelling Consult Name",
+     asset:"Compelling Consult Name",   quest:"day1",
+     post:"https://giftfromthrive.com/day1", playbook:"https://giftfromthrive.com/name"},
+    {n:2, date:"Tuesday September 8",   short:"Tue Sept 8",  title:"Create Intrigue",
+     asset:"Create Intrigue",           quest:"std",
+     post:"https://giftfromthrive.com/day2", playbook:"https://giftfromthrive.com/intrigue"},
+    {n:3, date:"Wednesday September 9", short:"Wed Sept 9",  title:"Trust and Transformation Story",
+     asset:"Trust and Transformation Story", quest:"std",
+     post:"https://giftfromthrive.com/day3", playbook:"https://giftfromthrive.com/trust"},
+    {n:4, date:"Thursday September 10", short:"Thu Sept 10", title:"Inspiring Invitation",
+     asset:"Inspiring Invitation",      quest:"std",
+     post:"https://giftfromthrive.com/day4", playbook:"https://giftfromthrive.com/invitation"},
+    {n:5, date:"Friday September 11",   short:"Fri Sept 11", title:"Success Story",
+     asset:"Success Story or 2nd Inspiring Invitation", quest:"std",
+     post:"https://giftfromthrive.com/day5", playbook:"https://giftfromthrive.com/success"}
+  ],
 
+  /* Replays come down at 9:00pm PT on the Sunday after the challenge.
+     ISO with the -07:00 offset so it is unambiguous across time zones. */
+  replaysCloseAt: "2026-09-13T21:00:00-07:00",
+
+  links: {
+    fbGroup: "https://www.facebook.com/groups/1386366133366597",
+    addCal:  "https://apply.clientattractionsummit.com/add-events-page",
+    summit:  "https://secure.clientattractionsummit.com/order-form-challenge-step-1",
+    optin:   "https://apply.clientattractionsummit.com/challenge-optin-organic-socials",
+    /* Zoom carries an embedded passcode, so it is NOT committed to this public
+       repo. WordPress injects it. See "Zoom link" in the README. */
+    zoom:    window.THRIVE_ZOOM || "#zoom-link-injected-by-wordpress",
+    /* Apps Script web app that writes into the Raffle Tickets Tracker.
+       Injected by WordPress so the sheet is never named in this repo. */
+    questEndpoint: window.THRIVE_QUEST_ENDPOINT || ""
+  }
+};
+
+var ZOOM=CHALLENGE.links.zoom, SUMMIT=CHALLENGE.links.summit,
+    OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
+    ADDCAL=CHALLENGE.links.addCal;
+var DAYS=CHALLENGE.days;
+
+/* Replays close on a schedule. Client side this is presentation only; the
+   real cut-off has to be enforced by WordPress, same as access. */
+function replaysClosed(){
+  try{ return new Date() >= new Date(CHALLENGE.replaysCloseAt); }catch(e){ return false; }
+}
+
+/* Demo allowlist. In production WordPress gates the page and passes the
+   signed-in person in, so this list is never consulted. */
 var REGISTERED=["sarah@email.com","ella@thrive-academy.com","sj@thrive-academy.com"];
 
 var S={day:2,live:false,email:null,first:null,progress:{}};
-try{var r=localStorage.getItem("thriveHubC4"); if(r) S=Object.assign(S,JSON.parse(r));}catch(e){}
-function save(){try{localStorage.setItem("thriveHubC4",JSON.stringify(S));}catch(e){}}
+try{var r=localStorage.getItem("thriveHub_"+CHALLENGE.id); if(r) S=Object.assign(S,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem("thriveHub_"+CHALLENGE.id,JSON.stringify(S));}catch(e){}}
 function esc(s){return String(s).replace(/&(?!\w+;)/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function cap(e){var n=e.split("@")[0].replace(/[._-]+/g," ").trim();return n.charAt(0).toUpperCase()+n.slice(1);}
 function prog(n){return S.progress[n]||(S.progress[n]={steps:[],quest:false});}
@@ -587,6 +623,18 @@ function vDay(n){
      concierge()+'</div>';
   }
   var before=(S.day===n && !S.live), dn=done_(n);
+  /* Replays come down on the Sunday. This view returns the same shape as every
+     other day view; the surrounding chrome is static markup, not a function. */
+  if(!before && replaysClosed()){
+    return '<div class="measure"><a class="back" href="#/hub">&larr; All days</a>'+
+      '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
+      '<h1>This replay has closed</h1>'+
+      '<p class="lede">Replays come down at 9:00pm PT on the Sunday after each Challenge. '+
+      'Your Playbook is still yours to keep.</p>'+
+      '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a>'+
+      '<a class="btn btn-primary" href="'+SUMMIT+'" target="_blank" rel="noopener">Save my Summit seat</a>'+
+      concierge()+'</div>';
+  }
 
   var media = before
    ? '<p class="time">Live at 10:00am PT / 1:00pm ET</p>'+
@@ -726,9 +774,31 @@ function wire(){
   if(sf) sf.onsubmit=function(e){
     e.preventDefault();
     var n=+location.hash.match(/^#\/submit\/([1-5])$/)[1], p=prog(n);
-    if(DAYS[n-1].quest==="day1")p.quest=true; else p.steps=[0,1,2,3];
-    save(); document.getElementById("main").innerHTML=vSubmit(n,true);
-    document.getElementById("side").innerHTML=sidebar(); wire();
+    var btn=sf.querySelector("button[type=submit]");
+    var payload={challenge:CHALLENGE.id, day:n,
+                 email:(q("se").value||"").trim().toLowerCase(),
+                 postUrl:(q("su").value||"").trim()};
+    function counted(){
+      if(DAYS[n-1].quest==="day1")p.quest=true; else p.steps=[0,1,2,3];
+      save(); document.getElementById("main").innerHTML=vSubmit(n,true);
+      document.getElementById("side").innerHTML=sidebar(); wire();
+    }
+    var url=CHALLENGE.links.questEndpoint;
+    if(!url){ counted(); return; }
+    if(btn){ btn.disabled=true; btn.textContent="Sending"; }
+    fetch(url,{method:"POST",mode:"cors",
+        /* text/plain avoids a CORS preflight, which Apps Script cannot answer */
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(payload)})
+      .then(function(r){ return r.ok ? r.text() : Promise.reject(r.status); })
+      .then(function(){ counted(); })
+      .catch(function(){
+        /* never strand someone mid-Quest: count it locally, say so plainly,
+           and let the Concierge reconcile from the tracker */
+        counted();
+        toast("Saved. If it does not appear, text your Concierge.");
+      });
+    return;
   };
 }
 

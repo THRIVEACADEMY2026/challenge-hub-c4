@@ -85,6 +85,26 @@ Playbooks (all 5 verified live), Quest posts (`giftfromthrive.com/day1` to `day5
 
 **The Zoom join link is deliberately not in this repo.** It carries an embedded `?pwd=` password, so committing it to a public repo would let anyone read it from source and join the live session. The `ZOOM` constant is a placeholder and the Join button says so. Inject the real link server-side behind the magic-link gate, or paste it only into a private production build.
 
+## Rolling to the next challenge
+
+Everything per-round lives in the `CHALLENGE` object at the top of the script in `index.html`. Nothing else needs touching. Full runbook in **WORDPRESS.md**.
+
+`id` (bump it, which also resets saved progress) · `name` and `tag` · the five `days` · `replaysCloseAt` · the b-roll files.
+
+## Replays close automatically
+
+`replaysCloseAt` is set to 9:00pm PT on the Sunday after the challenge. Past that, every day page swaps to a "this replay has closed" state that still offers the Playbook and the Summit link.
+
+Client side this is presentation only. **WordPress has to stop serving the videos at the same moment**, or the URLs still work for anyone who kept them.
+
+## Quest submissions
+
+The non-Facebook path posts to an Apps Script web app that writes into the **Raffle Tickets Tracker**. Script and setup steps are in `apps-script/quest-submission.gs`.
+
+The tracker is a matrix, not a log: one row per registrant, one column per Quest. So the script finds the person by email and ticks their Day column rather than appending. Anyone it cannot match goes to an "Unmatched" tab so the Concierge can reconcile, instead of a lead silently losing a ticket.
+
+If the endpoint is unreachable the Quest still counts locally and the person is told to text their Concierge. Nobody gets stranded mid-Quest.
+
 ## Before launch
 
 1. **Delete the review tools.** Remove the `<div id="rev">` block, its CSS section, and the review-tools script section at the bottom. All three are clearly marked. They sit in a collapsed panel in the bottom-right corner, not at the top of the page.
