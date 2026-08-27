@@ -95,6 +95,20 @@ The Finale is configured with `quest:"none"` and no playbook, so it renders as a
 
 `unlockAll: true` opens every day at once. Set it to `false` to gate day by day again.
 
+## Verified against the challenge assets folder
+
+Checked against `CHALLENGE WEEK SCHEDULE Sept 7-11.png` in the assets folder:
+
+- Day titles and dates match exactly (Sept 7 Consult Name, 8 Intrigue, 9 Trust, 10 Invitation, 11 Success).
+- Sessions are **10 to 11am Pacific / 1 to 2pm Eastern**. The Hub says 10:00am PT / 1:00pm ET, which is right.
+- **Replays come down Sept 13 at 9pm Pacific / midnight Eastern.** That is exactly what `replaysCloseAt` was already set to, now confirmed rather than assumed.
+
+**The published schedule has no Grand Finale on it.** It runs Sept 7 to 11 plus the Sunday takedown. The Day 8 tab is in the Hub as requested but its date is still unconfirmed and it does not appear on the schedule the team is circulating.
+
+The week schedule graphic itself now sits on the Pre-Challenge page under Step 1, since "when are the calls" is the question it answers.
+
+The five `DAY N QUEST.png` graphics are square 1500x1500 social assets. They are the right artwork but the wrong shape for a 16:9 video poster, and cropping them would mean cropping Sharla, so they are not used here.
+
 ## Welcome video
 
 `welcome.mp4` on the Pre-Challenge page. Real player with controls and sound, not the muted decorative pattern used for the hero b-roll, and `preload="none"` so it costs nothing until someone presses play.

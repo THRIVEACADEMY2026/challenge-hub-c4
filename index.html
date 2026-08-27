@@ -303,6 +303,8 @@ p{margin:0 0 16px;max-width:var(--measure)}
 .video.playing .play{display:none}
 .vnote{font-size:var(--t-small);margin:-8px 0 20px}
 .player{width:100%;margin:0 0 20px;background:#000;border:1px solid var(--line)}
+.schedule{max-width:440px;margin:26px 0 8px;border:1px solid var(--line)}
+.schedule img{width:100%;height:auto;display:block}
 .player video{width:100%;height:auto;display:block;aspect-ratio:16/9;background:#000}
 
 /* desktop 2 column split on day pages */
@@ -455,7 +457,8 @@ var CHALLENGE = {
      control / the real calendar. */
   unlockAll: true,
 
-  /* Replays come down at 9:00pm PT on the Sunday after the challenge.
+  /* Replays come down 9:00pm PT / midnight ET on the Sunday after the challenge.
+     Verified against "CHALLENGE WEEK SCHEDULE Sept 7-11.png" in the assets folder.
      ISO with the -07:00 offset so it is unambiguous across time zones. */
   replaysCloseAt: "2026-09-13T21:00:00-07:00",
 
@@ -567,6 +570,7 @@ function vPre(){
    '<h3>Step 1 &middot; Put it in your calendar</h3>'+
    '<p>We go live at 10:00am PT / 1:00pm ET every day, September 7 to 11.</p>'+
    '<a class="btn btn-outline" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'+
+   '<div class="schedule"><img src="week-schedule.jpg" alt="Challenge week schedule: September 7 Compelling Consult Name, September 8 Create Intrigue, September 9 Trust and Transformation Story, September 10 Inspiring Invitation, September 11 Success Story, September 13 at 9pm Pacific the Challenge videos come down. All live Zoom calls are 10 to 11am Pacific, 1 to 2pm Eastern." width="1000" height="1000"></div>'+
    '<h3>Step 2 &middot; Join the Facebook Group</h3>'+
    '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
    '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
