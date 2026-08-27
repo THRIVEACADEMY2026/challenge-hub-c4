@@ -85,8 +85,25 @@ Playbooks (all 5 verified live), Quest posts (`giftfromthrive.com/day1` to `day5
 
 **The Zoom join link is deliberately not in this repo.** It carries an embedded `?pwd=` password, so committing it to a public repo would let anyone read it from source and join the live session. The `ZOOM` constant is a placeholder and the Join button says so. Inject the real link server-side behind the magic-link gate, or paste it only into a private production build.
 
-## Rolling to the next challenge
+## Days, and the Grand Finale
 
+Days are looked up by their `n`, not by array position, so the numbering does not have to be contiguous. Day 8 (Grand Finale) sits after Day 5 without any 6 or 7 existing.
+
+The Finale is configured with `quest:"none"` and no playbook, so it renders as a session plus the Summit invitation: no Quest steps, no Golden Ticket block, no "submit your post" link. It is also excluded from the ticket denominator, which is why the counter reads "of 5" and not "of 6".
+
+**Its date still needs confirming.** `date` is `DATE TO CONFIRM`. Counting eight days from Mon Sept 7 lands on Mon Sept 14, which falls after the Sunday replay cut-off, so it needs a real answer rather than an assumption.
+
+`unlockAll: true` opens every day at once. Set it to `false` to gate day by day again.
+
+## Welcome video
+
+`welcome.mp4` on the Pre-Challenge page. Real player with controls and sound, not the muted decorative pattern used for the hero b-roll, and `preload="none"` so it costs nothing until someone presses play.
+
+Source was 796MB at 1080p and 20Mbps; encoded to 1280x720 at CRF 28 with 96k audio, which is **20.8MB** for 5:10. Comfortably inside GitHub's limits.
+
+For production, consider moving it to a proper video host. GitHub Pages is not built for serving video at volume, and a gated Hub should not have a public video URL sitting in the page source anyway.
+
+## Rolling to the next challenge
 Everything per-round lives in the `CHALLENGE` object at the top of the script in `index.html`. Nothing else needs touching. Full runbook in **WORDPRESS.md**.
 
 `id` (bump it, which also resets saved progress) · `name` and `tag` · the five `days` · `replaysCloseAt` · the b-roll files.
