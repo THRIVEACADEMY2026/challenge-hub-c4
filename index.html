@@ -831,6 +831,7 @@ function syncDemo(){
   Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
     b.setAttribute("aria-pressed",(+b.getAttribute("data-day"))===S.day?"true":"false");});
   var t=document.getElementById("tgLive");
+  if(!t) return;                       /* panel removed off production */
   t.setAttribute("aria-pressed",S.live?"true":"false");
   t.textContent=S.live?"After the live":"Before the live";
 }
@@ -843,8 +844,10 @@ Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),functi
     render();
   };
 });
-document.getElementById("tgLive").onclick=function(){S.live=!S.live;save();render();};
-document.getElementById("tgReset").onclick=function(){
+var tgL=document.getElementById("tgLive");
+if(tgL) tgL.onclick=function(){S.live=!S.live;save();render();};
+var tgR=document.getElementById("tgReset");
+if(tgR) tgR.onclick=function(){
   S={day:2,live:false,email:null,first:null,progress:{}};save();location.hash="#/login";render();toast("Reset");};
 
 /* Nudge the b-roll into playing. Muted autoplay is allowed everywhere modern,
@@ -858,8 +861,22 @@ if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").ma
     if(t && t.tagName==="VIDEO" && t.closest && t.closest(".bed")) t.pause();
   },true);
 }
+/* ---------------------------------------------------------------------------
+   Review tools only exist off production. They shipped to the live domain once
+   because removing them was a manual step, so the page now decides for itself.
+   Force them on anywhere with ?review=1.
+   --------------------------------------------------------------------------- */
+var REVIEW_HOSTS=["localhost","127.0.0.1","thriveacademy2026.github.io"];
+var showReview = /[?&]review=1/.test(location.search) ||
+                 REVIEW_HOSTS.indexOf(location.hostname)>-1 ||
+                 location.protocol==="file:";
+if(!showReview){
+  var revEl=document.getElementById("rev");
+  if(revEl && revEl.parentNode) revEl.parentNode.removeChild(revEl);
+}
+
 var rt=document.getElementById("revToggle"), rp=document.getElementById("revPanel");
-rt.onclick=function(){var open=rp.hasAttribute("hidden");
+if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
   if(open){rp.removeAttribute("hidden");}else{rp.setAttribute("hidden","");}
   rt.setAttribute("aria-expanded",open?"true":"false");
   rt.textContent=open?"Hide review tools":"Review tools";};
