@@ -445,12 +445,13 @@ var CHALLENGE = {
     {n:5, date:"Friday September 11",   short:"Fri Sept 11", title:"Success Story",
      asset:"Success Story or 2nd Inspiring Invitation", quest:"std",
      post:"https://giftfromthrive.com/day5", playbook:"https://giftfromthrive.com/success"},
-    /* Grand Finale. No Quest and no Playbook, so it renders as a session plus
-       the Summit invitation rather than a Quest day.
-       TODO Ella: confirm the date. "Day 8" from Mon Sept 7 lands on Mon Sept 14,
-       which is after the Sunday replay cut-off, so it needs checking. */
-    {n:8, date:"DATE TO CONFIRM",       short:"Day 8",       title:"Grand Finale",
-     asset:"", quest:"none", post:"", playbook:""}
+    /* Grand Finale, Day 8 counting from Mon Sept 7. No Quest and no Playbook,
+       so it renders as a session plus the Summit invitation.
+       It falls the DAY AFTER the Sunday replay cut-off, so it carries its own
+       window; otherwise the global cut-off would hide it the moment it aired. */
+    {n:8, date:"Monday September 14",   short:"Mon Sept 14", title:"Grand Finale",
+     asset:"", quest:"none", post:"", playbook:"",
+     replaysCloseAt:"2026-09-20T21:00:00-07:00"}
   ],
 
   /* Open every day at once. Set false to gate day by day against the review
@@ -483,8 +484,11 @@ var DAYS=CHALLENGE.days;
 
 /* Replays close on a schedule. Client side this is presentation only; the
    real cut-off has to be enforced by WordPress, same as access. */
-function replaysClosed(){
-  try{ return new Date() >= new Date(CHALLENGE.replaysCloseAt); }catch(e){ return false; }
+function replaysClosed(d){
+  /* A day may carry its own window. The Grand Finale needs one because it airs
+     after the Sunday cut-off that applies to Days 1-5. */
+  var when = (d && d.replaysCloseAt) || CHALLENGE.replaysCloseAt;
+  try{ return new Date() >= new Date(when); }catch(e){ return false; }
 }
 
 /* Demo allowlist. In production WordPress gates the page and passes the
@@ -646,7 +650,7 @@ function vDay(n){
   var before=(S.day===n && !S.live), dn=done_(n);
   /* Replays come down on the Sunday. This view returns the same shape as every
      other day view; the surrounding chrome is static markup, not a function. */
-  if(!before && replaysClosed()){
+  if(!before && replaysClosed(d)){
     return '<div class="measure"><a class="back" href="#/hub">&larr; All days</a>'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
       '<h1>This replay has closed</h1>'+
