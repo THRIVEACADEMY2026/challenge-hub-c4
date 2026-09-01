@@ -41,7 +41,7 @@ Given the current host is only serving static files, moving to Pages is simpler 
 
 They shipped to the live domain because deleting them was a manual step, and manual steps get missed. The page now decides for itself:
 
-- Shown on `localhost`, `127.0.0.1`, `thriveacademy2026.github.io`, and any URL with `?review=1`
+- Shown on `localhost`, `127.0.0.1`, **any `*.github.io` host**, and any URL with `?review=1`
 - Removed from the DOM everywhere else
 
 So `hub.clientattractionsummit.com` will never show them again, and the team can still get at them on the review URL or by adding `?review=1`.
@@ -49,3 +49,20 @@ So `hub.clientattractionsummit.com` will never show them again, and the team can
 ## Still not in the repo, by design
 
 The Zoom link and the Quest endpoint. Both are injected by the host, see **WORDPRESS.md**. Whatever serves the domain needs those two lines before the Hub's script.
+
+
+## Moving the repo to the Thrive-Academy-2026 org
+
+Worth doing, but **not yet**. Transferring changes the Pages URL from `thriveacademy2026.github.io/challenge-hub-c4/` to `thrive-academy-2026.github.io/challenge-hub-c4/`, and GitHub does not reliably redirect old Pages URLs. That is the review URL the team is using today, so moving now breaks it mid-flight.
+
+Correct order:
+
+1. Point `hub.clientattractionsummit.com` at Pages (above) and confirm it serves.
+2. Then transfer the repo. The github.io URL no longer matters at that point because the custom domain follows the repo.
+3. Re-check Pages settings after the transfer; the custom domain and HTTPS enforcement need confirming on the new owner.
+
+The review-tools host check already matches any `*.github.io`, so the transfer will not silently take the panel away from the team on the new URL. That was a real trap and it is closed.
+
+## Access
+
+The repo currently has **one collaborator**. Anyone else who needs to push, Mel included, has to be added: Settings > Collaborators. Read access is automatic while the repo is public, so cloning already works for everyone; it is only pushing that needs adding.
