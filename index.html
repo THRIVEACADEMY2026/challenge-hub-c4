@@ -866,9 +866,13 @@ if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").ma
    because removing them was a manual step, so the page now decides for itself.
    Force them on anywhere with ?review=1.
    --------------------------------------------------------------------------- */
-var REVIEW_HOSTS=["localhost","127.0.0.1","thriveacademy2026.github.io"];
+/* Match ANY github.io host, not one spelled out. If this repo is ever moved to
+   the Thrive-Academy-2026 org the Pages URL changes, and a hardcoded hostname
+   would silently take the review tools away from the team on the new URL. */
+var reviewHost=location.hostname;
 var showReview = /[?&]review=1/.test(location.search) ||
-                 REVIEW_HOSTS.indexOf(location.hostname)>-1 ||
+                 reviewHost==="localhost" || reviewHost==="127.0.0.1" || reviewHost==="" ||
+                 /\.github\.io$/.test(reviewHost) ||
                  location.protocol==="file:";
 if(!showReview){
   var revEl=document.getElementById("rev");
