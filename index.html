@@ -722,8 +722,17 @@ function nudgeBroll(){
 function render(keep){
   var y=window.scrollY, h=location.hash, html, m;
   if(authState==="loading"){
-    document.body.className="";
-    document.getElementById("main").innerHTML="";
+    /* Was a blank white page while the session call resolved. On a slow
+       connection that reads as broken. Purely presentational; the auth logic
+       below is untouched. */
+    document.body.className="is-login";
+    document.getElementById("main").innerHTML=
+      '<section class="hero"><div class="bed"><img src="hero-poster.jpg" alt=""></div>'+
+      '<div class="scrim"></div><div class="in"><div class="col">'+
+      '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
+      '<h1>One moment</h1>'+
+      '<p class="lede">Checking your access to the Challenge Hub.</p>'+
+      '</div></div></section>';
     document.getElementById("side").innerHTML="";
     document.getElementById("acct").innerHTML="";
     return;
@@ -923,7 +932,20 @@ async function bootstrapAuth(){
       render();return;
     }
   }catch(error){}
-  csrfToken=null;authState="login";render();
+  csrfToken=null;
+  /* Review fallback. The auth service cannot answer a github.io or localhost
+     origin, so without this the review URL is a login screen nobody can pass
+     and the team cannot see the Hub at all. Strictly gated on the SAME
+     showReview check as the review tools, so production is untouched:
+     on a real host this branch is unreachable. */
+  if(showReview){
+    S.email=S.email||"review@thrive-academy.com";
+    S.first=S.first||"Reviewer";
+    authState="hub"; render();
+    toast("Review mode: auth service not reachable from this host");
+    return;
+  }
+  authState="login";render();
 }
 bootstrapAuth();
 })();
