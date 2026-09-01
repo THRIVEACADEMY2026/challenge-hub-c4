@@ -480,16 +480,14 @@ var ZOOM=CHALLENGE.links.zoom, SUMMIT=CHALLENGE.links.summit,
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
 var DAYS=CHALLENGE.days;
+var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
+var authState="loading", csrfToken=null, loginError=false;
 
 /* Replays close on a schedule. Client side this is presentation only; the
    real cut-off has to be enforced by WordPress, same as access. */
 function replaysClosed(){
   try{ return new Date() >= new Date(CHALLENGE.replaysCloseAt); }catch(e){ return false; }
 }
-
-/* Demo allowlist. In production WordPress gates the page and passes the
-   signed-in person in, so this list is never consulted. */
-var REGISTERED=["sarah@email.com","ella@thrive-academy.com","sj@thrive-academy.com"];
 
 var S={day:2,live:false,email:null,first:null,progress:{}};
 try{var r=localStorage.getItem("thriveHub_"+CHALLENGE.id); if(r) S=Object.assign(S,JSON.parse(r));}catch(e){}
@@ -514,7 +512,7 @@ function concierge(){
 
 /* ---------------- sidebar (desktop) ---------------- */
 function sidebar(){
-  if(!S.email) return "";
+  if(authState!=="hub") return "";
   var h=location.hash;
   var items='<a class="navitem'+(h==="#/prechallenge"?'" aria-current="page':'')+'" href="#/prechallenge">'+
             '<span class="n">Prepare</span>'+(S.day>=1?'<span class="ok">Done</span>':'')+'</a>';
@@ -533,8 +531,8 @@ function sidebar(){
 }
 
 function acct(){
-  if(!S.email) return '<span>Not signed in</span>';
-  return esc(S.email)+'<br><button id="signout">Sign out</button>';
+  if(authState!=="hub") return '<span>Not signed in</span>';
+  return (S.email?esc(S.email):'&nbsp;')+'<br><button id="signout">Sign out</button>';
 }
 
 /* ---------------- views ---------------- */
@@ -547,14 +545,14 @@ function vLogin(err){
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
       '<h1>Welcome back<br>to the Challenge</h1>'+
       '<p class="lede">Enter the email you registered with and we will take you straight to your Hub.</p>'+
-      (err?'<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We do not see a Challenge registration for that email. Check any email we have sent you for the link that signs you in automatically, or <a href="'+OPTIN+'" target="_blank" rel="noopener">register here</a>.</div>':'')+
+      (err?'<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We couldn\'t verify access for that email.</div>':'')+
       '<form id="loginForm" novalidate>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
-        '<a class="magic" href="#/hub" id="magic">Or use my magic link</a>'+
+        '<a class="magic" href="#/login" id="magic">Or use my magic link</a>'+
       '</form>'+
-      '<p class="hint" style="margin-top:22px">Review note: try sarah@email.com. Anything else shows the error state.</p>'+
+      '<p class="hint" style="margin-top:22px">Enter the exact email address you used to register for the Challenge.</p>'+
     '</div></div>'+
   '<div class="band-strip"><span>September 7 to 11</span><span class="sep">|</span><span class="hi">Live daily 10:00am PT</span></div>'+
   '</section>';
@@ -722,11 +720,25 @@ function nudgeBroll(){
 
 /* ---------------- router ---------------- */
 function render(keep){
-  var y=window.scrollY, h=location.hash||"#/login", html, m;
-  if(!S.email && h!=="#/login"){location.hash="#/login";return;}
-  document.body.className = (h==="#/login") ? "is-login" : "";
-  if(h==="#/login") html=vLogin(false);
-  else if(h==="#/prechallenge") html=vPre();
+  var y=window.scrollY, h=location.hash, html, m;
+  if(authState==="loading"){
+    document.body.className="";
+    document.getElementById("main").innerHTML="";
+    document.getElementById("side").innerHTML="";
+    document.getElementById("acct").innerHTML="";
+    return;
+  }
+  if(authState!=="hub"){
+    document.body.className="is-login";
+    document.getElementById("main").innerHTML=vLogin(loginError);
+    document.getElementById("side").innerHTML="";
+    document.getElementById("acct").innerHTML=acct();
+    window.scrollTo(0,keep?y:0);
+    wire(); setTimeout(nudgeBroll,60); return;
+  }
+  if(!h||h==="#/login") h=S.day>=1?"#/hub":"#/prechallenge";
+  document.body.className="";
+  if(h==="#/prechallenge") html=vPre();
   else if(h==="#/hub") html=vHub();
   else if((m=h.match(/^#\/day\/(\d+)$/))) html=vDay(+m[1]);
   else if((m=h.match(/^#\/submit\/(\d+)$/))) html=vSubmit(+m[1],false);
@@ -736,23 +748,35 @@ function render(keep){
   document.getElementById("acct").innerHTML=acct();
   window.scrollTo(0, keep?y:0);
   wire(); syncDemo();
-  if(location.hash==="#/login"||location.hash==="") setTimeout(nudgeBroll,60);
 }
 
 function wire(){
   var q=function(i){return document.getElementById(i);};
-  var so=q("signout"); if(so) so.onclick=function(){S.email=null;S.first=null;save();location.hash="#/login";render();};
+  var so=q("signout"); if(so) so.onclick=function(){
+    S.email=null;S.first=null;save();authState="login";loginError=false;
+    location.hash="#/login";render();
+  };
 
   var lf=q("loginForm");
-  if(lf) lf.onsubmit=function(e){
+  if(lf) lf.onsubmit=async function(e){
     e.preventDefault();
     var v=(q("em").value||"").trim().toLowerCase();
-    if(REGISTERED.indexOf(v)>-1){S.email=v;S.first=cap(v);save();location.hash=S.day>=1?"#/hub":"#/prechallenge";render();}
-    else{document.getElementById("main").innerHTML=vLogin(true);wire();q("em").value=v;q("em").focus();}
+    var btn=lf.querySelector('button[type="submit"]');
+    if(btn){btn.disabled=true;btn.textContent="Verifying";}
+    try{
+      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
+        method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},
+        body:JSON.stringify({email:v})
+      });
+      var result=await response.json().catch(function(){return {};});
+      if(response.ok&&result.authorized===true){
+        S.email=v;S.first=cap(v);save();authState="hub";loginError=false;render();return;
+      }
+    }catch(error){}
+    loginError=true;render();
+    var em=q("em");if(em){em.value=v;em.focus();}
   };
-  var mg=q("magic");
-  if(mg) mg.onclick=function(e){e.preventDefault();S.email=REGISTERED[0];S.first=cap(REGISTERED[0]);save();
-    toast("Logged in from your magic link");location.hash=S.day>=1?"#/hub":"#/prechallenge";render();};
 
   var ce=q("copyEmail");
   if(ce) ce.onclick=function(){
@@ -882,7 +906,22 @@ if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
   rt.textContent=open?"Hide review tools":"Review tools";};
 
 window.addEventListener("hashchange",function(){render();});
-render();
+async function bootstrapAuth(){
+  authState="loading";loginError=false;render();
+  try{
+    var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/session",{
+      method:"GET",credentials:"include",headers:{"Accept":"application/json"}
+    });
+    var result=await response.json().catch(function(){return {};});
+    if(response.ok&&typeof result.csrf_token==="string"){
+      csrfToken=result.csrf_token;
+      authState=result.authorized===true?"hub":"login";
+      render();return;
+    }
+  }catch(error){}
+  csrfToken=null;authState="login";render();
+}
+bootstrapAuth();
 })();
 </script>
 </body>
