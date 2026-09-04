@@ -1,3 +1,20 @@
+> # STOP - THIS DOCUMENT IS OUT OF DATE AND DANGEROUS
+>
+> **Do not follow the instructions below.** They were written when
+> `hub.clientattractionsummit.com` served a plain uploaded copy of this repo.
+> That is no longer true.
+>
+> The live site now runs a sign-in system that Philippe built directly on the
+> server. **It does not exist in this repository.** Pointing the domain at
+> GitHub Pages, or letting a deploy overwrite the live file, replaces that
+> working sign-in with the three-address demo list in this repo and locks out
+> every registrant.
+>
+> Nothing deploys to the live site except Philippe, by hand, until after the
+> September round. Kept only as a record of the original plan.
+>
+> Flagged 3 September 2026.
+
 # Making hub.clientattractionsummit.com update itself
 
 ## Where it stands
