@@ -1243,6 +1243,14 @@ function wire(){
     }
     var btn=lf.querySelector('button[type="submit"]');
     if(btn){btn.disabled=true;btn.textContent="Verifying";}
+    /* Preview hosts only. The real auth service is locked to the production
+       hostname, so it can never answer from here; without this the welcome
+       page on our preview would be a dead end. Never runs on a customer host. */
+    if(showReview){
+      S.email=v; S.first=displayFirst(S.first)||"Preview"; save();
+      authState="hub"; loginError=false; authDown=false;
+      location.hash="#/hub"; render(); return;
+    }
     try{
       await refreshAuthSession();
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
@@ -1640,10 +1648,17 @@ async function bootstrapAuth(){
      be reviewed without the live auth service. showReview is false on every
      customer hostname, so this can never run there. */
   if(showReview){
-    /* Asking for #/login explicitly means you want to look at the welcome
-       page. Without this the preview signs you straight in and the welcome
-       page - the one carrying the hero - can never be reviewed. */
-    if(/^#\/login/.test(location.hash)){ authState="login"; render(); return; }
+    /* On our own preview, start where a real person starts: the welcome page.
+       Signing straight into the Hub meant the welcome page - the one carrying
+       the hero - could never be seen just by opening the link.
+       A deep link like #/day/2 still goes straight there, so the review panel
+       keeps working. */
+    /* The auth service cannot answer from a preview host, so that failure is
+       expected here and is not worth showing. Clearing it means the welcome
+       page looks the way a real visitor will see it. */
+    authDown=false; loginError=false;
+    var h = location.hash;
+    if(!h || h==="#/" || /^#\/login/.test(h)){ authState="login"; render(); return; }
     authState="hub"; if(!S.first) S.first="Preview";
     render(); return;
   }
