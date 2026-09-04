@@ -132,7 +132,7 @@ body.is-login .acct{display:none}
      on the left with the words clear on the right, which is the composition
      the page is built around. Re-check this value if the clip is ever swapped:
      it depends on where she sits in that particular footage. */
-  object-position:58% top}
+  object-position:78% top}
 /* scrim: opaque where the words are, clearing to the right so she stays visible.
    Light, not dark, so the page keeps its warm neutral ground. */
 .hero .scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
@@ -169,9 +169,6 @@ body.is-login .acct{display:none}
 .hero input[type=email]::placeholder{color:#9AA0A8}
 .hero input[type=email]:focus{outline:0;border-bottom-color:var(--ink)}
 .hero .btn{display:inline-block;width:auto;min-width:250px;margin:0}
-.hero .magic{display:block;margin:20px 0 0;font-family:Oswald,Impact,sans-serif;font-weight:300;
-  font-size:11px;letter-spacing:var(--ls-label);text-transform:uppercase;color:var(--teal);text-decoration:none}
-.hero .magic:hover{color:var(--ink)}
 .hero .hint{color:var(--soft);font-size:13px;line-height:1.5;max-width:46ch;margin:32px 0 0}
 .hero .errorbox{max-width:420px;margin:0 0 24px;text-align:left}
 
@@ -351,15 +348,30 @@ p{margin:0 0 16px;max-width:var(--measure)}
   text-transform:uppercase;color:var(--delft)}
 .chat-head button{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;
   color:var(--body);padding:0 2px}
-.chat-body{padding:16px;max-height:min(70vh,470px);overflow-y:auto}
-.chat-intro{margin:0 0 14px;font-size:13px;line-height:1.6;color:var(--body)}
-.chat-body textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;
-  border:1px solid var(--line);border-radius:0;background:#fff;color:var(--ink);resize:vertical}
-.chat-body .btn{margin:14px 0 0}
-.chat-alt{margin:14px 0 0;font-size:12.5px;color:var(--body)}
-.chat-alt a{color:var(--btn)}
-.chat-ok{border-left:3px solid var(--cerulean);background:#F4FAFC;padding:14px 16px;
-  font-size:13px;line-height:1.6;color:var(--delft)}
+.chat-thread{padding:14px 14px 6px;max-height:min(52vh,340px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;background:#FBFCFD}
+.chat-empty{display:flex;flex-direction:column;gap:6px;padding:6px 2px 10px}
+.chat-empty b{color:var(--delft);font-weight:600;font-size:13.5px}
+.chat-empty span{font-size:12.5px;line-height:1.6;color:var(--body)}
+.cmsg{display:flex;flex-direction:column;gap:3px;max-width:86%}
+.cmsg.me{align-self:flex-end;align-items:flex-end}
+.cmsg.them{align-self:flex-start}
+.cwho{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:10px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--cerulean)}
+.ctxt{padding:9px 12px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;
+  border:1px solid var(--line);background:#fff;color:var(--ink)}
+.cmsg.me .ctxt{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.cwhen{font-size:10.5px;color:var(--quiet-ink,#8A97A5)}
+.chat-compose{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;
+  border-top:1px solid var(--line);background:#fff}
+.chat-compose textarea{flex:1;font:inherit;font-size:16px;line-height:1.45;padding:9px 11px;
+  border:1px solid var(--line);border-radius:0;resize:none;max-height:120px;overflow-y:auto;color:var(--ink)}
+.chat-compose button{flex:0 0 auto;background:var(--indigo);color:#fff;border:1px solid var(--indigo);
+  border-radius:0;cursor:pointer;padding:11px 16px;font-family:Oswald,Impact,sans-serif;
+  font-weight:400;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase}
+.chat-compose button:hover{background:var(--delft);border-color:var(--delft)}
+.chat-ident{padding:0 12px 10px;background:#fff}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:620px){ #chatWrap{right:10px;bottom:10px} .chat-fab{padding:11px 16px} }
 .tickets{border:1px solid var(--line);border-left:3px solid #D6B146;background:#FFFDF6;
   padding:16px 18px;margin:18px 0 22px;display:flex;flex-direction:column;gap:4px}
@@ -538,21 +550,20 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
       <span>Message the Thrive team</span>
       <button type="button" id="chatClose" aria-label="Close">&times;</button>
     </div>
-    <div class="chat-body">
-      <p class="chat-intro">Ask us anything about the Challenge. Oliver answers first, and the
-      team picks it up from there. We usually reply within a few minutes during Challenge hours.</p>
-      <form id="chatForm" novalidate>
-        <label class="fl" for="chName">Your name</label>
-        <input type="text" id="chName" autocomplete="name" placeholder="First and last name">
-        <label class="fl" for="chEmail">Your email</label>
-        <input type="email" id="chEmail" autocomplete="email" placeholder="you@email.com">
-        <label class="fl" for="chMsg">Your message</label>
-        <textarea id="chMsg" rows="4" placeholder="How can we help?"></textarea>
-        <button class="btn btn-primary" type="submit">Send</button>
-      </form>
-      <p class="chat-alt">Prefer to text? <span id="chatPhone"></span> &middot;
-        <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">Messenger</a></p>
+    <div class="chat-thread" id="chatThread" aria-live="polite"></div>
+    <form id="chatForm" class="chat-compose" novalidate>
+      <label class="sr-only" for="chMsg">Your message</label>
+      <textarea id="chMsg" rows="1" placeholder="Type your message" autocomplete="off"></textarea>
+      <button type="submit" id="chSend" aria-label="Send">Send</button>
+    </form>
+    <div class="chat-ident" id="chatIdent" hidden>
+      <label class="fl" for="chName">Your name</label>
+      <input type="text" id="chName" autocomplete="name" placeholder="First and last name">
+      <label class="fl" for="chEmail">Your email</label>
+      <input type="email" id="chEmail" autocomplete="email" placeholder="you@email.com">
     </div>
+    <p class="chat-alt">Prefer to text? <span id="chatPhone"></span> &middot;
+      <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">Messenger</a></p>
   </div>
 </div>
 
@@ -710,7 +721,11 @@ var CHALLENGE = {
        inbound webhook and the conversation lands in the team's inbox, where
        Oliver and the SBC team already work. Empty until someone wires it, and
        the box degrades to text and Messenger rather than failing. */
-    chatEndpoint: window.THRIVE_CHAT_ENDPOINT || ""
+    chatEndpoint: window.THRIVE_CHAT_ENDPOINT || "",
+    /* Optional. If GoHighLevel can expose the team's replies for a given
+       email, point this here and answers appear inside the window. Without
+       it the person is simply told where the reply will arrive. */
+    chatRepliesEndpoint: window.THRIVE_CHAT_REPLIES_ENDPOINT || ""
   }
 };
 
@@ -720,7 +735,6 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
 var DAYS=CHALLENGE.days;
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
-var SHOW_MAGIC_LINK_LOGIN_CTA=false;
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
@@ -876,7 +890,7 @@ function summitBlock(compact){
     'It is where the posts you are writing this week turn into a whole system for booking clients and keeping them. '+
     'Sharla will walk you through it during the Challenge, including how the scholarships work. '+
     'Nothing to do right now.</p>'+
-    '<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">See what&rsquo;s included</a></div>';
+    '<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a></div>';
 }
 
 function winnerBlock(n){
@@ -924,7 +938,7 @@ function acct(){
 /* ---------------- views ---------------- */
 function vLogin(err){
   return '<section class="hero">'+
-    '<div class="bed"><video autoplay muted loop playsinline preload="metadata" '+
+    '<div class="bed"><video autoplay muted playsinline preload="metadata" '+
       'poster="hero-poster.jpg" aria-hidden="true"><source src="hero.mp4" type="video/mp4"></video></div>'+
     '<div class="scrim"></div>'+
     '<div class="in"><div class="col">'+
@@ -943,7 +957,6 @@ function vLogin(err){
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
-        (SHOW_MAGIC_LINK_LOGIN_CTA?'<a class="magic" href="#/login" id="magic">Or use my magic link</a>':'')+
       '</form>'+
       '<p class="hint" style="margin-top:22px">Use the same email you signed up with and we&rsquo;ll take you straight in.</p>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
@@ -993,7 +1006,6 @@ function vPre(){
                 : '');
      }).join('')+
    '</div>'+
-   (open_(1)?'<a class="btn btn-primary" href="#/hub" style="margin-top:26px;max-width:420px">Go to the Challenge Hub</a>':'')+
    concierge()+'</div>';
 }
 
@@ -1061,7 +1073,7 @@ function vDay(n){
       'with your first and last name and they&rsquo;ll look after you.</p>'+
       '<p class="lede">Your Playbook is yours to keep, and everything in it still works.</p>'+
       (d.playbook ? '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a>' : '')+
-      (summitOpen()?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">See what&rsquo;s included at the Summit</a>':'')+
+      (summitOpen()?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
       winnerBlock(n)+
       concierge()+'</div>';
   }
@@ -1386,15 +1398,16 @@ if(tgR) tgR.onclick=function(){
   save();location.hash="#/login";render();toast("Reset");};
 
 /* ---------------------------------------------------------------------------
-   Message box. Posts into GoHighLevel so Oliver and the SBC team answer from
-   the inbox they already use. Three rules:
-     - it never shows a technical failure. If the send does not land, the
-       person is handed to the Concierge with their message still on screen
-       so they can copy it.
-     - it prefills name and email from the signed-in session, so most people
-       only type the message.
-     - text/plain avoids a CORS preflight, which most webhook endpoints
-       cannot answer.
+   Message window. A running conversation, not a one-shot form.
+
+   - The thread is kept in this browser so it survives moving between days.
+   - Each message posts into GoHighLevel, where Oliver and the SBC team answer
+     from the inbox they already use.
+   - If a reply endpoint is configured it is polled while the window is open,
+     so team answers appear in the thread. Without one, the person is told
+     plainly where the reply will arrive.
+   - It never shows a technical failure. A send that does not land keeps the
+     message on screen and hands them to the Concierge.
    --------------------------------------------------------------------------- */
 (function(){
   var wrap=document.getElementById("chatWrap");
@@ -1403,51 +1416,119 @@ if(tgR) tgR.onclick=function(){
       openBtn=document.getElementById("chatOpen"),
       closeBtn=document.getElementById("chatClose"),
       form=document.getElementById("chatForm"),
+      box=document.getElementById("chMsg"),
+      thread=document.getElementById("chatThread"),
+      ident=document.getElementById("chatIdent"),
       phone=document.getElementById("chatPhone");
-  if(phone) phone.innerHTML = phoneLink();
+  if(phone) phone.innerHTML=phoneLink();
 
+  var KEY="thriveHub_chat_"+CHALLENGE.id, poll=null;
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } }
+  function save(m){ try{ localStorage.setItem(KEY,JSON.stringify(m.slice(-60))); }catch(e){} }
+  var msgs=load();
+
+  function esc2(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function when(ts){
+    try{ return new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
+    catch(e){ return ""; }
+  }
+  function draw(){
+    if(!msgs.length){
+      thread.innerHTML='<div class="chat-empty"><b>Ask us anything about the Challenge.</b>'+
+        '<span>Oliver answers first and the team picks it up from there. '+
+        'During Challenge hours we usually reply within a few minutes.</span></div>';
+    } else {
+      thread.innerHTML = msgs.map(function(m){
+        return '<div class="cmsg '+(m.from==="you"?"me":"them")+'">'+
+          (m.from!=="you"?'<span class="cwho">'+esc2(m.who||"Thrive team")+'</span>':'')+
+          '<span class="ctxt">'+esc2(m.text)+'</span>'+
+          '<span class="cwhen">'+when(m.at)+(m.from==="you"&&m.pending?' &middot; sending':'')+
+          (m.from==="you"&&m.failed?' &middot; not sent':'')+'</span></div>';
+      }).join('');
+    }
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function needIdent(){
+    var e=displayEmail(S.email);
+    return !e;   /* signed-in people are already identified */
+  }
   function open_(){
     panel.hidden=false; openBtn.setAttribute("aria-expanded","true");
-    var e=document.getElementById("chEmail"), n=document.getElementById("chName");
-    if(e && !e.value) e.value = displayEmail(S.email) || "";
-    if(n && !n.value) n.value = displayFirst(S.first) || "";
-    var m=document.getElementById("chMsg"); if(m) m.focus();
+    if(needIdent()){
+      ident.hidden=false;
+      var n=document.getElementById("chName");
+      if(n && !n.value) n.value=displayFirst(S.first)||"";
+    }
+    draw(); box.focus(); startPoll();
   }
-  function close_(){ panel.hidden=true; openBtn.setAttribute("aria-expanded","false"); openBtn.focus(); }
-  openBtn.onclick=function(){ panel.hidden ? open_() : close_(); };
+  function close_(){ panel.hidden=true; openBtn.setAttribute("aria-expanded","false"); stopPoll(); openBtn.focus(); }
+  openBtn.onclick=function(){ panel.hidden?open_():close_(); };
   closeBtn.onclick=close_;
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !panel.hidden) close_(); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!panel.hidden) close_(); });
 
-  function done(sent){
-    var body=panel.querySelector(".chat-body");
-    body.innerHTML = sent
-      ? '<div class="chat-ok"><b>Got it.</b> Your message is with the team. '+
-        'You will get a reply by text or Messenger, usually within a few minutes '+
-        'during Challenge hours.</div>'
-      : '<div class="chat-ok"><b>Let&rsquo;s get you to a person.</b> Text your Concierge at '+
-        phoneLink()+' or message us on '+
-        '<a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">Messenger</a> '+
-        'and we&rsquo;ll pick it up straight away. Please include your first and last name.</div>';
-  }
+  /* grow the box with the message, up to a point */
+  box.addEventListener("input",function(){
+    box.style.height="auto";
+    box.style.height=Math.min(box.scrollHeight,120)+"px";
+  });
+  box.addEventListener("keydown",function(e){
+    if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); form.requestSubmit?form.requestSubmit():form.onsubmit(e); }
+  });
 
   form.onsubmit=function(e){
-    e.preventDefault();
-    var msg=(document.getElementById("chMsg").value||"").trim();
-    var em =(document.getElementById("chEmail").value||"").trim();
-    var nm =(document.getElementById("chName").value||"").trim();
-    if(!msg){ document.getElementById("chMsg").focus(); return; }
-    var btn=form.querySelector("button[type=submit]");
-    if(btn){ btn.disabled=true; btn.textContent="Sending"; }
+    if(e&&e.preventDefault) e.preventDefault();
+    var text=(box.value||"").trim();
+    if(!text) return;
+    var mine={from:"you", text:text, at:Date.now(), pending:true};
+    msgs.push(mine); save(msgs); draw();
+    box.value=""; box.style.height="auto";
+
     var url=CHALLENGE.links.chatEndpoint;
-    if(!url){ done(false); return; }
+    function settled(ok){
+      mine.pending=false; if(!ok) mine.failed=true;
+      if(!ok){
+        msgs.push({from:"team", who:"Thrive team", at:Date.now(),
+          text:"We have not been able to send that from here. Please text your Concierge on (831) 480-1290, or message us on Messenger, and include your first and last name. Your message is still above so you can copy it."});
+      }
+      save(msgs); draw();
+    }
+    if(!url){ settled(false); return; }
     fetch(url,{method:"POST",mode:"cors",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({source:"challenge-hub", challenge:CHALLENGE.id,
-        name:nm, email:em, message:msg, page:location.hash||"#/hub"})})
-      .then(function(r){ return r.ok ? r.text() : Promise.reject(r.status); })
-      .then(function(){ done(true); })
-      .catch(function(){ done(false); });
+        name:(document.getElementById("chName")||{}).value||displayFirst(S.first)||"",
+        email:(document.getElementById("chEmail")||{}).value||displayEmail(S.email)||"",
+        message:text, page:location.hash||"#/hub"})})
+      .then(function(r){ return r.ok?r.text():Promise.reject(r.status); })
+      .then(function(){ settled(true); })
+      .catch(function(){ settled(false); });
   };
+
+  /* Replies, if a read endpoint is ever configured. Harmless when it is not. */
+  function startPoll(){
+    var url=CHALLENGE.links.chatRepliesEndpoint;
+    if(!url || poll) return;
+    poll=setInterval(function(){
+      var em=displayEmail(S.email)||((document.getElementById("chEmail")||{}).value||"");
+      if(!em) return;
+      fetch(url+(url.indexOf("?")>-1?"&":"?")+"email="+encodeURIComponent(em),{mode:"cors"})
+        .then(function(r){ return r.ok?r.json():null; })
+        .then(function(j){
+          if(!j || !j.messages || !j.messages.length) return;
+          var known={}; msgs.forEach(function(m){ if(m.id) known[m.id]=1; });
+          var added=false;
+          j.messages.forEach(function(m){
+            if(m.id && !known[m.id]){
+              msgs.push({from:"team", who:m.from||"Thrive team", text:m.text, at:m.at||Date.now(), id:m.id});
+              added=true;
+            }
+          });
+          if(added){ save(msgs); draw(); }
+        }).catch(function(){});
+    }, 20000);
+  }
+  function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
 })();
 
 /* ---------------------------------------------------------------------------
