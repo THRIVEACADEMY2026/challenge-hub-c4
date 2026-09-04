@@ -127,21 +127,26 @@ body.is-login .acct{display:none}
 .hero .bed::after{content:"";position:absolute;left:0;right:0;top:0;height:150px;z-index:2;
   background:linear-gradient(to bottom,rgba(243,241,243,.92) 0%,rgba(243,241,243,.55) 46%,rgba(243,241,243,0) 100%)}
 .hero .bed video,.hero .bed img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:none;
   /* The clip is 2.18:1 shown in a taller window, so roughly 740px is cropped
      from the sides. Centring would push Sharla under the copy; this keeps her
      on the left with the words clear on the right, which is the composition
      the page is built around. Re-check this value if the clip is ever swapped:
      it depends on where she sits in that particular footage. */
-  object-position:78% top}
+  object-position:85% top}
 /* scrim: opaque where the words are, clearing to the right so she stays visible.
    Light, not dark, so the page keeps its warm neutral ground. */
 .hero .scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
+  /* Opaque under the words on the right, clearing hard toward the left so
+     Sharla stays visible in the open space rather than fading into the wash.
+     The last two stops were .32 and .12; they were still veiling her once she
+     was moved left. */
   background:linear-gradient(260deg,
     rgba(242,240,242,.97) 0%,
-    rgba(242,240,242,.95) 32%,
-    rgba(240,237,240,.74) 52%,
-    rgba(238,235,238,.32) 74%,
-    rgba(236,233,236,.12) 100%)}
+    rgba(242,240,242,.93) 30%,
+    rgba(240,237,240,.62) 50%,
+    rgba(238,235,238,.16) 72%,
+    rgba(236,233,236,0) 100%)}
 @media (max-width:899px){
   /* No room to run footage behind the words without burying her face under the
      scrim, so on mobile it gets its own band above the navy strip instead. */
@@ -948,8 +953,9 @@ function vLogin(err){
     '<div class="scrim"></div>'+
     '<div class="in"><div class="col">'+
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
-      '<h1>Welcome back<br>to the Challenge</h1>'+
-      '<p class="lede">Enter the email you registered with and we will take you straight to your Hub.</p>'+
+      '<h1>Welcome to the<br>Challenge Hub</h1>'+
+      '<p class="lede">Everything you need for the Challenge, in one place. '+
+      'Sign in with the email you signed up with.</p>'+
       /* Three different problems, three different messages. They used to share
          one, so a registrant who submitted a blank field, or arrived while the
          service was down, was told their registration did not exist. */
