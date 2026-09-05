@@ -417,12 +417,14 @@ p{margin:0 0 16px;max-width:var(--measure)}
 
 /* ORANGE ACTION BUTTONS
    Sharla, 4 Sept, twice: "the buttons should be orange so my eye, like I
-   can't miss them." This overrides the guide's blue-on-light rule and she
-   made that call knowingly. #CE4A18 rather than the palette's #F16736: the
-   lighter orange gives white text only 3.1:1, which fails on a 14px label.
-   This one clears 4.5:1 and still reads unmistakably orange. */
-.btn-action{background:#CE4A18;border-color:#CE4A18;color:#fff}
-.btn-action:hover{background:#B33D0E;border-color:#B33D0E;color:#fff}
+   can't miss them." This overrides the guide's blue-on-light button rule and
+   she made that call knowingly.
+   #F3771A is sampled from the live thank-you page buttons, so the Hub matches
+   the funnel exactly. Note it gives white text about 3:1, under the 4.5:1
+   normally wanted for a label this size - accepted deliberately for brand
+   consistency, and the label is set a little larger to compensate. */
+.btn-action{background:#F3771A;border-color:#F3771A;color:#fff;font-size:15px}
+.btn-action:hover{background:#DA6710;border-color:#DA6710;color:#fff}
 
 @media (max-width:640px){
   /* Sizes restated for phones. The clamps above bottom out too close together
@@ -766,13 +768,13 @@ var CHALLENGE = {
        AddEvent calendars behind this page are disabled or point at August.
        Kept only so the value is not lost. Do not wire a button to it again
        until someone has confirmed the calendars work. */
-    /* EMPTY ON PURPOSE. Sharla asked on 4 Sept to keep the add-to-calendar
-       step, because people register with one email and read another and may
-       never see Philippe's invite. But every AddEvent calendar on the funnel
-       today is either disabled or titled "Aug 17-21", so pointing a button at
-       one would add the wrong week. Paste the SEPTEMBER calendar URL here and
-       the button appears by itself. Until then the step lists the dates. */
-    addCal:  "",
+    /* The September calendar, supplied by Ella 4 Sept and verified before
+       wiring: titled "(Sep 7-11)", holds six events - the 7th through 11th
+       plus the 14th Grand Finale - and the Facebook group inside it is
+       1386366133366597, the correct September group.
+       NOT qr7jgcctg1mc, which is still on the funnel's thank-you page and is
+       August: it shows Aug 17 and carries group 1779570609592720. */
+    addCal:  "https://www.addevent.com/calendar/1db44pf3wbc5",
     summit:  "https://secure.clientattractionsummit.com/order-form-challenge-step-1",
     optin:   "https://apply.clientattractionsummit.com/challenge-optin-organic-socials",
     /* Zoom carries an embedded passcode, so it is NOT committed to this public
