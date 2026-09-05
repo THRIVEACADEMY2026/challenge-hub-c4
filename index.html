@@ -133,7 +133,7 @@ body.is-login .acct{display:none}
      on the left with the words clear on the right, which is the composition
      the page is built around. Re-check this value if the clip is ever swapped:
      it depends on where she sits in that particular footage. */
-  object-position:85% top}
+  object-position:58% top}
 /* scrim: opaque where the words are, clearing to the right so she stays visible.
    Light, not dark, so the page keeps its warm neutral ground. */
 .hero .scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
@@ -412,7 +412,7 @@ p{margin:0 0 16px;max-width:var(--measure)}
   letter-spacing:0;text-transform:none;margin:40px 0 10px}
 .prep p{font-size:15.5px;line-height:1.65;max-width:60ch}
 .prep .player{margin:0 0 4px}
-.prep .player iframe{display:block;width:100%;aspect-ratio:16/9;height:auto;border:0;background:#000}
+.prep .player video{display:block;width:100%;aspect-ratio:16/9;height:auto;background:#000}
 .pre-later{margin-top:44px;padding-top:30px;border-top:1px solid var(--line)}
 
 /* ORANGE ACTION BUTTONS
@@ -1006,7 +1006,7 @@ function acct(){
 /* ---------------- views ---------------- */
 function vLogin(err){
   return '<section class="hero">'+
-    '<div class="bed"><video autoplay muted playsinline preload="metadata" '+
+    '<div class="bed"><video autoplay muted loop playsinline preload="metadata" '+
       'poster="hero-poster.jpg" aria-hidden="true"><source src="hero.mp4" type="video/mp4"></video></div>'+
     '<div class="scrim"></div>'+
     '<div class="in"><div class="col">'+
@@ -1049,9 +1049,13 @@ function vPre(){
   return '<div class="measure prep">'+
    '<p class="eyebrow">You&rsquo;re registered</p>'+
    '<h1 class="pre-hi">You&rsquo;re in'+(first?', '+esc(first):'')+'!</h1>'+
-   '<div class="player"><iframe src="https://player.vimeo.com/video/998241739?title=0&amp;byline=0&amp;portrait=0" '+
-     'title="Welcome to the Challenge" frameborder="0" '+
-     'allow="autoplay; fullscreen; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'+
+   /* Hosted here rather than embedded from Vimeo. Same video - Ella sent the
+      4K source on 4 Sept and it is 127s, matching the Vimeo cut exactly - but
+      serving it ourselves means no third-party player, no domain restrictions
+      and nothing to break if the Vimeo account changes. */
+   '<div class="player"><video controls preload="none" playsinline poster="welcome-poster.jpg" '+
+     'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
+     'Your browser cannot play this video. <a href="welcome.mp4">Download it instead.</a></video></div>'+
    '<p class="pre-when">The Challenge starts Monday September 7, live at 10:00am PT / 1:00pm ET every day.</p>'+
    '<h2 class="pre-do">Take these two quick steps now to get the most clients from the Challenge</h2>'+
 
