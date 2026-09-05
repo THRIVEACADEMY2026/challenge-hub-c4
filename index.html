@@ -836,11 +836,16 @@ function replaysClosed(d){
    exactly what any moment of the week looks like. It is always 0 for a lead.
    ============================================================================ */
 var NOW_SHIFT = 0;
+var previewClockSet = false;   /* true once a reviewer pins a moment */
 function now_(){ return Date.now() + NOW_SHIFT; }
 
 function phaseOf(n){
   var d = day_(n); if(!d) return "locked";
   if(CHALLENGE.unlockAll) return "replay";
+  /* On our own preview every day is open so the whole Hub can be walked
+     through for QA. The clock still governs on any customer hostname, and
+     the review panel still simulates before/live/replay for a chosen day. */
+  if(typeof showReview!=="undefined" && showReview && !previewClockSet) return "replay";
   var u = Date.parse(d.unlockAt), r = Date.parse(d.replayAt), t = now_();
   if(isNaN(u) || isNaN(r)) return "locked";
   if(t < u) return "locked";
@@ -1498,7 +1503,7 @@ function previewDay(n){
   /* "before" lands 30 minutes ahead of the session, mid-countdown.
      otherwise land just after the replay opens. */
   var t = previewBefore ? Date.parse(d.startsAt)-30*60000 : Date.parse(d.replayAt)+60000;
-  if(!isNaN(t)) NOW_SHIFT = t - Date.now();
+  if(!isNaN(t)){ NOW_SHIFT = t - Date.now(); previewClockSet = true; }
 }
 function syncDemo(){
   Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
@@ -1511,7 +1516,7 @@ function syncDemo(){
 Array.prototype.forEach.call(document.querySelectorAll("#rev [data-day]"),function(b){
   b.onclick=function(){
     var n=+b.getAttribute("data-day");
-    if(n===0){ NOW_SHIFT = Date.parse(DAYS[0].unlockAt)-2*3600000-Date.now(); location.hash="#/prechallenge"; }
+    if(n===0){ NOW_SHIFT = Date.parse(DAYS[0].unlockAt)-2*3600000-Date.now(); previewClockSet=true; location.hash="#/prechallenge"; }
     else { previewDay(n); location.hash="#/day/"+n; }
     render();
   };
@@ -1528,7 +1533,7 @@ if(tgR) tgR.onclick=function(){
   /* This wipes Golden Tickets. It is a review tool and it should still ask. */
   if(!window.confirm("Reset this browser?\n\nThis clears the signed-in email AND every Golden Ticket saved here. It cannot be undone."))return;
   S={day:1,live:false,email:null,first:null,progress:{}};
-  NOW_SHIFT=0; previewBefore=false;
+  NOW_SHIFT=0; previewBefore=false; previewClockSet=false;
   save();location.hash="#/login";render();toast("Reset");};
 
 /* ---------------------------------------------------------------------------
