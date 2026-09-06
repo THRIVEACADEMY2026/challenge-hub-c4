@@ -260,8 +260,10 @@ p{margin:0 0 16px;max-width:var(--measure)}
   font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:var(--ls-btn);
   text-transform:uppercase;border:1px solid var(--ink);margin:0 0 14px;line-height:var(--lh-snug);
   text-decoration:none;transition:background .2s,color .2s,border-color .2s}
-.btn-primary{background:var(--indigo);color:#fff;border-color:var(--indigo)}
-.btn-primary:hover{background:#02324F;border-color:#02324F}
+/* One button colour across the Hub. Ella, 4 Sept: "all buttons should be the
+   same brand orange". #F3771A is sampled from the live funnel buttons. */
+.btn-primary{background:#F3771A;color:#fff;border-color:#F3771A}
+.btn-primary:hover{background:#DA6710;border-color:#DA6710}
 .btn-outline{background:transparent;color:var(--ink);border-color:var(--ink)}
 .btn-outline:hover{background:var(--ink);color:#fff}
 .btn-sub{display:block;font-family:Raleway,Arial,sans-serif;font-weight:400;font-size:var(--t-small);
@@ -424,6 +426,11 @@ p{margin:0 0 16px;max-width:var(--measure)}
    normally wanted for a label this size - accepted deliberately for brand
    consistency, and the label is set a little larger to compensate. */
 .btn-action{background:#F3771A;border-color:#F3771A;color:#fff;font-size:15px}
+.chat-compose button{background:#F3771A;border-color:#F3771A}
+.chat-compose button:hover{background:#DA6710;border-color:#DA6710}
+.chat-fab{background:#F3771A;border-color:#F3771A}
+.chat-fab:hover{background:#DA6710;border-color:#DA6710}
+.chat-fab-i::after{background:#F3771A}
 .btn-action:hover{background:#DA6710;border-color:#DA6710;color:#fff}
 
 @media (max-width:640px){
@@ -451,8 +458,21 @@ p{margin:0 0 16px;max-width:var(--measure)}
 .pqv{width:100%;height:auto;display:block;background:#000}
 .pqc{margin:0;font-size:var(--t-small);color:var(--body);line-height:1.6;max-width:62ch;
   white-space:pre-line}
-.soon{border:1px solid var(--line);background:var(--locked-bg);padding:26px 22px;
-  margin:0 0 4px;display:flex;flex-direction:column;gap:8px;text-align:center}
+/* Same footprint as the video player it stands in for, so the page does not
+   jump when the replay is uploaded. 16/9, full width, same border and margin. */
+/* playback speed row */
+.speeds{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px}
+.speeds .sp-l{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:10.5px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--quiet-ink,#8A97A5);margin-right:2px}
+.speeds button{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--body);border-radius:0}
+.speeds button:hover{border-color:#F3771A;color:#F3771A}
+.speeds button[aria-pressed="true"]{background:#F3771A;border-color:#F3771A;color:#fff}
+.soon{border:1px solid var(--line);background:var(--locked-bg);
+  aspect-ratio:16/9;width:100%;margin:0 0 16px;padding:26px 22px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;text-align:center;box-sizing:border-box}
 .soon .lbl{font-family:Oswald,Arial,sans-serif;font-weight:300;font-size:11.5px;
   letter-spacing:.28em;text-transform:uppercase;color:var(--cerulean)}
 .soon p{margin:0;font-size:var(--t-small);color:var(--body);max-width:52ch;
@@ -678,6 +698,10 @@ var CHALLENGE = {
      asset:"Compelling Consult Name",   quest:"day1",
      unlockAt:"2026-09-07T09:00:00-07:00", startsAt:"2026-09-07T10:00:00-07:00", replayAt:"2026-09-07T12:00:00-07:00", video:"", art:"quest-day1.jpg",
      post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0vFqo6yb367pwWZwX28pSHd2cybQKjpUK58aBAKRbrmZGCoiMwAtLgAHCNGxHYahhl",
+     /* The Instagram version of the Day 1 Quest post, for people who are not
+        on Facebook. Ella asked for this on 4 Sept; paste the IG post URL here
+        and the link appears. Until then it hands them to the Concierge. */
+     igPost:"",
      playbook:"https://giftfromthrive.com/name"},
     {n:2, date:"Tuesday September 8",   short:"Tue Sept 8",  title:"Create Intrigue",
      asset:"Create Intrigue",           quest:"std",
@@ -971,6 +995,7 @@ function winnerBlock(n){
   /* On our own preview only, show a sample so the block can be reviewed before
      any real winner exists. A lead never sees this: on a customer host the
      block stays hidden until a real name is typed into CHALLENGE.winners. */
+  if(n===1) return "";   /* Day 1 has no Quest winner */
   if(!w && showReview && isQuestDay(day_(n)))
     return '<div class="winner"><span class="lbl">Day '+n+' Quest winner</span>'+
       '<b>Sample Name (preview only)</b>'+
@@ -989,7 +1014,7 @@ function sidebar(){
   if(authState!=="hub") return "";
   var h=location.hash;
   var items='<a class="navitem'+(h==="#/prechallenge"?'" aria-current="page':'')+'" href="#/prechallenge">'+
-            '<span class="n">Prepare</span>'+(open_(1)?'<span class="ok">Done</span>':'')+'</a>';
+            '<span class="n">Prepare</span></a>';
   items+=DAYS.map(function(d){
     if(!open_(d.n)) return '<span class="navitem locked"><span class="n">Day '+d.n+'</span><span class="s">'+esc(d.short)+'</span></span>';
     var live=isLiveNow(d.n), cur=(h==="#/day/"+d.n);
@@ -1087,48 +1112,18 @@ function vPre(){
    concierge()+'</div>';
 }
 
-/* The Pre-Challenge Quests are revealed one at a time, not all at once.
-   Sharla, 4 Sept: "hide the whole thing right now. So all they have to see is
-   step one and step two when they log in."
-   So nothing shows until they open it, then one Quest at a time, each one
-   unlocking the next when they mark it done. Progress is kept per browser. */
-function preQuestsOpened(){ return S.preOpen===true; }
-function preQuestsDone(){ return (S.preDone|0); }
+/* One button, straight to Pre-Challenge Quest 1. Ella, 4 Sept. The Quests
+   themselves live in the Facebook Group and each post links on to the next,
+   so the Hub does not need to reproduce the whole chain. */
 function preQuestBlock(){
-  var qs=CHALLENGE.preQuests, total=qs.length;
-  if(!preQuestsOpened()){
-    return '<div class="pre-later">'+
-      '<h3 class="pre-step">When those two are done</h3>'+
-      '<p>There are '+total+' short warm-up Quests waiting inside the Group. '+
-      'They take a couple of minutes each and they earn you Golden Tickets.</p>'+
-      '<button class="btn btn-outline" id="preStart" type="button" style="max-width:420px">Show me the first one</button>'+
-      '</div>';
-  }
-  var done=Math.min(preQuestsDone(), total);
-  var idx=Math.min(done, total-1);
-  var out='<h3 class="pre-step">Pre-Challenge Quests</h3>'+
-    '<p class="caption">'+(done>=total
-      ? 'All '+total+' done. Lovely work.'
-      : 'Quest '+qs[idx].n+' of '+total+'. Finish this one and the next appears.')+'</p>';
-  if(done>=total){
-    out+='<div class="locked-msg" style="max-width:520px">You have finished every warm-up Quest. '+
-      'See you Monday at 10:00am PT.</div>';
-    return '<div class="pre-later">'+out+'</div>';
-  }
-  var q=qs[idx];
-  out+='<div class="daylist">'+
-    '<a class="dayrow" href="'+q.url+'" target="_blank" rel="noopener" data-fb="1">'+
-      '<span class="n">Quest '+q.n+'</span><span class="d">'+q.title+'</span></a>'+
-    '<div class="pq">'+
-      (q.art?'<img class="pqa" src="'+q.art+'" alt="'+q.title+'" width="900" height="900" loading="lazy">':'')+
-      (q.video?'<video class="pqv" controls preload="none" playsinline'+
-        (q.poster?' poster="'+q.poster+'"':'')+'><source src="'+q.video+'" type="video/mp4"></video>':'')+
-      (q.caption?'<p class="pqc">'+q.caption+'</p>':'')+
-      '<button class="btn btn-action" type="button" id="preNext" style="max-width:420px">'+
-      (idx===total-1?'I have done this one':'Done &mdash; show me the next')+'</button>'+
-    '</div>'+
-  '</div>';
-  return '<div class="pre-later">'+out+'</div>';
+  var q = CHALLENGE.preQuests && CHALLENGE.preQuests[0];
+  if(!q) return "";
+  return '<div class="pre-later">'+
+    '<h3 class="pre-step">Then your Pre-Challenge Quests</h3>'+
+    '<p>Short warm-ups inside the Group. Each one links you on to the next.</p>'+
+    '<a class="btn btn-action" href="'+q.url+'" target="_blank" rel="noopener" style="max-width:420px">'+
+    'View Pre-Challenge Quest 1</a>'+
+    '</div>';
 }
 
 function vHub(){
@@ -1143,8 +1138,7 @@ function vHub(){
    '<p class="lede">Everything you need is here. Pick the day you&rsquo;re on.</p>'+
    ticketPanel()+
    '<div class="daylist hub-daylist">'+
-     '<a class="dayrow'+(open_(1)?' done':'')+'" href="#/prechallenge"><span class="n">Prepare</span>'+
-       (open_(1)?'<span class="pill">Done</span>':'<span class="d">Start here</span>')+'</a>'+rows+
+     '<a class="dayrow" href="#/prechallenge"><span class="n">Prepare</span></a>'+rows+
    '</div>'+
    summitBlock(false)+
    concierge()+'</div>';
@@ -1153,7 +1147,7 @@ function vHub(){
 function questBlock(d){
   var p=prog(d.n);
   if(d.quest==="day1"){
-    return '<h3>Then complete your Day 1 Quest</h3>'+
+    return '<h3>Complete your Day 1 Quest</h3>'+
       '<p>Comment your Compelling Consult Name on our Day 1 Quest post, then claim your prize.</p>'+
       '<a class="btn btn-primary" href="'+d.post+'" target="_blank" rel="noopener">Go to the Day 1 Quest post</a>'+
       '<div class="steps"><div class="step'+(p.quest?' checked':'')+'">'+
@@ -1163,9 +1157,9 @@ function questBlock(d){
   var L=[
    'Encourage <b>5+ Champions</b> by liking and commenting on their posts.',
    'Post your <b>'+d.asset+'</b> on Facebook, Instagram, or LinkedIn.',
-   'Share your post link (permalink) in the <b>Day '+d.n+' Quest</b> comments.',
+   'Share your post link (permalink) in the <b><a href="'+d.post+'" target="_blank" rel="noopener">Day '+d.n+' Quest</a></b> comments.',
    'Comment on <b>5+ more Champions</b> to help boost each other&rsquo;s visibility.'];
-  return '<h3>Then complete your Day '+d.n+' Quest</h3>'+
+  return '<h3>Complete your Day '+d.n+' Quest</h3>'+
    '<a class="btn btn-primary" href="'+d.post+'" target="_blank" rel="noopener">Go to the Day '+d.n+' Quest post</a>'+
    '<div class="steps">'+L.map(function(t,i){
      var on=p.steps.indexOf(i)>-1;
@@ -1228,9 +1222,7 @@ function vDay(n){
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
         '<p>The Day '+n+' replay is being uploaded and will appear here soon. '+
         'Refresh the page in a little while and it will be waiting for you.</p></div>'+
-        '<p class="vnote">'+(isQuestDay(d)
-           ? 'You don&rsquo;t need the replay to start. Your Quest is ready below.'
-           : 'This is where it all comes together.')+'</p>');
+        '');
 
   /* The same square artwork that heads that day's post in the Facebook Group,
      so the Hub and the Group read as one thing rather than two. */
@@ -1247,8 +1239,8 @@ function vDay(n){
 
   var ticket = (before || !isQuestDay(d)) ? '' :
    '<div class="ticket'+(dn?' earned':'')+'"><div class="ticket-in">'+
-   (dn?'<b>Golden Ticket earned.</b> That&rsquo;s Day '+n+' done. You&rsquo;re in the draw for the Grand Prize: The Client Attraction Summit and 2 Months in Platinum.'
-      :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize: The Client Attraction Summit and 2 Months in Platinum.')+
+   (dn?'<b>Golden Ticket earned.</b> That&rsquo;s Day '+n+' done. You&rsquo;re in the draw for the Grand Prize.'
+      :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize.')+
    '</div></div>'+
    /* The old "Submit your post here instead" link went to a form that saved
       nothing and still said "counted", so anyone using it lost their ticket
@@ -1257,7 +1249,17 @@ function vDay(n){
       outside Facebook can still be counted by hand. Days 2 to 5 require posting
       inside the Group, so there is no off-Facebook route and offering one would
       be a promise we cannot keep. */
-   (d.quest==="day1" ? '<p class="caption" style="margin-top:14px">Not on Facebook? Send your Consult Name to your Concierge at '+phoneLink()+' and we&rsquo;ll count it for you.</p>' : '');
+   /* Day 1 only. Its Quest runs on a public Page post, so someone outside
+      Facebook can still take part. Days 2 to 5 need the Group, so there is no
+      alternative to offer and pretending otherwise would be a promise we
+      cannot keep. */
+   (d.quest==="day1"
+     ? '<p class="caption" style="margin-top:14px">Not on Facebook? '+
+       (d.igPost
+         ? 'Comment your Consult Name on <a href="'+d.igPost+'" target="_blank" rel="noopener">our Instagram post</a> instead.'
+         : 'Send your Consult Name to your Concierge at '+phoneLink()+' and we&rsquo;ll count it for you.')+
+       '</p>'
+     : '');
 
   var aside =
    '<div class="aside">'+
@@ -1395,15 +1397,6 @@ function wire(){
     render();
     /* Put their email back so they are not retyping it to try again. */
     var em=q("em");if(em){em.value=v;em.focus();}
-  };
-
-  /* Pre-Challenge Quests, revealed one at a time */
-  var ps=q("preStart");
-  if(ps) ps.onclick=function(){ S.preOpen=true; save(); render(true); };
-  var pn=q("preNext");
-  if(pn) pn.onclick=function(){
-    S.preDone=(S.preDone|0)+1; save(); render(true);
-    toast("Nice. Next one is ready.");
   };
 
   var ce=q("copyEmail");
@@ -1683,6 +1676,50 @@ if(tgR) tgR.onclick=function(){
     }, 20000);
   }
   function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
+})();
+
+/* ---------------------------------------------------------------------------
+   Playback speed. The browser's own controls do not offer it consistently, and
+   people watching a replay to catch up want to run it faster. Attaches a small
+   row of speeds under any real video on the page, remembers the choice for the
+   session, and applies it to every video so it does not have to be reset on
+   each day.
+   --------------------------------------------------------------------------- */
+(function(){
+  var SPEEDS=[0.75,1,1.25,1.5,1.75,2], KEY="thriveHub_speed";
+  function chosen(){
+    var v=1; try{ v=parseFloat(sessionStorage.getItem(KEY))||1; }catch(e){}
+    return SPEEDS.indexOf(v)>-1 ? v : 1;
+  }
+  function remember(v){ try{ sessionStorage.setItem(KEY,String(v)); }catch(e){} }
+
+  function attach(video){
+    if(video.dataset.speedWired) return;
+    video.dataset.speedWired="1";
+    video.playbackRate = chosen();
+    var bar=document.createElement("div");
+    bar.className="speeds";
+    bar.innerHTML='<span class="sp-l">Speed</span>'+SPEEDS.map(function(v){
+      return '<button type="button" data-sp="'+v+'"'+(v===chosen()?' aria-pressed="true"':'')+'>'+
+             (v===1?'Normal':v+'x')+'</button>';
+    }).join('');
+    bar.addEventListener("click",function(e){
+      var b=e.target.closest("button[data-sp]"); if(!b) return;
+      var v=parseFloat(b.getAttribute("data-sp"));
+      remember(v);
+      document.querySelectorAll("video").forEach(function(vid){ vid.playbackRate=v; });
+      document.querySelectorAll(".speeds button[data-sp]").forEach(function(x){
+        x.setAttribute("aria-pressed", parseFloat(x.getAttribute("data-sp"))===v ? "true":"false");
+      });
+    });
+    if(video.parentNode) video.parentNode.insertBefore(bar, video.nextSibling);
+  }
+
+  function scan(){ document.querySelectorAll("video").forEach(attach); }
+  scan();
+  /* the Hub re-renders on every route change, so watch for new players */
+  new MutationObserver(function(){ scan(); })
+    .observe(document.body,{childList:true,subtree:true});
 })();
 
 /* ---------------------------------------------------------------------------
