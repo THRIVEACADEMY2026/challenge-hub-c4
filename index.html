@@ -656,6 +656,13 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
   .pre-top{grid-template-columns:1fr;gap:16px;margin-bottom:26px}
   .pre-top .pre-when{font-size:16.5px}
 }
+/* The speed row was built for the full-width replay player. In the narrower
+   welcome column it wrapped onto a second line, so inside .pre-top the six
+   buttons are tightened and the SPEED label is dropped to keep it on one. */
+.pre-top .speeds{gap:4px;margin:8px 0 0}
+.pre-top .speeds .sp-l{display:none}
+.pre-top .speeds button{font-size:10px;letter-spacing:.06em;padding:4px 7px}
+
 /* Zoom button in the left menu (Ella, 6 Sept). */
 .side-zoom{display:block;width:100%;margin:16px 0 0;text-align:center}
 .side-zoom.is-live{box-shadow:0 0 0 3px rgba(243,119,26,.28)}
