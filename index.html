@@ -342,6 +342,10 @@ p{margin:0 0 16px;max-width:var(--measure)}
 
 /* golden ticket */
 /* message box */
+/* Message window removed on Sharla's 6 Sept Loom: sending into Messenger did
+   not carry the text across and texting misbehaved on her MacBook. The rules
+   below are kept, unused, so it can be restored in one commit if the flow is
+   ever fixed. Nothing references them now. */
 #chatWrap{position:fixed;right:14px;bottom:14px;z-index:65}
 .chat-fab{display:flex;align-items:center;gap:9px;background:var(--indigo);color:#fff;
   border:1px solid var(--indigo);border-radius:0;cursor:pointer;padding:13px 20px;
@@ -634,6 +638,27 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pb-in .btn{margin:0;flex:0 0 auto;width:auto;display:inline-block;
   padding:11px 26px;white-space:nowrap}
 @media (max-width:620px){ .pb-in{padding:14px 16px;gap:12px} .pb-in .btn{width:100%} }
+
+/* --- Sharla's 6 Sept Loom: prepare page above the fold --------------------
+   The welcome video ran the full measure, so Step 1 sat below the fold and,
+   in her words, "they may not realize they could scroll down". Two columns
+   with the video at about half width lifts the steps into view. The headline
+   was on four lines and "looks weird... taking up too much space"; it is
+   shorter now and the width is set so it lands on two.
+   Stacks back to a single column on a phone. */
+.pre-top{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;margin:0 0 34px}
+.pre-top-copy{min-width:0}
+.pre-top .pre-hi{margin:0 0 10px}
+.pre-top .pre-when{margin:0;max-width:none;font-size:clamp(15px,1.3vw,17.5px)}
+.pre-top .player{margin:0}
+.prep .pre-do{max-width:30ch}
+@media (max-width:820px){
+  .pre-top{grid-template-columns:1fr;gap:16px;margin-bottom:26px}
+  .pre-top .pre-when{font-size:16.5px}
+}
+/* Zoom button in the left menu (Ella, 6 Sept). */
+.side-zoom{display:block;width:100%;margin:16px 0 0;text-align:center}
+.side-zoom.is-live{box-shadow:0 0 0 3px rgba(243,119,26,.28)}
 </style>
 </head>
 <body>
@@ -694,35 +719,6 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
     <span>Jesse Koren &amp; Sharla Jacobs</span>
   </div>
 </footer>
-
-<!-- Message box. Sends into GoHighLevel so Oliver and the SBC team answer in
-     the inbox they already use. If the endpoint is not wired, or the send
-     fails, it hands the person to the Concierge instead of showing an error. -->
-<div id="chatWrap">
-  <button type="button" id="chatOpen" class="chat-fab">
-    <span class="chat-fab-i" aria-hidden="true"></span>Message us
-  </button>
-  <div id="chatPanel" class="chat-panel" hidden>
-    <div class="chat-head">
-      <span>Message the Thrive team</span>
-      <button type="button" id="chatClose" aria-label="Close">&times;</button>
-    </div>
-    <div class="chat-thread" id="chatThread" aria-live="polite"></div>
-    <form id="chatForm" class="chat-compose" novalidate>
-      <label class="sr-only" for="chMsg">Your message</label>
-      <textarea id="chMsg" rows="1" placeholder="Type your message" autocomplete="off"></textarea>
-      <button type="submit" id="chSend" aria-label="Send">Send</button>
-    </form>
-    <div class="chat-ident" id="chatIdent" hidden>
-      <label class="fl" for="chName">Your name</label>
-      <input type="text" id="chName" autocomplete="name" placeholder="First and last name">
-      <label class="fl" for="chEmail">Your email</label>
-      <input type="email" id="chEmail" autocomplete="email" placeholder="you@email.com">
-    </div>
-    <p class="chat-alt">Prefer to text? <span id="chatPhone"></span> &middot;
-      <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">Messenger</a></p>
-  </div>
-</div>
 
 <!-- Privacy notice. Shown once, then remembered. This is a NOTICE, not a
      consent gate, because the Hub runs no advertising or analytics cookies -
@@ -1085,6 +1081,9 @@ function phoneLink(){
 function concierge(){
   return '<div class="concierge"><b>Questions? Your Challenge Concierge is here for you.</b>'+
    '<span>Text '+phoneLink()+' or DM <a href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">m.me/ThriveAcademy</a></span>'+
+   /* Ella, 6 Sept: an email address for Challenge questions, alongside the
+      text line. It was only in the footer before, which is past everything. */
+   '<span>Or email <a href="mailto:Support@Thrive-Academy.com">Support@Thrive-Academy.com</a></span>'+
    '<span>Please include your first and last name so we can find your registration and help you faster.</span></div>';
 }
 
@@ -1204,7 +1203,15 @@ function sidebar(){
       (live?'<span class="s">Live now</span>':(done_(d.n)?'<span class="ok">&#10003;</span>':'<span class="s">'+esc(d.short)+'</span>'))+'</a>';
   }).join('');
   var t=tickets(), tot=DAYS.filter(function(d){return isQuestDay(d)&&open_(d.n);}).length;
+  /* Ella, 6 Sept: the Zoom link belongs in the left menu as a button, so it
+     is reachable from any day rather than only from the day that is open. */
+  var anyLive=DAYS.some(function(d){return isLiveNow(d.n);});
+  var zoomBtn = ZOOM
+    ? '<a class="btn btn-action side-zoom'+(anyLive?' is-live':'')+'" href="'+ZOOM+'" '+
+      'target="_blank" rel="noopener">'+(anyLive?'Join the live session now':'Join the live session')+'</a>'
+    : '';
   return '<div class="stick"><h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
+    zoomBtn+
     ticketPanel()+
     '<div style="margin-top:28px">'+concierge()+'</div></div>';
 }
@@ -1277,21 +1284,27 @@ function vPre(){
      level, so the .pre-* classes below step down deliberately rather than
      reusing the general scale. */
   return '<div class="measure prep">'+
-   '<p class="eyebrow">You&rsquo;re registered</p>'+
-   '<h1 class="pre-hi">You&rsquo;re in'+(first?', '+esc(first):'')+'!</h1>'+
-   /* Hosted here rather than embedded from Vimeo. Same video - Ella sent the
-      4K source on 4 Sept and it is 127s, matching the Vimeo cut exactly - but
-      serving it ourselves means no third-party player, no domain restrictions
-      and nothing to break if the Vimeo account changes. */
-   '<div class="player"><video controls preload="none" playsinline poster="'+m_('welcome-poster.jpg')+'" '+
-     'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
-     'Your browser cannot play this video. <a href="'+m_('welcome.mp4')+'">Download it instead.</a></video></div>'+
-   '<p class="pre-when">The Challenge starts Monday September 7, live at 10:00am PT / 1:00pm ET every day.</p>'+
-   '<h2 class="pre-do">Take these two quick steps now to get the most clients from the Challenge</h2>'+
+   /* Sharla, 6 Sept Loom: "we can shrink the size of this video... maybe even
+      make it two columns", because at full width the video pushed the steps
+      below the fold and "they may not realize they could scroll down".
+      Greeting and video now sit side by side, and the repeated start time is
+      said once here rather than again inside Step 1. */
+   '<div class="pre-top">'+
+     '<div class="pre-top-copy">'+
+       '<p class="eyebrow">You&rsquo;re registered</p>'+
+       '<h1 class="pre-hi">You&rsquo;re in'+(first?', '+esc(first):'')+'!</h1>'+
+       '<p class="pre-when">We go live at 10:00am PT / 1:00pm ET, Monday September 7 to Friday the 11th.</p>'+
+     '</div>'+
+     '<div class="player"><video controls preload="none" playsinline poster="'+m_('welcome-poster.jpg')+'" '+
+       'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
+       'Your browser cannot play this video. <a href="'+m_('welcome.mp4')+'">Download it instead.</a></video></div>'+
+   '</div>'+
+   '<h2 class="pre-do">Two quick steps to get the most clients from this Challenge</h2>'+
 
-   '<h3 class="pre-step">Step 1 &middot; Put it in your calendar</h3>'+
-   '<p>We go live at 10:00am PT / 1:00pm ET every day, September 7 to 11. '+
-   'Add it now so it is in your calendar whichever inbox you use.</p>'+
+   /* Sharla: "put Challenge Events in your calendar now... I think we can
+      delete this and just have it have the button". The time is already
+      given once above, so repeating it here was the repetition she flagged. */
+   '<h3 class="pre-step">Step 1 &middot; Put the Challenge events in your calendar now</h3>'+
    (ADDCAL
      ? '<a class="btn btn-action" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
      /* No September calendar exists yet. Every AddEvent calendar currently on
@@ -1302,12 +1315,11 @@ function vPre(){
      : '<div class="locked-msg" style="max-width:520px">Mon 7, Tue 8, Wed 9, Thu 10 and Fri 11 September, '+
        '10:00&ndash;11:00am PT / 1:00&ndash;2:00pm ET. Pop those five in now.</div>')+
 
-   '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
-   '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
-   '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
-   '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
-   '<a class="btn btn-action" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
-
+   /* The Join the Facebook Group step was removed on Sharla's 6 Sept Loom:
+      "we were supposed to remove this, join the Facebook group, we were
+      supposed to remove this... we're not seeing it helping with the Facebook
+      group join rate." The Group itself is untouched and the Quest links still
+      open its posts. */
    preQuestBlock()+
    dayList()+
    concierge()+'</div>';
@@ -1322,10 +1334,19 @@ function preQuestBlock(){
   /* One button, so the copy has to carry the whole idea. It leads on the
      reward rather than the admin: every warm-up earns a Golden Ticket, and
      they can be banked before Day 1 even starts. */
+  /* Rewritten on Sharla's 6 Sept Loom. She read the old line back - "get a
+     head start on your golden tickets, so you can be in the draw before day
+     one even begins" - and said "that's weird English", then gave the
+     replacement herself: "Earn golden tickets and be in the running for the
+     grand prize, valued at over...". She also said the reason has to come
+     first: "we want to know why we're going to do work first."
+     The $5,300 figure is Thrive's own published value for this round's Grand
+     Prize, taken from the Day 2 Quest caption in this file. Worth confirming
+     with Sharla before this goes live. */
   return '<div class="pre-later">'+
-    '<h3 class="pre-step">Get a head start on your Golden Tickets</h3>'+
-    '<p>Four short warm-ups are waiting in the Group. Each one takes a couple of minutes '+
-    'and earns you a Golden Ticket &mdash; so you can be in the draw before Day 1 even begins.</p>'+
+    '<h3 class="pre-step">Step 2 &middot; Earn Golden Tickets</h3>'+
+    '<p>Every Golden Ticket puts you in the running for the Grand Prize, worth over $5,300. '+
+    'Four short warm-ups are waiting, a couple of minutes each, and every one earns you a ticket.</p>'+
     '<a class="btn btn-action" href="'+q.url+'" target="_blank" rel="noopener" style="max-width:420px">'+
     'Earn my first Golden Ticket</a>'+
     '</div>';
@@ -1768,154 +1789,7 @@ if(tgR) tgR.onclick=function(){
   NOW_SHIFT=0; previewBefore=false; previewClockSet=false;
   save();location.hash="#/login";render();toast("Reset");};
 
-/* ---------------------------------------------------------------------------
-   Message window. A running conversation, not a one-shot form.
 
-   - The thread is kept in this browser so it survives moving between days.
-   - Each message posts into GoHighLevel, where Oliver and the SBC team answer
-     from the inbox they already use.
-   - If a reply endpoint is configured it is polled while the window is open,
-     so team answers appear in the thread. Without one, the person is told
-     plainly where the reply will arrive.
-   - It never shows a technical failure. A send that does not land keeps the
-     message on screen and hands them to the Concierge.
-   --------------------------------------------------------------------------- */
-(function(){
-  var wrap=document.getElementById("chatWrap");
-  if(!wrap) return;
-  var panel=document.getElementById("chatPanel"),
-      openBtn=document.getElementById("chatOpen"),
-      closeBtn=document.getElementById("chatClose"),
-      form=document.getElementById("chatForm"),
-      box=document.getElementById("chMsg"),
-      thread=document.getElementById("chatThread"),
-      ident=document.getElementById("chatIdent"),
-      phone=document.getElementById("chatPhone");
-  if(phone) phone.innerHTML=phoneLink();
-
-  var KEY="thriveHub_chat_"+CHALLENGE.id, poll=null;
-  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } }
-  function save(m){ try{ localStorage.setItem(KEY,JSON.stringify(m.slice(-60))); }catch(e){} }
-  var msgs=load();
-
-  function esc2(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-  function when(ts){
-    try{ return new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }
-    catch(e){ return ""; }
-  }
-  function draw(){
-    if(!msgs.length){
-      thread.innerHTML='<div class="chat-empty"><b>How can we help?</b>'+
-        '<span>Send us a message and someone from the Thrive team will get back to you.</span></div>';
-    } else {
-      thread.innerHTML = msgs.map(function(m){
-        var acts="";
-        if(typeof m.handoff==="string" && m.handoff){
-          var body=encodeURIComponent(m.handoff);
-          acts='<span class="chandoff">'+
-            '<a class="chact" href="sms:+18314801290?&amp;body='+body+'">Text it</a>'+
-            '<a class="chact" href="https://m.me/ThriveAcademy" target="_blank" rel="noopener">Messenger</a>'+
-            '</span>';
-        }
-        return '<div class="cmsg '+(m.from==="you"?"me":"them")+'">'+
-          (m.from!=="you"?'<span class="cwho">'+esc2(m.who||"Thrive team")+'</span>':'')+
-          '<span class="ctxt">'+esc2(m.text)+'</span>'+acts+
-          '<span class="cwhen">'+when(m.at)+(m.from==="you"&&m.pending?' &middot; sending':'')+'</span></div>';
-      }).join('');
-    }
-    thread.scrollTop = thread.scrollHeight;
-  }
-
-  function needIdent(){
-    var e=displayEmail(S.email);
-    return !e;   /* signed-in people are already identified */
-  }
-  function open_(){
-    panel.hidden=false; openBtn.setAttribute("aria-expanded","true");
-    if(needIdent()){
-      ident.hidden=false;
-      var n=document.getElementById("chName");
-      if(n && !n.value) n.value=displayFirst(S.first)||"";
-    }
-    draw(); box.focus(); startPoll();
-  }
-  function close_(){ panel.hidden=true; openBtn.setAttribute("aria-expanded","false"); stopPoll(); openBtn.focus(); }
-  openBtn.onclick=function(){ panel.hidden?open_():close_(); };
-  closeBtn.onclick=close_;
-  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!panel.hidden) close_(); });
-
-  /* grow the box with the message, up to a point */
-  box.addEventListener("input",function(){
-    box.style.height="auto";
-    box.style.height=Math.min(box.scrollHeight,120)+"px";
-  });
-  box.addEventListener("keydown",function(e){
-    if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); form.requestSubmit?form.requestSubmit():form.onsubmit(e); }
-  });
-
-  form.onsubmit=function(e){
-    if(e&&e.preventDefault) e.preventDefault();
-    var text=(box.value||"").trim();
-    if(!text) return;
-    var mine={from:"you", text:text, at:Date.now(), pending:true};
-    msgs.push(mine); save(msgs); draw();
-    box.value=""; box.style.height="auto";
-
-    var url=CHALLENGE.links.chatEndpoint;
-    function settled(ok){
-      mine.pending=false;
-      if(ok){
-        msgs.push({from:"team", who:"Thrive team", at:Date.now(),
-          text:"Thanks. We have got that and we will come back to you shortly."});
-      } else {
-        /* No endpoint wired, or the send did not land. Rather than a dead end,
-           hand the message they just typed straight into a text or Messenger,
-           both of which already work. Honest: we do not claim to have received
-           something we have not. */
-        /* only the team bubble carries the handoff buttons. Marking the
-           person's own message too made its button send the word "true". */
-        msgs.push({from:"team", who:"Thrive team", at:Date.now(), handoff:mine.text,
-          text:"Send this to us and we will pick it up straight away."});
-      }
-      save(msgs); draw();
-    }
-    if(!url){ settled(false); return; }
-    fetch(url,{method:"POST",mode:"cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({source:"challenge-hub", challenge:CHALLENGE.id,
-        name:(document.getElementById("chName")||{}).value||displayFirst(S.first)||"",
-        email:(document.getElementById("chEmail")||{}).value||displayEmail(S.email)||"",
-        message:text, page:location.hash||"#/prechallenge"})})
-      .then(function(r){ return r.ok?r.text():Promise.reject(r.status); })
-      .then(function(){ settled(true); })
-      .catch(function(){ settled(false); });
-  };
-
-  /* Replies, if a read endpoint is ever configured. Harmless when it is not. */
-  function startPoll(){
-    var url=CHALLENGE.links.chatRepliesEndpoint;
-    if(!url || poll) return;
-    poll=setInterval(function(){
-      var em=displayEmail(S.email)||((document.getElementById("chEmail")||{}).value||"");
-      if(!em) return;
-      fetch(url+(url.indexOf("?")>-1?"&":"?")+"email="+encodeURIComponent(em),{mode:"cors"})
-        .then(function(r){ return r.ok?r.json():null; })
-        .then(function(j){
-          if(!j || !j.messages || !j.messages.length) return;
-          var known={}; msgs.forEach(function(m){ if(m.id) known[m.id]=1; });
-          var added=false;
-          j.messages.forEach(function(m){
-            if(m.id && !known[m.id]){
-              msgs.push({from:"team", who:m.from||"Thrive team", text:m.text, at:m.at||Date.now(), id:m.id});
-              added=true;
-            }
-          });
-          if(added){ save(msgs); draw(); }
-        }).catch(function(){});
-    }, 20000);
-  }
-  function stopPoll(){ if(poll){ clearInterval(poll); poll=null; } }
-})();
 
 /* ---------------------------------------------------------------------------
    Playback speed. The browser's own controls do not offer it consistently, and
