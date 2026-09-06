@@ -131,7 +131,14 @@ body.is-login .acct{display:none}
   background:linear-gradient(to bottom,rgba(243,241,243,.92) 0%,rgba(243,241,243,.55) 46%,rgba(243,241,243,0) 100%)}
 .hero .bed video,.hero .bed img{width:100%;height:100%;object-fit:cover;display:block;
   transition:none;
-  /* The clip is 2.18:1 shown in a taller window, so roughly 740px is cropped
+  /* hero.mp4 is the full Bahia Bar clip, 6.27s, every second of it different.
+     It used to be the first 3.7s played forward then backwards, which is why
+     it read as a short loop: there was only 3.7s of real footage in it. The
+     ping-pong was there to hide the cut at the loop point, and that is now
+     done with a 0.7s crossfade instead - measured seam 7.5 against 48.7 for a
+     straight cut. Crop and offset are unchanged (crop=1920:879:0:100), so the
+     object-position below still holds.
+     The clip is 2.18:1 shown in a taller window, so roughly 740px is cropped
      from the sides. Centring would push Sharla under the copy; this keeps her
      on the left with the words clear on the right, which is the composition
      the page is built around. Re-check this value if the clip is ever swapped:
@@ -935,7 +942,7 @@ var CHALLENGE = {
    exactly what happened on 4 September. Each file carries a short hash of its
    own contents, so replacing the file changes the URL and the new one loads.
    Regenerate these whenever a media file is replaced. */
-var MEDIA = {"hero.mp4":"09dc5e56", "hero-poster.jpg":"77cbf784", "welcome.mp4":"cf61e919", "welcome-poster.jpg":"6ec137a9"};
+var MEDIA = {"hero.mp4":"85685da3", "hero-poster.jpg":"22612919", "welcome.mp4":"cf61e919", "welcome-poster.jpg":"6ec137a9"};
 function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
 
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
