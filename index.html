@@ -495,6 +495,9 @@ p{margin:0 0 16px;max-width:var(--measure)}
 }
 .day-tickets{display:none}
 @media (max-width:899px){ .day-tickets{display:block} }
+.joinzoom{margin:0 0 18px}
+.joinzoom .btn{margin-bottom:8px}
+.joinzoom .caption{margin:0 0 4px}
 .summit-inline{display:none}
 @media (max-width:899px){
   .summit-inline{display:block;margin-top:26px}
@@ -1132,6 +1135,23 @@ function dayConcluded(n){
   var d=day_(n); if(!d||!d.replayAt) return false;
   try{ return now_() >= Date.parse(d.replayAt); }catch(e){ return false; }
 }
+/* The Join Zoom block. Same room every day of the Challenge. */
+function zoomBlock(before, liveNow){
+  var label = liveNow ? "Join the live session now"
+            : before  ? "Join the live session"
+            : "Join the next live session";
+  if(!ZOOM){
+    return '<div class="card"><h3>Your join link is in your email</h3>'+
+      '<p class="caption">Search your inbox for &ldquo;Book 5 Consults&rdquo;. We send the join link every morning before we go live. '+
+      'Can&rsquo;t find it? Text your Concierge at '+phoneLink()+' with your first and last name and we&rsquo;ll send it straight to you.</p></div>';
+  }
+  return '<div class="joinzoom">'+
+    '<a class="btn btn-action" href="'+ZOOM+'" id="joinZoom" target="_blank" rel="noopener">'+label+'</a>'+
+    (PASSCODE ? '<p class="caption">If it asks for a passcode, it is <b>'+esc(PASSCODE)+'</b></p>' : '')+
+    '<p class="caption">We go live at 10:00am PT / 1:00pm ET every day.</p>'+
+  '</div>';
+}
+
 function winnerBlock(n){
   var d=day_(n); if(!d) return "";
 
@@ -1355,15 +1375,13 @@ function vDay(n){
       concierge()+'</div>';
   }
 
-  /* The join block. If the Zoom link is missing for ANY reason we show a warm
-     way through instead: where the link is in their email, and a person to
-     text. A lead must never see a technical failure. */
-  var joinBlock = ZOOM
-   ? '<a class="btn btn-primary" href="'+ZOOM+'" id="joinZoom" target="_blank" rel="noopener">Join the live session</a>'+
-     (PASSCODE ? '<p class="caption" style="margin-top:10px">If it asks for a passcode, it is <b>'+esc(PASSCODE)+'</b></p>' : '')
-   : '<div class="card"><h3>Your join link is in your email</h3>'+
-     '<p class="caption">Search your inbox for &ldquo;Book 5 Consults&rdquo;. We send the join link every morning before we go live. '+
-     'Can&rsquo;t find it? Text your Concierge at '+phoneLink()+' with your first and last name and we&rsquo;ll send it straight to you.</p></div>';
+  /* The join block, on every day and in every state. It is the same Zoom room
+     all week, so somebody on Wednesday's replay who wants Thursday still needs
+     it. The label changes so it never says "live" when nothing is.
+     If the link is missing for ANY reason we show a warm way through instead:
+     where it is in their email, and a person to text. A lead must never see a
+     technical failure. */
+  var joinBlock = zoomBlock(before, isLiveNow(n));
 
   var liveNow = isLiveNow(n);
   var media = before
@@ -1382,8 +1400,11 @@ function vDay(n){
            : 'Watch the Grand Finale. This is where it all comes together.')+'</p>'
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
         '<p>The Day '+n+' replay is being uploaded and will appear here soon. '+
-        'Refresh the page in a little while and it will be waiting for you.</p></div>'+
-        '');
+        'Refresh the page in a little while and it will be waiting for you.</p></div>')+
+       /* the Join button rides along in the replay state too: it is the same
+          Zoom room all week, so somebody catching up on Wednesday still needs
+          it for Thursday */
+       joinBlock;
 
   /* The same square artwork that heads that day's post in the Facebook Group,
      so the Hub and the Group read as one thing rather than two. */
