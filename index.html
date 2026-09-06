@@ -1224,14 +1224,19 @@ function vLogin(err){
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Sign in with the email you signed up with.</p>'+
-      /* Three different problems, three different messages. They used to share
-         one, so a registrant who submitted a blank field, or arrived while the
-         service was down, was told their registration did not exist. */
+      /* The login service answers an identical 401 for three different causes:
+         an email that is not registered, a session cookie the browser did not
+         send, and a stale duplicate cas_vid left over from an earlier session.
+         We cannot tell them apart from here, so this message must be true of
+         all three. It never tells a registered person they do not exist, and
+         it never claims an outage when the address is simply wrong. The
+         private-window suggestion is the remedy for the two cookie causes. */
       (authDown
         ? '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We can&rsquo;t reach our system right now. This is us, not you. '+
           'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.</div>'
-        : err?'<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Hmm, we can&rsquo;t find that email on the Challenge list. '+
-          'It is often a different address than the one you use day to day. Try another, or text us at '+phoneLink()+' and we&rsquo;ll find you.</div>':'')+
+        : err?'<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We couldn&rsquo;t verify that email. '+
+          'Two things fix this nearly every time. Check it is the address you registered with, which is often not the one you use day to day. '+
+          'Or open the Hub in a private browsing window. Still stuck? Text us at '+phoneLink()+' and we&rsquo;ll let you straight in.</div>':'')+
       '<form id="loginForm" novalidate>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
