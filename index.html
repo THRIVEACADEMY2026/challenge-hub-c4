@@ -918,6 +918,7 @@ var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-54
 var DAYS=CHALLENGE.days;
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
+var loginLocked=false, loginTries=0;
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
@@ -1214,6 +1215,33 @@ function acct(){
 }
 
 /* ---------------- views ---------------- */
+/* The sign-in service answers with the SAME body for at least seven different
+   situations. Six return 401. The seventh returns 429 and is the dangerous one:
+   measured on 6 September, five failed tries on one visitor cause the sixth and
+   every later attempt to return 429, and from that point the CORRECT address is
+   refused too. It persists at least 13 minutes, sends no Retry-After, and its
+   body is byte for byte identical to the 401. Branching only on 5xx told a
+   locked-out registrant she was not on the Challenge list. On a launch day that
+   quietly loses real people who did nothing wrong. Each state now gets its own
+   words, and the locked state gets a way out. */
+function loginNotice(){
+  var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
+  if(authDown) return box('We can&rsquo;t reach our system right now. This is us, not you. '+
+    'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.');
+  if(loginLocked) return box('That is a few tries in a row, so sign-in has paused itself for a moment. '+
+    'Nothing is wrong with your registration. Start a clean session below, '+
+    'or text us at '+phoneLink()+' and we&rsquo;ll let you straight in.'+
+    '<div style="margin-top:12px"><button type="button" id="freshsession" class="btn btn-primary" '+
+    'style="width:auto;padding:10px 18px">Start a clean session</button></div>');
+  if(!loginError) return '';
+  /* Past a few misses, stop inviting more guesses. The old copy said "try
+     another", and every extra guess walks them closer to the lockout above. */
+  if(loginTries>=3) return box('Still no match on that address. Rather than keep guessing, '+
+    'text us at '+phoneLink()+' and we&rsquo;ll find your registration and let you in.');
+  return box('We couldn&rsquo;t verify that email. '+
+    'Check it is the address you registered with, which is often not the one you use day to day. '+
+    'If you are sure it is right, open the Hub in a private browsing window, or text us at '+phoneLink()+'.');
+}
 function vLogin(err){
   return '<section class="hero">'+
     '<div class="bed"><video autoplay muted loop playsinline preload="metadata" '+
@@ -1224,19 +1252,7 @@ function vLogin(err){
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Sign in with the email you signed up with.</p>'+
-      /* The login service answers an identical 401 for three different causes:
-         an email that is not registered, a session cookie the browser did not
-         send, and a stale duplicate cas_vid left over from an earlier session.
-         We cannot tell them apart from here, so this message must be true of
-         all three. It never tells a registered person they do not exist, and
-         it never claims an outage when the address is simply wrong. The
-         private-window suggestion is the remedy for the two cookie causes. */
-      (authDown
-        ? '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We can&rsquo;t reach our system right now. This is us, not you. '+
-          'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.</div>'
-        : err?'<div class="errorbox" style="max-width:420px;margin:0 auto 20px">We couldn&rsquo;t verify that email. '+
-          'Two things fix this nearly every time. Check it is the address you registered with, which is often not the one you use day to day. '+
-          'Or open the Hub in a private browsing window. Still stuck? Text us at '+phoneLink()+' and we&rsquo;ll let you straight in.</div>':'')+
+      loginNotice()+
       '<form id="loginForm" novalidate>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
@@ -1534,9 +1550,37 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(!response.ok||result.logged_out!==true) return;
       if(typeof result.csrf_token==="string") csrfToken=result.csrf_token;
-      S.email=null;S.first=null;save();authState="login";loginError=false;
+      S.email=null;S.first=null;save();authState="login";loginError=false;loginLocked=false;loginTries=0;
       location.hash="#/login";render();
     }catch(error){}
+  };
+
+  /* Clearing the lockout. POST /logout rotates cas_vid to a brand new visitor,
+     and the limit is keyed per visitor, so the new one signs in at once.
+     Verified end to end on 6 September: a visitor locked at 429 was refused
+     even with the right address, then logout rotated the id and the same
+     address returned 200 immediately.
+     This is not a hole in the limiter. /logout is public and unauthenticated,
+     so anyone scripting the service already has it. All this does is give a
+     real person stuck at the door the same clean start she would get by
+     clearing cookies, without asking her to know what a cookie is. */
+  var fs=q("freshsession"); if(fs) fs.onclick=async function(){
+    fs.disabled=true; fs.textContent="One moment";
+    try{
+      await refreshAuthSession();
+      await fetch(CAS_ORIGIN+"/browser/challenge-hub/logout",{
+        method:"POST",credentials:"include",
+        headers:{"Accept":"application/json","X-CAS-CSRF":csrfToken||""}
+      });
+      await refreshAuthSession();
+      loginLocked=false; loginError=false; authDown=false; loginTries=0;
+    }catch(error){
+      /* Could not reach the service to reset. Say that, rather than leaving
+         her looking at a button that appears to have done nothing. */
+      loginLocked=false; authDown=true;
+    }
+    render();
+    var em=document.getElementById("em"); if(em) em.focus();
   };
 
   var lf=q("loginForm");
@@ -1573,15 +1617,21 @@ function wire(){
       });
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
-        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();authState="hub";loginError=false;authDown=false;render();loadTicketTotal();return;
+        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
+        authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
+        render();loadTicketTotal();return;
       }
-      /* A 5xx means our service is unwell, not that this person is a stranger.
+      /* 429 is the per-visitor rate limit. Its body is identical to the 401,
+         so the status line is the only thing that separates them, and it must
+         never be read as "not registered" - the address is often correct.
+         A 5xx means our service is unwell, not that this person is a stranger.
          Say so, and never blame the lead for our outage. */
-      if(response.status>=500){ authDown=true; loginError=false; }
-      else { authDown=false; loginError=true; }
+      if(response.status===429){ authDown=false; loginError=false; loginLocked=true; }
+      else if(response.status>=500){ authDown=true; loginError=false; loginLocked=false; }
+      else { authDown=false; loginError=true; loginLocked=false; loginTries++; }
     }catch(error){
       /* Could not reach the service at all. Same reasoning. */
-      authDown=true; loginError=false;
+      authDown=true; loginError=false; loginLocked=false;
     }
     render();
     /* Put their email back so they are not retyping it to try again. */
