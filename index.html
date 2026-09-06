@@ -878,7 +878,12 @@ var CHALLENGE = {
     /* Optional. If GoHighLevel can expose the team's replies for a given
        email, point this here and answers appear inside the window. Without
        it the person is simply told where the reply will arrive. */
-    chatRepliesEndpoint: window.THRIVE_CHAT_REPLIES_ENDPOINT || ""
+    chatRepliesEndpoint: window.THRIVE_CHAT_REPLIES_ENDPOINT || "",
+    /* Reads a Champion's real Golden Ticket total out of the Raffle Tickets
+       Tracker. See apps-script/ticket-total.gs. Both values come from
+       config.js so the tracker is never named in this public repo. */
+    ticketsEndpoint: window.THRIVE_TICKETS_ENDPOINT || "",
+    ticketsKey:      window.THRIVE_TICKETS_KEY || ""
   }
 };
 
@@ -986,8 +991,31 @@ function tickets(){return DAYS.filter(function(d){return isQuestDay(d)&&done_(d.
    evening) and read back per person. Until that feed is wired it stays null and
    the Hub says the count is with the Concierge rather than inventing one.
    --------------------------------------------------------------------------- */
-var TRACKER_TOTAL = null;   /* a number once the feed answers, otherwise null */
-var TRACKER_ASOF  = "";     /* when the team last refreshed it */
+var TRACKER_TOTAL = null;   /* a number once the tracker answers, otherwise null */
+var TRACKER_ASOF  = "";     /* when the tracker was read */
+
+/* Ask the Raffle Tickets Tracker for this person's real total.
+   Three rules, and they are the whole point:
+     - it only ever shows a number the tracker actually returned
+     - "not found" is not zero. Someone missing from the tracker is told the
+       Concierge holds their count, never that they have none
+     - a failure changes nothing on screen rather than showing a wrong figure */
+function loadTicketTotal(){
+  var url = CHALLENGE.links.ticketsEndpoint, key = CHALLENGE.links.ticketsKey;
+  var em  = displayEmail(S.email);
+  if(!url || !em) return;
+  fetch(url+(url.indexOf("?")>-1?"&":"?")+"email="+encodeURIComponent(em)+
+        (key?"&key="+encodeURIComponent(key):""), {mode:"cors"})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      if(!j || j.ok!==true || j.found!==true) return;      /* leave it unknown */
+      if(typeof j.total!=="number" || !isFinite(j.total) || j.total<0) return;
+      TRACKER_TOTAL = j.total;
+      TRACKER_ASOF  = j.asOf || "";
+      render(true);
+    })
+    .catch(function(){});   /* silent: the Concierge line already covers it */
+}
 
 function ticketPanel(){
   /* The number comes from the Raffle Tickets Tracker and nowhere else. The
@@ -997,7 +1025,8 @@ function ticketPanel(){
     return '<div class="tickets"><span class="tk-n">'+TRACKER_TOTAL+'+</span>'+
       '<span class="tk-l">Golden Ticket'+(TRACKER_TOTAL===1?'':'s')+'</span>'+
       '<span class="tk-s">Counted from the Raffle Tracker'+
-      (TRACKER_ASOF?', updated '+esc(TRACKER_ASOF):'')+'. Bonus tickets are included.</span>'+
+      (TRACKER_ASOF?', read '+esc(TRACKER_ASOF):'')+'. Bonus tickets included. '+
+      'The plus is there because tickets are added through the day.</span>'+
       '</div>';
   }
   return '<div class="tickets"><span class="tk-l">Golden Tickets</span>'+
@@ -1482,7 +1511,7 @@ function wire(){
       });
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
-        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();authState="hub";loginError=false;authDown=false;render();return;
+        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();authState="hub";loginError=false;authDown=false;render();loadTicketTotal();return;
       }
       /* A 5xx means our service is unwell, not that this person is a stranger.
          Say so, and never blame the lead for our outage. */
