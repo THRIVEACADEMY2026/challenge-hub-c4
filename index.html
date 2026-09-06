@@ -1349,11 +1349,17 @@ function vPre(){
      : '<div class="locked-msg" style="max-width:520px">Mon 7, Tue 8, Wed 9, Thu 10 and Fri 11 September, '+
        '10:00&ndash;11:00am PT / 1:00&ndash;2:00pm ET. Pop those five in now.</div>')+
 
-   /* The Join the Facebook Group step was removed on Sharla's 6 Sept Loom:
-      "we were supposed to remove this, join the Facebook group, we were
-      supposed to remove this... we're not seeing it helping with the Facebook
-      group join rate." The Group itself is untouched and the Quest links still
-      open its posts. */
+   /* Sharla circled this step on her 6 Sept Loom and talked herself out of a
+      decision: "I'm almost wondering if we should just remove, I DON'T KNOW,
+      we're not seeing it helping with the Facebook group join rate." That is
+      an open question, not an instruction, and it stays until she answers it.
+      Removing it also strands the Quests, which live in this Group. */
+   '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
+   '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
+   '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
+   '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
+   '<a class="btn btn-action" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
+
    preQuestBlock()+
    dayList()+
    concierge()+'</div>';
@@ -1378,9 +1384,9 @@ function preQuestBlock(){
      Prize, taken from the Day 2 Quest caption in this file. Worth confirming
      with Sharla before this goes live. */
   return '<div class="pre-later">'+
-    '<h3 class="pre-step">Step 2 &middot; Earn Golden Tickets</h3>'+
-    '<p>Every Golden Ticket puts you in the running for the Grand Prize, worth over $5,300. '+
-    'Four short warm-ups are waiting, a couple of minutes each, and every one earns you a ticket.</p>'+
+    '<h3 class="pre-step">Earn Golden Tickets and be in the running for the Grand Prize</h3>'+
+    '<p>The Grand Prize is worth over $5,300. Four short warm-ups are waiting in the Group, '+
+    'a couple of minutes each, and every one earns you a Golden Ticket.</p>'+
     '<a class="btn btn-action" href="'+q.url+'" target="_blank" rel="noopener" style="max-width:420px">'+
     'Earn my first Golden Ticket</a>'+
     '</div>';
