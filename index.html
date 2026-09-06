@@ -502,6 +502,17 @@ p{margin:0 0 16px;max-width:var(--measure)}
 }
 .tickets{border:1px solid var(--line);border-left:3px solid #D6B146;background:#FFFDF6;
   padding:16px 18px;margin:18px 0 22px;display:flex;flex-direction:column;gap:4px}
+.tickets.counted{gap:2px}
+.tk-plus{font-size:.55em;vertical-align:super;margin-left:2px;color:#875300}
+.pips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:8px 0 6px}
+.pip{width:13px;height:9px;background:linear-gradient(180deg,#E8C25E,#C9982F);
+  border:1px solid #A97F22;position:relative;flex:none}
+/* the notch that makes it read as a ticket rather than a block */
+.pip::before,.pip::after{content:"";position:absolute;top:2px;width:3px;height:3px;
+  border-radius:50%;background:#FFFDF6}
+.pip::before{left:-2px} .pip::after{right:-2px}
+.pip-more{font-family:Oswald,Arial,sans-serif;font-weight:300;font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:#875300;margin-left:4px}
 .tk-n{font-family:Raleway,Arial,sans-serif;font-weight:200;font-size:38px;line-height:1;
   color:var(--delft)}
 .tk-l{font-family:Oswald,Arial,sans-serif;font-weight:300;font-size:11.5px;
@@ -1017,17 +1028,32 @@ function loadTicketTotal(){
     .catch(function(){});   /* silent: the Concierge line already covers it */
 }
 
+/* A tally, not a score out of something.
+   There is no denominator anywhere in this: bonuses are worth different
+   amounts and there is no ceiling, so "3 of 5" was always wrong. It shows the
+   real number from the Raffle Tickets Tracker with a plus after it, and a row
+   of ticket marks that simply grows. Past 24 marks it stops drawing them and
+   says how many more, so a big total does not swamp the sidebar.
+   The number itself is never invented: with nothing from the tracker it says
+   the Concierge holds the count rather than showing a zero. */
+function ticketPips(n){
+  var SHOW=24, drawn=Math.min(n, SHOW), out="";
+  for(var i=0;i<drawn;i++) out+='<span class="pip"></span>';
+  if(n>SHOW) out+='<span class="pip-more">+'+(n-SHOW)+' more</span>';
+  return '<span class="pips" aria-hidden="true">'+out+'</span>';
+}
 function ticketPanel(){
-  /* The number comes from the Raffle Tickets Tracker and nowhere else. The
-     plus is deliberate: bonuses land in the tracker between refreshes, so the
-     count shown is a floor, never a ceiling. */
   if(TRACKER_TOTAL !== null){
-    return '<div class="tickets"><span class="tk-n">'+TRACKER_TOTAL+'+</span>'+
-      '<span class="tk-l">Golden Ticket'+(TRACKER_TOTAL===1?'':'s')+'</span>'+
-      '<span class="tk-s">Counted from the Raffle Tracker'+
-      (TRACKER_ASOF?', read '+esc(TRACKER_ASOF):'')+'. Bonus tickets included. '+
-      'The plus is there because tickets are added through the day.</span>'+
-      '</div>';
+    var n=TRACKER_TOTAL;
+    return '<div class="tickets counted">'+
+      '<span class="tk-n">'+n+'<span class="tk-plus">+</span></span>'+
+      '<span class="tk-l">Golden Ticket'+(n===1?'':'s')+' and counting</span>'+
+      (n>0 ? ticketPips(n) : '')+
+      '<span class="tk-s">'+
+        (n>0 ? 'Every Quest, every bonus, every friend you bring adds another. '
+             : 'Your first one is waiting on the Pre-Challenge Quests. ')+
+        'Counted from the Raffle Tracker'+(TRACKER_ASOF?', read '+esc(TRACKER_ASOF):'')+'.'+
+      '</span></div>';
   }
   return '<div class="tickets"><span class="tk-l">Golden Tickets</span>'+
     '<span class="tk-s">Your Concierge keeps your count, bonus tickets included. '+
@@ -1148,7 +1174,7 @@ function sidebar(){
   }).join('');
   var t=tickets(), tot=DAYS.filter(function(d){return isQuestDay(d)&&open_(d.n);}).length;
   return '<div class="stick"><h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
-    '<h2>Golden Tickets</h2>'+ticketPanel()+
+    ticketPanel()+
     '<div style="margin-top:28px">'+concierge()+'</div></div>';
 }
 
