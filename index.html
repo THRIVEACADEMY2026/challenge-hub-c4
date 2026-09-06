@@ -117,7 +117,10 @@ body.is-login .acct{display:none}
 .hero form{margin:0}
 .hero label.fl{text-align:left}
 .hero input[type=email]{text-align:left}
-.hero .eyebrow{color:var(--teal)}
+/* The challenge name carries the brand on this page, so it is set larger and
+   heavier than a normal eyebrow rather than whispering above the headline. */
+.hero .eyebrow{color:var(--teal);font-weight:400;font-size:clamp(13px,1.15vw,16px);
+  letter-spacing:.36em;margin-bottom:16px}
 .hero h1{color:var(--ink);font-size:clamp(34px,4.6vw,58px);line-height:1.05;margin:0 0 18px}
 .hero .lede{color:var(--body);max-width:40ch}
 
@@ -442,6 +445,59 @@ p{margin:0 0 16px;max-width:var(--measure)}
   .prep .pre-hi{font-size:17px;margin-bottom:14px}
   .prep p{font-size:15px}
 }
+/* The Summit sits in the right rail on desktop. On a phone that rail stacks
+   after the entire day, roughly two screens down, where almost nobody reaches
+   it - and Days 2 to 5 on a phone are where most of this audience lives. So on
+   a phone it moves inline, straight after the Quest. Only ever one of the two
+   is visible. */
+/* ============================================================================
+   PHONE, DAY PAGES
+   Most of this audience is on a phone and most of them are on Days 2 to 5, so
+   the day page is the screen that matters most. Three things were wrong:
+   the Playbook sat below the Quest when it is the thing you write in during
+   the call, the Golden Ticket count was only on the Hub home, and the wide
+   Oswald tracking made the section headings the hardest text on the page.
+   ============================================================================ */
+@media (max-width:899px){
+  /* Playbook first: it is what you need in your hand on the call. */
+  .cols .mainCol{display:flex;flex-direction:column}
+  .cols .aside{display:flex;flex-direction:column}
+  .cols .aside .card:not(.gold){order:-1;margin-top:22px}
+
+  /* Headings were 13px Oswald at .42em tracking - technically on brand and
+     genuinely hard to read at arm's length. Same font, calmer spacing. */
+  h3{letter-spacing:.16em;font-size:14px}
+  .eyebrow{letter-spacing:.26em}
+
+  /* Reading sizes. Quest steps were being read at 13px. */
+  .step .txt{font-size:15.5px;line-height:1.55}
+  .ticket-in{font-size:15px}
+  .lede{font-size:16.5px}
+
+  /* Tap targets. The back link and the day rows were under 44px. */
+  .back{display:inline-block;padding:12px 0;min-height:44px}
+  .dayrow{min-height:52px}
+  .btn{padding:15px 18px;font-size:14px}
+
+  /* The Golden Ticket count lives in the sidebar, which is hidden on a phone,
+     so on a day page it was invisible. Put it back at the top. */
+  .cols .mainCol .tickets{order:-2;margin-top:0}
+}
+/* The Playbook is what you write in during the call, so on a phone it belongs
+   directly under the video rather than below the whole Quest. The sidebar
+   version is hidden there so it is never shown twice. */
+.playbook-inline{display:none}
+@media (max-width:899px){
+  .playbook-inline{display:block;margin:0 0 18px}
+  .cols .aside .card:not(.gold){display:none}
+}
+.day-tickets{display:none}
+@media (max-width:899px){ .day-tickets{display:block} }
+.summit-inline{display:none}
+@media (max-width:899px){
+  .summit-inline{display:block;margin-top:26px}
+  .cols .aside .card.gold{display:none}
+}
 .tickets{border:1px solid var(--line);border-left:3px solid #D6B146;background:#FFFDF6;
   padding:16px 18px;margin:18px 0 22px;display:flex;flex-direction:column;gap:4px}
 .tk-n{font-family:Raleway,Arial,sans-serif;font-weight:200;font-size:38px;line-height:1;
@@ -477,6 +533,9 @@ p{margin:0 0 16px;max-width:var(--measure)}
   letter-spacing:.28em;text-transform:uppercase;color:var(--cerulean)}
 .soon p{margin:0;font-size:var(--t-small);color:var(--body);max-width:52ch;
   margin-left:auto;margin-right:auto;line-height:1.55}
+.winner.pending{background:#FBFCFD;border-top-color:var(--line)}
+.winner.pending b{color:var(--body);font-weight:300}
+.winner.grand{border-top-width:4px}
 .winner{border:1px solid var(--line);border-top:3px solid #D6B146;background:#FFFDF6;
   padding:18px 20px;margin:20px 0 0;display:flex;flex-direction:column;gap:5px}
 .winner .lbl{font-family:Oswald,Arial,sans-serif;font-weight:300;font-size:11.5px;
@@ -598,7 +657,7 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 <footer class="site">
   <div class="f-in">
     <div class="f-col">
-      <span class="f-brand">Thrive Academy</span>
+      <span class="f-brand"><a href="https://www.thrive-academy.com" target="_blank" rel="noopener">Thrive Academy</a></span>
       <span>Book 5 Consults in 5 Days Challenge</span>
       <span>September 7 to 11, 2026</span>
     </div>
@@ -701,7 +760,7 @@ var CHALLENGE = {
      /* The Instagram version of the Day 1 Quest post, for people who are not
         on Facebook. Ella asked for this on 4 Sept; paste the IG post URL here
         and the link appears. Until then it hands them to the Concierge. */
-     igPost:"",
+     igPost:"https://www.instagram.com/p/1629695532119568/",
      playbook:"https://giftfromthrive.com/name"},
     {n:2, date:"Tuesday September 8",   short:"Tue Sept 8",  title:"Create Intrigue",
      asset:"Create Intrigue",           quest:"std",
@@ -746,7 +805,7 @@ var CHALLENGE = {
      it appears on that day's tab. Leave blank and the block simply does not
      render, so an unfilled day never shows an empty placeholder. */
   winners: {
-    1:"", 2:"", 3:"", 4:"", 5:""
+    1:"", 2:"", 3:"", 4:"", 5:"", grand:""
   },
 
   /* The four Pre-Challenge Quests on the Prepare page.
@@ -929,18 +988,19 @@ var TRACKER_TOTAL = null;   /* a number once the feed answers, otherwise null */
 var TRACKER_ASOF  = "";     /* when the team last refreshed it */
 
 function ticketPanel(){
-  var ticked = tickets();
+  /* The number comes from the Raffle Tickets Tracker and nowhere else. The
+     plus is deliberate: bonuses land in the tracker between refreshes, so the
+     count shown is a floor, never a ceiling. */
   if(TRACKER_TOTAL !== null){
-    return '<div class="tickets"><span class="tk-n">'+TRACKER_TOTAL+'</span>'+
+    return '<div class="tickets"><span class="tk-n">'+TRACKER_TOTAL+'+</span>'+
       '<span class="tk-l">Golden Ticket'+(TRACKER_TOTAL===1?'':'s')+'</span>'+
-      (TRACKER_ASOF?'<span class="tk-s">Updated '+esc(TRACKER_ASOF)+'. We refresh this three times a day.</span>':'')+
+      '<span class="tk-s">Counted from the Raffle Tracker'+
+      (TRACKER_ASOF?', updated '+esc(TRACKER_ASOF):'')+'. Bonus tickets are included.</span>'+
       '</div>';
   }
   return '<div class="tickets"><span class="tk-l">Golden Tickets</span>'+
-    '<span class="tk-s">Your Concierge keeps your official count, including bonus tickets, '+
-    'and updates it three times a day. Text '+phoneLink()+' any time to check it.</span>'+
-    (ticked?'<span class="tk-s">You have ticked off '+ticked+' daily Quest'+(ticked===1?'':'s')+' here.</span>':'')+
-    '</div>';
+    '<span class="tk-s">Your Concierge keeps your count, bonus tickets included. '+
+    'Text '+phoneLink()+' any time to check it.</span></div>';
 }
 function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("on");
   clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("on");},2300);}
@@ -977,8 +1037,11 @@ function summitOpen(){
   if(!d1 || !d1.replayAt) return false;
   try{ return now_() >= Date.parse(d1.replayAt); }catch(e){ return false; }
 }
-function summitBlock(compact){
-  if(!summitOpen()) return "";
+function summitBlock(compact, force){
+  /* force is used by Days 2 to 8, where the gate is redundant: you cannot be
+     on Day 2 before Day 1 has happened. The Hub home and Day 1 still wait, so
+     nothing about the Summit appears before Sharla has introduced it. */
+  if(!force && !summitOpen()) return "";
   return '<div class="card gold"'+(compact?'':' style="margin-top:30px"')+'>'+
     (compact?'':'<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
       '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790"></a>')+
@@ -990,17 +1053,47 @@ function summitBlock(compact){
     '<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a></div>';
 }
 
+/* Winner boxes.
+   Day 1 has none. For Days 2 to 5 the winner is drawn and announced on the
+   FOLLOWING session, so the box stays shut until that session has run, and
+   before then it says so. Day 8 carries the Grand Prize instead.
+   Nothing here ever addresses the team - a lead reads every word of it. */
+function nextQuestDay(n){
+  var q=DAYS.filter(isQuestDay).map(function(d){return d.n;}).sort(function(a,b){return a-b;});
+  for(var i=0;i<q.length;i++) if(q[i]>n) return q[i];
+  return 8;   /* after the last Quest day, the Grand Finale */
+}
+function dayConcluded(n){
+  var d=day_(n); if(!d||!d.replayAt) return false;
+  try{ return now_() >= Date.parse(d.replayAt); }catch(e){ return false; }
+}
 function winnerBlock(n){
-  var w = (CHALLENGE.winners && CHALLENGE.winners[n]) || "";
-  /* On our own preview only, show a sample so the block can be reviewed before
-     any real winner exists. A lead never sees this: on a customer host the
-     block stays hidden until a real name is typed into CHALLENGE.winners. */
-  if(n===1) return "";   /* Day 1 has no Quest winner */
-  if(!w && showReview && isQuestDay(day_(n)))
-    return '<div class="winner"><span class="lbl">Day '+n+' Quest winner</span>'+
-      '<b>Sample Name (preview only)</b>'+
-      '<span class="sub">Type the winner into CHALLENGE.winners at the top of this file and it appears here. '+
-      'Leave it blank and this block does not show at all.</span></div>';
+  var d=day_(n); if(!d) return "";
+
+  /* Grand Finale: the Grand Prize */
+  if(n===8){
+    var g=(CHALLENGE.winners && CHALLENGE.winners.grand) || "";
+    return '<div class="winner grand">'+
+      '<span class="lbl">Grand Prize winner</span>'+
+      (g ? '<b>'+esc(g)+'</b><span class="sub">Congratulations. Thank you to everyone who showed up and did the work this week.</span>'
+         : '<b>Announced live today</b><span class="sub">The Grand Prize is drawn during the Grand Finale. Stay with us to the end.</span>')+
+    '</div>';
+  }
+
+  if(n===1 || !isQuestDay(d)) return "";
+
+  var w=(CHALLENGE.winners && CHALLENGE.winners[n]) || "";
+  var nd=nextQuestDay(n), ndd=day_(nd);
+  var announceOn = ndd ? (nd===8 ? "the Grand Finale" : "Day "+nd) : "the next session";
+
+  if(!dayConcluded(nd)){
+    return '<div class="winner pending">'+
+      '<span class="lbl">Day '+n+' Quest winner</span>'+
+      '<b>Announced on '+announceOn+'</b>'+
+      '<span class="sub">Complete your Day '+n+' Quest to be in the draw. '+
+      'We announce the winner on '+announceOn+'.</span>'+
+    '</div>';
+  }
   if(!w) return "";
   return '<div class="winner">'+
     '<span class="lbl">Day '+n+' Quest winner</span>'+
@@ -1057,7 +1150,6 @@ function vLogin(err){
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
       '</form>'+
-      '<p class="hint" style="margin-top:22px">Use the same email you signed up with and we&rsquo;ll take you straight in.</p>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
       /* The one page where a stuck lead most needs a person used to be the one
          page with nobody on it. */
@@ -1231,8 +1323,7 @@ function vDay(n){
    : '';
 
   var quest = !isQuestDay(d)
-   ? '<h3>The Grand Finale</h3>'+
-     '<p class="lede">No Quest today. This is where it all comes together.</p>'
+   ? ''
    : before
    ? '<h3>Today&rsquo;s Quest</h3><p>Your Quest unlocks when we go live. Stay with me on the call and you&rsquo;ll have it written before we finish.</p>'
    : questBlock(d);
@@ -1256,7 +1347,7 @@ function vDay(n){
    (d.quest==="day1"
      ? '<p class="caption" style="margin-top:14px">Not on Facebook? '+
        (d.igPost
-         ? 'Comment your Consult Name on <a href="'+d.igPost+'" target="_blank" rel="noopener">our Instagram post</a> instead.'
+         ? 'You can also post your Consult Name on <a href="'+d.igPost+'" target="_blank" rel="noopener">our Instagram post</a>.'
          : 'Send your Consult Name to your Concierge at '+phoneLink()+' and we&rsquo;ll count it for you.')+
        '</p>'
      : '');
@@ -1266,13 +1357,13 @@ function vDay(n){
      (d.playbook ? '<div class="card"><h3>Today&rsquo;s Playbook</h3>'+
        '<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+
        '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div>' : '')+
-     summitBlock(true)+
+     summitBlock(true, n>1)+
    '</div>';
 
   return '<a class="back" href="#/hub">&larr; All days</a>'+
    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
    '<h1>'+d.title+'</h1>'+
-   '<div class="cols"><div class="mainCol">'+media+art+quest+ticket+winnerBlock(n)+'</div>'+aside+'</div>'+
+   '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+(n>1?'<div class="summit-inline">'+summitBlock(true,true)+'</div>':'')+winnerBlock(n)+'</div>'+aside+'</div>'+
    concierge();
 }
 
