@@ -674,6 +674,22 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pre-top .speeds .sp-l{display:none}
 .pre-top .speeds button{font-size:10px;letter-spacing:.06em;padding:4px 7px}
 
+/* The scholarship hook. Ella asked for an aqua bold headline and an orange
+   button with larger white text.
+   The aqua is #019ACD, the brand's own header aqua, not the brighter #00AEEF.
+   On this card's white ground #00AEEF measures 2.53:1, which fails even the
+   3:1 that large bold text needs, so the words would be hard to read for
+   anyone with less than perfect sight. #019ACD is 3.23:1 and still reads aqua.
+   Say the word if you want the brighter one anyway. */
+.summit-hook{font-family:Raleway,Arial,sans-serif;font-weight:700;
+  font-size:clamp(19px,1.9vw,23px);line-height:1.25;color:#019ACD;
+  margin:0 0 16px;text-transform:none;letter-spacing:0}
+.btn-scholarship{font-size:17px;padding:17px 20px;color:#fff}
+@media (max-width:820px){
+  .summit-hook{font-size:20px}
+  .btn-scholarship{font-size:16px}
+}
+
 /* Zoom in the top strip. Sharla, 6 Sept: "as an orange button with white
    text, right in here." Pushed to the right of the strip's three facts so it
    reads as the action rather than a fourth fact. On a phone the strip already
@@ -1153,12 +1169,17 @@ function summitBlock(compact, force){
   return '<div class="card gold"'+(compact?'':' style="margin-top:30px"')+'>'+
     (compact?'':'<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
       '<img src="summit-banner.jpg" alt="Client Attraction Summit, September 18 to 20, online" width="1800" height="790"></a>')+
-    '<h3>About the Client Attraction Summit</h3>'+
-    '<p'+(compact?' class="caption"':'')+'>September 18 to 20, three days live with Sharla and Jesse. '+
+    /* Ella, 6 Sept, carrying Sharla's note from 2:24 of her second Loom about
+       prioritising the scholarship. Her exact headline and button label. The
+       hook and the button lead now; the explanation follows in small type
+       rather than standing between them. */
+    '<h3 class="summit-hook">Learn How to Fill Your Schedule without Pushy Selling.<br>'+
+    'It&rsquo;s our Gift to You.</h3>'+
+    '<a class="btn btn-primary btn-scholarship" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
+    'Claim Your Scholarship Now</a>'+
+    '<p class="caption">September 18 to 20, three days live with Sharla and Jesse. '+
     'It is where the posts you are writing this week turn into a whole system for booking clients and keeping them. '+
-    'Sharla will walk you through it during the Challenge, including how the scholarships work. '+
-    'Nothing to do right now.</p>'+
-    '<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a></div>';
+    'Sharla will walk you through it during the Challenge, including how the scholarships work.</p></div>';
 }
 
 /* Winner boxes.
