@@ -267,8 +267,12 @@ p{margin:0 0 16px;max-width:var(--measure)}
    same brand orange". #F3771A is sampled from the live funnel buttons. */
 .btn-primary{background:#F3771A;color:#fff;border-color:#F3771A}
 .btn-primary:hover{background:#DA6710;border-color:#DA6710}
-.btn-outline{background:transparent;color:var(--ink);border-color:var(--ink)}
-.btn-outline:hover{background:var(--ink);color:#fff}
+/* Sharla, 6 Sept Loom: "I'm not loving the buttons that are white. They're
+   not popping as buttons for me... I would do the dark over the white." So
+   this is a filled navy button now, not an outline. Orange stays the primary
+   action; navy is the secondary one, which keeps the two ranks apart. */
+.btn-outline{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-outline:hover{background:var(--delft);border-color:var(--delft);color:#fff}
 .btn-sub{display:block;font-family:Raleway,Arial,sans-serif;font-weight:400;font-size:var(--t-small);
   letter-spacing:.01em;text-transform:none;margin-top:4px;opacity:.92}
 .btnrow{display:flex;flex-direction:column;gap:0}
@@ -663,9 +667,24 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pre-top .speeds .sp-l{display:none}
 .pre-top .speeds button{font-size:10px;letter-spacing:.06em;padding:4px 7px}
 
-/* Zoom button in the left menu (Ella, 6 Sept). */
-.side-zoom{display:block;width:100%;margin:16px 0 0;text-align:center}
-.side-zoom.is-live{box-shadow:0 0 0 3px rgba(243,119,26,.28)}
+/* Zoom in the top strip. Sharla, 6 Sept: "as an orange button with white
+   text, right in here." Pushed to the right of the strip's three facts so it
+   reads as the action rather than a fourth fact. On a phone the strip already
+   wraps, so it drops onto its own full-width line underneath. */
+.strip .in{align-items:center}
+#stripZoom{margin-left:auto}
+.zoombtn{display:inline-block;background:#F3771A;color:#fff;text-decoration:none;
+  font-family:Oswald,Impact,sans-serif;font-weight:400;font-size:12px;
+  letter-spacing:var(--ls-btn);text-transform:uppercase;white-space:nowrap;
+  padding:8px 16px;border:1px solid #F3771A;border-radius:0;line-height:1.1}
+.zoombtn:hover{background:#DA6710;border-color:#DA6710;color:#fff}
+.zoombtn.is-live{box-shadow:0 0 0 3px rgba(243,119,26,.32)}
+@media (max-width:700px){
+  #stripZoom{margin-left:0;width:100%}
+  .zoombtn{display:block;width:100%;text-align:center;padding:10px 14px}
+}
+
+
 </style>
 </head>
 <body>
@@ -696,6 +715,11 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
   <span>Book 5 Consults in 5 Days</span><span class="sep">|</span>
   <span>September 7 to 11</span><span class="sep">|</span>
   <span class="hi">Live daily 10:00am PT</span>
+  <!-- Zoom lives here from Sharla's second Loom, 6 Sept: "let's put the Zoom
+       link up here as a button. Join Zoom live. Now, as an orange button with
+       white text, right in here." Filled by wire() so it can carry the live
+       state, and so the link is said in one place instead of on every day. -->
+  <span id="stripZoom"></span>
 </div></div>
 
 <div class="shell">
@@ -1144,7 +1168,11 @@ function dayConcluded(n){
   var d=day_(n); if(!d||!d.replayAt) return false;
   try{ return now_() >= Date.parse(d.replayAt); }catch(e){ return false; }
 }
-/* The Join Zoom block. Same room every day of the Challenge. */
+/* The Join Zoom block. NOT CALLED as of Sharla's 6 Sept Loom - the Zoom link
+   moved to the top strip and she asked for the per-day button and the "we go
+   live at 10am" line to come off the day pages. Kept because it carries the
+   fallback for a build with no Zoom link configured, where it tells people to
+   look in their email instead. Delete it if that case is ever ruled out. */
 function zoomBlock(before, liveNow){
   var label = liveNow ? "Join the live session now"
             : before  ? "Join the live session"
@@ -1210,15 +1238,7 @@ function sidebar(){
       (live?'<span class="s">Live now</span>':(done_(d.n)?'<span class="ok">&#10003;</span>':'<span class="s">'+esc(d.short)+'</span>'))+'</a>';
   }).join('');
   var t=tickets(), tot=DAYS.filter(function(d){return isQuestDay(d)&&open_(d.n);}).length;
-  /* Ella, 6 Sept: the Zoom link belongs in the left menu as a button, so it
-     is reachable from any day rather than only from the day that is open. */
-  var anyLive=DAYS.some(function(d){return isLiveNow(d.n);});
-  var zoomBtn = ZOOM
-    ? '<a class="btn btn-action side-zoom'+(anyLive?' is-live':'')+'" href="'+ZOOM+'" '+
-      'target="_blank" rel="noopener">'+(anyLive?'Join the live session now':'Join the live session')+'</a>'
-    : '';
   return '<div class="stick"><h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
-    zoomBtn+
     ticketPanel()+
     '<div style="margin-top:28px">'+concierge()+'</div></div>';
 }
@@ -1403,7 +1423,7 @@ function vDay(n){
   if(!d){ location.hash="#/prechallenge"; return ""; }
   if(!open_(n)){
     var lockMsg = 'Day '+n+' opens '+esc(d.short)+' at 9:00am PT. We&rsquo;ll email you the moment it does.';
-    return '<div class="measure"><a class="back" href="#/prechallenge">&larr; All days</a>'+
+    return '<div class="measure">'+
      '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Not open yet</h1>'+
      '<div class="locked-msg">'+lockMsg+'</div>'+
      concierge()+'</div>';
@@ -1413,7 +1433,7 @@ function vDay(n){
      window. This view returns the same shape as every other day view; the
      surrounding chrome is static markup, not a function. */
   if(!before && replaysClosed(d)){
-    return '<div class="measure"><a class="back" href="#/prechallenge">&larr; All days</a>'+
+    return '<div class="measure">'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
       '<h1>Replay is no longer available</h1>'+
       '<p class="lede">The Day '+n+' replay came down at 9:00pm PT on Sunday. '+
@@ -1432,7 +1452,10 @@ function vDay(n){
      If the link is missing for ANY reason we show a warm way through instead:
      where it is in their email, and a person to text. A lead must never see a
      technical failure. */
-  var joinBlock = zoomBlock(before, isLiveNow(n));
+  /* Sharla, same Loom: "I would remove this, down, join the next live
+     session. I would remove the, the we go live at 10am." Both are said once
+     in the top strip now rather than repeated on every day page. */
+  var joinBlock = "";
 
   var liveNow = isLiveNow(n);
   var media = before
@@ -1449,9 +1472,16 @@ function vDay(n){
         '<p class="vnote">'+(isQuestDay(d)
            ? 'Watch this video first, then complete your Quest below.'
            : 'Watch the Grand Finale. This is where it all comes together.')+'</p>'
+      /* Sharla, 6 Sept Loom, her own copy: "Go to the Facebook group to guide
+         one to watch the day one replay, or wait, and it will be ready soon."
+         She was unsure of the destination inside the Group - "I think it's
+         guide one" - so this links to the Group itself. Swap in the exact
+         Guide link once someone confirms it. */
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
-        '<p>The Day '+n+' replay is being uploaded and will appear here soon. '+
-        'Refresh the page in a little while and it will be waiting for you.</p></div>')+
+        '<p>Go to the Facebook Group to watch the Day '+n+' replay now, '+
+        'or wait here and it will be ready soon.</p>'+
+        (FBGROUP ? '<a class="btn btn-outline" href="'+FBGROUP+'" target="_blank" rel="noopener">'+
+          'Watch it in the Facebook Group</a>' : '')+'</div>')+
        /* the Join button rides along in the replay state too: it is the same
           Zoom room all week, so somebody catching up on Wednesday still needs
           it for Thursday */
@@ -1495,16 +1525,20 @@ function vDay(n){
 
   var aside =
    '<div class="aside">'+
+     /* Sharla: "Delete this extra copy, it's unnecessary. Just remove all of
+        this. Only download the playbook." */
      (d.playbook ? '<div class="card"><h3>Today&rsquo;s Playbook</h3>'+
-       '<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+
        '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div>' : '')+
      summitBlock(true, n>1)+
    '</div>';
 
-  return '<a class="back" href="#/prechallenge">&larr; All days</a>'+
+  /* The All days link went on Sharla's 6 Sept Loom: "I don't think we need
+     all days, I would delete that, this is really obvious." The left menu
+     already lists every day. */
+  return 
    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
    '<h1>'+d.title+'</h1>'+
-   '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+(n>1?'<div class="summit-inline">'+summitBlock(true,true)+'</div>':'')+winnerBlock(n)+'</div>'+aside+'</div>'+
+   '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+(n>1?'<div class="summit-inline">'+summitBlock(true,true)+'</div>':'')+winnerBlock(n)+'</div>'+aside+'</div>'+
    concierge();
 }
 
@@ -1568,6 +1602,20 @@ function render(keep){
 
 function wire(){
   var q=function(i){return document.getElementById(i);};
+
+  /* The Zoom button in the top strip. Ella gave the label, Sharla gave the
+     treatment: orange with white text. It only appears once someone is signed
+     in, because the strip is hidden on the login page anyway, and it says
+     "now" only while a session is actually running so the word stays true. */
+  var sz=q("stripZoom");
+  if(sz){
+    if(!ZOOM || authState!=="hub"){ sz.innerHTML=""; }
+    else{
+      var liveNow=DAYS.some(function(d){return isLiveNow(d.n);});
+      sz.innerHTML='<a class="zoombtn'+(liveNow?' is-live':'')+'" href="'+ZOOM+'" '+
+        'target="_blank" rel="noopener">Join LIVE on Zoom Now</a>';
+    }
+  }
   var so=q("signout"); if(so) so.onclick=async function(){
     try{
       await refreshAuthSession();
