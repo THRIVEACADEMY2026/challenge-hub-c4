@@ -898,6 +898,14 @@ var CHALLENGE = {
   }
 };
 
+/* Media fingerprints. Browsers cache video hard, so a swapped hero could keep
+   showing the old clip for anyone who had already loaded the page - which is
+   exactly what happened on 4 September. Each file carries a short hash of its
+   own contents, so replacing the file changes the URL and the new one loads.
+   Regenerate these whenever a media file is replaced. */
+var MEDIA = {"hero.mp4":"09dc5e56", "hero-poster.jpg":"77cbf784", "welcome.mp4":"cf61e919", "welcome-poster.jpg":"6ec137a9"};
+function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
+
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
@@ -1187,7 +1195,7 @@ function acct(){
 function vLogin(err){
   return '<section class="hero">'+
     '<div class="bed"><video autoplay muted loop playsinline preload="metadata" '+
-      'poster="hero-poster.jpg" aria-hidden="true"><source src="hero.mp4" type="video/mp4"></video></div>'+
+      'poster="'+m_('hero-poster.jpg')+'" aria-hidden="true"><source src="'+m_('hero.mp4')+'" type="video/mp4"></video></div>'+
     '<div class="scrim"></div>'+
     '<div class="in"><div class="col">'+
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
@@ -1232,9 +1240,9 @@ function vPre(){
       4K source on 4 Sept and it is 127s, matching the Vimeo cut exactly - but
       serving it ourselves means no third-party player, no domain restrictions
       and nothing to break if the Vimeo account changes. */
-   '<div class="player"><video controls preload="none" playsinline poster="welcome-poster.jpg" '+
+   '<div class="player"><video controls preload="none" playsinline poster="'+m_('welcome-poster.jpg')+'" '+
      'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
-     'Your browser cannot play this video. <a href="welcome.mp4">Download it instead.</a></video></div>'+
+     'Your browser cannot play this video. <a href="'+m_('welcome.mp4')+'">Download it instead.</a></video></div>'+
    '<p class="pre-when">The Challenge starts Monday September 7, live at 10:00am PT / 1:00pm ET every day.</p>'+
    '<h2 class="pre-do">Take these two quick steps now to get the most clients from the Challenge</h2>'+
 
