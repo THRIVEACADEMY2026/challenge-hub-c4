@@ -294,7 +294,9 @@ p{margin:0 0 16px;max-width:var(--measure)}
 .pill{font-family:Oswald,Impact,sans-serif;font-weight:300;font-size:11px;letter-spacing:var(--ls-micro);text-transform:uppercase;
   padding:3px 8px;background:#E7F4EC;color:var(--ok)}
 .dayrow.live .pill{background:rgba(255,255,255,.22);color:#fff}
+/* the sidebar carries the days on desktop, so the inline list is phone-only */
 @media (min-width:1024px){ .hub-daylist{display:none} }
+.hub-daylist{margin-top:34px}
 
 /* progress */
 .progress{display:flex;align-items:center;gap:10px;margin:20px 0 0}
@@ -640,7 +642,7 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 
 <header class="masthead">
   <div class="in">
-    <a href="#/hub"><img class="logo" src="logo-navy.png" alt="Thrive Academy" width="102"></a>
+    <a href="#/prechallenge"><img class="logo" src="logo-navy.png" alt="Thrive Academy" width="102"></a>
     <div class="acct" id="acct"></div>
   </div>
 </header>
@@ -1201,6 +1203,7 @@ function vPre(){
    '<a class="btn btn-action" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
 
    preQuestBlock()+
+   dayList()+
    concierge()+'</div>';
 }
 
@@ -1210,30 +1213,30 @@ function vPre(){
 function preQuestBlock(){
   var q = CHALLENGE.preQuests && CHALLENGE.preQuests[0];
   if(!q) return "";
+  /* One button, so the copy has to carry the whole idea. It leads on the
+     reward rather than the admin: every warm-up earns a Golden Ticket, and
+     they can be banked before Day 1 even starts. */
   return '<div class="pre-later">'+
-    '<h3 class="pre-step">Then your Pre-Challenge Quests</h3>'+
-    '<p>Short warm-ups inside the Group. Each one links you on to the next.</p>'+
+    '<h3 class="pre-step">Get a head start on your Golden Tickets</h3>'+
+    '<p>Four short warm-ups are waiting in the Group. Each one takes a couple of minutes '+
+    'and earns you a Golden Ticket &mdash; so you can be in the draw before Day 1 even begins.</p>'+
     '<a class="btn btn-action" href="'+q.url+'" target="_blank" rel="noopener" style="max-width:420px">'+
-    'View Pre-Challenge Quest 1</a>'+
+    'Earn my first Golden Ticket</a>'+
     '</div>';
 }
 
-function vHub(){
+/* The day list. It used to live only on the Hub home page, which was also the
+   only day navigation on a phone because the sidebar is hidden there. The Hub
+   home is gone now, so this sits on the Prepare page instead and is hidden on
+   desktop, where the sidebar already carries it. */
+function dayList(){
   var rows=DAYS.map(function(d){
     if(!open_(d.n)) return '<span class="dayrow locked"><span class="n">Day '+d.n+'</span><span class="d">Opens '+esc(d.short)+', 9am PT</span></span>';
     var live=isLiveNow(d.n), dn=done_(d.n);
     var right=live?'<span class="d">Live now</span>':(dn?'<span class="pill">Complete</span>':'<span class="d">'+esc(d.short)+'</span>');
     return '<a class="dayrow'+(live?' live':'')+(dn?' done':'')+'" href="#/day/'+d.n+'"><span class="n">Day '+d.n+'</span>'+right+'</a>';
   }).join('');
-  return '<div class="measure"><p class="eyebrow">Book 5 Consults in 5 Days</p>'+
-   '<h1>Your Challenge Hub</h1>'+
-   '<p class="lede">Everything you need is here. Pick the day you&rsquo;re on.</p>'+
-   ticketPanel()+
-   '<div class="daylist hub-daylist">'+
-     '<a class="dayrow" href="#/prechallenge"><span class="n">Prepare</span></a>'+rows+
-   '</div>'+
-   summitBlock(false)+
-   concierge()+'</div>';
+  return '<div class="daylist hub-daylist"><h3 class="pre-step">Your Challenge days</h3>'+rows+'</div>';
 }
 
 function questBlock(d){
@@ -1260,10 +1263,13 @@ function questBlock(d){
 }
 
 function vDay(n){
-  var d=day_(n); if(!d) return vHub();
+  var d=day_(n);
+  /* a typo'd or stale day link used to fall through to the Hub home. That
+     page is gone, so send them somewhere real rather than rendering nothing. */
+  if(!d){ location.hash="#/prechallenge"; return ""; }
   if(!open_(n)){
     var lockMsg = 'Day '+n+' opens '+esc(d.short)+' at 9:00am PT. We&rsquo;ll email you the moment it does.';
-    return '<div class="measure"><a class="back" href="#/hub">&larr; All days</a>'+
+    return '<div class="measure"><a class="back" href="#/prechallenge">&larr; All days</a>'+
      '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Not open yet</h1>'+
      '<div class="locked-msg">'+lockMsg+'</div>'+
      concierge()+'</div>';
@@ -1273,7 +1279,7 @@ function vDay(n){
      window. This view returns the same shape as every other day view; the
      surrounding chrome is static markup, not a function. */
   if(!before && replaysClosed(d)){
-    return '<div class="measure"><a class="back" href="#/hub">&larr; All days</a>'+
+    return '<div class="measure"><a class="back" href="#/prechallenge">&larr; All days</a>'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
       '<h1>Replay is no longer available</h1>'+
       '<p class="lede">The Day '+n+' replay came down at 9:00pm PT on Sunday. '+
@@ -1360,7 +1366,7 @@ function vDay(n){
      summitBlock(true, n>1)+
    '</div>';
 
-  return '<a class="back" href="#/hub">&larr; All days</a>'+
+  return '<a class="back" href="#/prechallenge">&larr; All days</a>'+
    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
    '<h1>'+d.title+'</h1>'+
    '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<p class="caption">Follow along on the call and write your '+d.asset+' as we go.</p>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+(n>1?'<div class="summit-inline">'+summitBlock(true,true)+'</div>':'')+winnerBlock(n)+'</div>'+aside+'</div>'+
@@ -1371,7 +1377,7 @@ function vSubmit(n,sent){
   var d=day_(n);
   if(sent) return '<div class="narrow"><a class="back" href="#/day/'+n+'">&larr; Back to Day '+n+'</a>'+
     '<h1>Got it</h1><div class="okbox">Your Day '+n+' Quest is counted. See you tomorrow at 10:00am PT.</div>'+
-    '<a class="btn btn-primary" href="#/hub">Back to the Hub</a>'+concierge()+'</div>';
+    '<a class="btn btn-primary" href="#/prechallenge">Back to the Challenge</a>'+concierge()+'</div>';
   return '<div class="narrow"><a class="back" href="#/day/'+n+'">&larr; Back to Day '+n+'</a>'+
    '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>Submit your Quest</h1>'+
    '<p>Posted somewhere other than our Facebook Group? Drop the link here and we&rsquo;ll count it toward your Golden Ticket.</p>'+
@@ -1410,13 +1416,14 @@ function render(keep){
     window.scrollTo(0,keep?y:0);
     wire(); setTimeout(nudgeBroll,60); return;
   }
-  if(!h||h==="#/login") h=open_(1)?"#/hub":"#/prechallenge";
+  if(!h||h==="#/login") h="#/prechallenge";
   document.body.className="";
   if(h==="#/prechallenge") html=vPre();
-  else if(h==="#/hub") html=vHub();
+  /* the Hub home page is gone; anything pointing at it lands on Prepare */
+  else if(h==="#/hub"){ location.hash="#/prechallenge"; return; }
   else if((m=h.match(/^#\/day\/(\d+)$/))) html=vDay(+m[1]);
   else if((m=h.match(/^#\/submit\/(\d+)$/))) html=vSubmit(+m[1],false);
-  else {location.hash = open_(1) ? "#/hub" : "#/prechallenge"; return;}
+  else {location.hash = "#/prechallenge"; return;}
   document.getElementById("main").innerHTML=html;
   document.getElementById("side").innerHTML=sidebar();
   document.getElementById("acct").innerHTML=acct();
@@ -1464,7 +1471,7 @@ function wire(){
     if(showReview){
       S.email=v; S.first=displayFirst(S.first)||"Preview"; save();
       authState="hub"; loginError=false; authDown=false;
-      location.hash="#/hub"; render(); return;
+      location.hash="#/prechallenge"; render(); return;
     }
     try{
       await refreshAuthSession();
@@ -1502,7 +1509,7 @@ function wire(){
   if(jz && ZOOM.charAt(0)==="#") jz.onclick=function(e){e.preventDefault();toast("Zoom link is injected in the production build");};
 
   Array.prototype.forEach.call(document.querySelectorAll('#joinFb,[data-fb]'),function(a){
-    a.onclick=function(e){ if(a.getAttribute("href")==="#/hub"){e.preventDefault();toast("Facebook Group link still to be supplied");} };
+    a.onclick=function(e){ if(a.getAttribute("href")==="#"){e.preventDefault();} };
   });
 
   [q("vid")].forEach(function(v){ if(v) v.onclick=function(){
@@ -1737,7 +1744,7 @@ if(tgR) tgR.onclick=function(){
       body:JSON.stringify({source:"challenge-hub", challenge:CHALLENGE.id,
         name:(document.getElementById("chName")||{}).value||displayFirst(S.first)||"",
         email:(document.getElementById("chEmail")||{}).value||displayEmail(S.email)||"",
-        message:text, page:location.hash||"#/hub"})})
+        message:text, page:location.hash||"#/prechallenge"})})
       .then(function(r){ return r.ok?r.text():Promise.reject(r.status); })
       .then(function(){ settled(true); })
       .catch(function(){ settled(false); });
