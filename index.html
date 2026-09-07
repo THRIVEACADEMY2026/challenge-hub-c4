@@ -1702,6 +1702,10 @@ function wire(){
   /* The mobile menu. Opens the sidebar as a full-screen panel. Navigating
      re-renders, which clears body.className, so it closes itself. */
   var nt=q("navToggle");
+  /* render() clears body.className, which closes the panel, but the button
+     kept saying aria-expanded="true" afterwards. A screen reader would then
+     announce a menu that is not open. Re-sync it on every render. */
+  if(nt) nt.setAttribute("aria-expanded", document.body.classList.contains("nav-open")?"true":"false");
   if(nt) nt.onclick=function(){
     var open=document.body.classList.toggle("nav-open");
     nt.setAttribute("aria-expanded", open?"true":"false");
