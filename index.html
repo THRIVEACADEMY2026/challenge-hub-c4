@@ -913,6 +913,11 @@ var CHALLENGE = {
 
   links: {
     fbGroup: "https://www.facebook.com/groups/1386366133366597",
+    /* The Guides tab of the Group, where the day replays are posted. Sharla
+       asked the replay button to land here rather than the group's main feed:
+       "go to the Facebook group, and guide them to, I think it's guide one".
+       Ella confirmed this is the Guides tab, 6 Sept. */
+    fbGuides: "https://www.facebook.com/groups/1386366133366597/learning_content",
     /* UNUSED. The add-to-calendar step was removed on 3 Sept 2026 because the
        AddEvent calendars behind this page are disabled or point at August.
        Kept only so the value is not lost. Do not wire a button to it again
@@ -963,6 +968,7 @@ function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
 
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
+    FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
 var DAYS=CHALLENGE.days;
@@ -1401,9 +1407,9 @@ function preQuestBlock(){
      replacement herself: "Earn golden tickets and be in the running for the
      grand prize, valued at over...". She also said the reason has to come
      first: "we want to know why we're going to do work first."
-     The $5,300 figure is Thrive's own published value for this round's Grand
-     Prize, taken from the Day 2 Quest caption in this file. Worth confirming
-     with Sharla before this goes live. */
+     The Grand Prize value is $5,300. Ella confirmed it on 6 Sept as the
+     estimate Thrive uses, and it matches the Day 2 Quest caption in this
+     file. */
   return '<div class="pre-later">'+
     '<h3 class="pre-step">Earn Golden Tickets and be in the running for the Grand Prize</h3>'+
     '<p>The Grand Prize is worth over $5,300. Four short warm-ups are waiting in the Group, '+
@@ -1508,13 +1514,14 @@ function vDay(n){
            : 'Watch the Grand Finale. This is where it all comes together.')+'</p>'
       /* Sharla, 6 Sept Loom, her own copy: "Go to the Facebook group to guide
          one to watch the day one replay, or wait, and it will be ready soon."
-         She was unsure of the destination inside the Group - "I think it's
-         guide one" - so this links to the Group itself. Swap in the exact
-         Guide link once someone confirms it. */
+         The button lands on the Group's Guides tab, which is where the day
+         replays are posted, so nobody has to hunt the main feed for it. The
+         label says Facebook Group rather than Guides because that is what a
+         lead recognises. */
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
         '<p>Go to the Facebook Group to watch the Day '+n+' replay now, '+
         'or wait here and it will be ready soon.</p>'+
-        (FBGROUP ? '<a class="btn btn-outline" href="'+FBGROUP+'" target="_blank" rel="noopener">'+
+        (FBGUIDES ? '<a class="btn btn-outline" href="'+FBGUIDES+'" target="_blank" rel="noopener">'+
           'Watch it in the Facebook Group</a>' : '')+'</div>')+
        /* the Join button rides along in the replay state too: it is the same
           Zoom room all week, so somebody catching up on Wednesday still needs
