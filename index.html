@@ -508,8 +508,21 @@ p{margin:0 0 16px;max-width:var(--measure)}
   .playbook-inline{display:block;margin:0 0 18px}
   .cols .aside .card:not(.gold){display:none}
 }
+/* Sharla, 7 Sept Slack, with a photo of the Day 1 tab on her phone: this
+   panel and the Quest's own "Complete all the steps to earn 1 Golden Ticket"
+   line both say Golden Tickets, and she asked for one of them gone or for this
+   one moved to the bottom on mobile. "I don't think we need it on the page
+   twice."
+   Moved rather than deleted. The count itself lives in the sidebar, which is
+   hidden on a phone, so deleting this would leave phone users with no way to
+   see their total at all - and most of the Challenge is read on a phone.
+   Ordering it last inside .mainCol keeps it, below the Quest, out of the way
+   of the video and the Playbook. */
 .day-tickets{display:none}
-@media (max-width:899px){ .day-tickets{display:block} }
+@media (max-width:899px){
+  .day-tickets{display:block;order:99;margin-top:26px}
+  .cols .mainCol{display:flex;flex-direction:column}
+}
 .joinzoom{margin:0 0 18px}
 .joinzoom .btn{margin-bottom:8px}
 .joinzoom .caption{margin:0 0 4px}
