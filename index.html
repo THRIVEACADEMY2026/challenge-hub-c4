@@ -2002,12 +2002,20 @@ function wire(){
    what you are reviewing is the real thing and not an approximation.
    NOW_SHIFT is in memory only, so a reload always returns to real time and
    nobody can get stranded in a simulated week. */
-var previewBefore=false;
+/* Three states, not two. The old toggle could only land 30 minutes before the
+   session or a minute after it ended, so the LIVE hour could not be previewed
+   at all - which is exactly where the 7 Sept Quest bug hid: the page said "your
+   Quest unlocks when we go live" at 10:05 while the session was running.
+   0 = before, 1 = live, 2 = replay. */
+var previewPhase=0;
+var previewBefore=false;   /* kept: tgReset and syncDemo still read it */
 function previewDay(n){
   var d=day_(n); if(!d) return;
   /* "before" lands 30 minutes ahead of the session, mid-countdown.
      otherwise land just after the replay opens. */
-  var t = previewBefore ? Date.parse(d.startsAt)-30*60000 : Date.parse(d.replayAt)+60000;
+  var t = previewPhase===0 ? Date.parse(d.startsAt)-30*60000
+        : previewPhase===1 ? Date.parse(d.startsAt)+5*60000      /* five minutes into the session */
+        :                    Date.parse(d.replayAt)+60000;
   if(!isNaN(t)){ NOW_SHIFT = t - Date.now(); previewClockSet = true; }
 }
 function syncDemo(){
@@ -2038,7 +2046,7 @@ if(tgR) tgR.onclick=function(){
   /* This wipes Golden Tickets. It is a review tool and it should still ask. */
   if(!window.confirm("Reset this browser?\n\nThis clears the signed-in email AND every Golden Ticket saved here. It cannot be undone."))return;
   S={day:1,live:false,email:null,first:null,progress:{}};
-  NOW_SHIFT=0; previewBefore=false; previewClockSet=false;
+  NOW_SHIFT=0; previewBefore=false; previewPhase=0; previewClockSet=false;
   save();location.hash="#/login";render();toast("Reset");};
 
 
