@@ -2,11 +2,31 @@
 <html lang="en">
 <head>
 <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-W3NJN7NZ');</script>
+<script>(function(w,d,s,l,i,k){
+  "use strict";
+  var loaded=false;
+  function read(){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function write(value){try{localStorage.setItem(k,value);}catch(e){}}
+  function load(){
+    if(loaded) return;
+    loaded=true;
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s);
+    j.async=true;
+    j.src='https://www.googletagmanager.com/gtm.js?id='+i;
+    f.parentNode.insertBefore(j,f);
+  }
+  w.thriveHubMarketingConsent={
+    status:function(){return read()==='granted'?'granted':'denied';},
+    grant:function(){write('granted');load();},
+    deny:function(){
+      write('denied');
+      if(loaded&&w.location&&typeof w.location.reload==='function') w.location.reload();
+    }
+  };
+  if(read()==='granted') load();
+})(window,document,'script','dataLayer','GTM-W3NJN7NZ','thriveHub_marketing_consent');</script>
 <!-- End Google Tag Manager -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -683,7 +703,12 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
    wide and forced the bar onto three lines. Inside the notice it sits inline. */
 .pb-in .btn{margin:0;flex:0 0 auto;width:auto;display:inline-block;
   padding:11px 26px;white-space:nowrap}
-@media (max-width:620px){ .pb-in{padding:14px 16px;gap:12px} .pb-in .btn{width:100%} }
+.pb-actions{display:flex;gap:10px;flex:0 0 auto;flex-wrap:wrap}
+@media (max-width:620px){
+  .pb-in{padding:14px 16px;gap:12px}
+  .pb-actions{width:100%}
+  .pb-in .btn{width:100%}
+}
 
 /* --- Sharla's 6 Sept Loom: prepare page above the fold --------------------
    The welcome video ran the full measure, so Step 1 sat below the fold and,
@@ -840,10 +865,6 @@ body::before{
 </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W3NJN7NZ"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 <a class="skip" href="#main">Skip to content</a>
 
 <div id="rev">
@@ -913,17 +934,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<!-- Privacy notice. Shown once, then remembered. This is a NOTICE, not a
-     consent gate, because the Hub runs no advertising or analytics cookies -
-     only what is needed to keep you signed in and remember your progress.
-     If a pixel or analytics is ever added, this has to become a real
-     consent gate with a working Decline. -->
+<!-- Privacy choices. Essential Hub storage is always available. GTM and every
+     tag inside it stay unloaded unless marketing consent is explicitly granted.
+     There is intentionally no noscript iframe because it cannot be consent-gated. -->
 <div id="privacyBar" class="pbar-privacy" hidden>
   <div class="pb-in">
     <p><b>Your data on this page.</b> We keep you signed in and remember which Quests
-    you have ticked off. That is all this page stores &mdash; no advertising or tracking
-    cookies. <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
-    <button type="button" id="privacyOk" class="btn btn-primary">Got it</button>
+    you have ticked off using essential storage. Marketing tracking stays off unless
+    you choose to allow it. You can change this choice from the footer.
+    <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
+    <div class="pb-actions">
+      <button type="button" id="privacyDecline" class="btn btn-outline">Keep tracking off</button>
+      <button type="button" id="privacyAllow" class="btn btn-primary">Allow marketing tracking</button>
+    </div>
   </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -2488,15 +2511,15 @@ if(tgR) tgR.onclick=function(){
 })();
 
 /* ---------------------------------------------------------------------------
-   Privacy notice. Shown once per browser, then remembered. Reopenable from
-   the footer link so it is never lost. Every storage call is wrapped, because
+   Privacy choices. Shown until a choice is made and reopenable from the footer
+   so consent can be changed. Every storage call is wrapped, because
    a private window or blocked site data makes localStorage throw rather than
    return null, and the page must still render correctly when it does.
    --------------------------------------------------------------------------- */
 (function(){
-  var KEY="thriveHub_privacy_ack", bar=document.getElementById("privacyBar");
+  var KEY="thriveHub_marketing_consent", bar=document.getElementById("privacyBar");
   if(!bar) return;
-  function seen(){ try{ return localStorage.getItem(KEY)==="1"; }catch(e){ return false; } }
+  function choice(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
   /* The bar is fixed to the bottom, so without this it sits on top of the
      footer and hides the contact details. Reserve exactly its height.
      Measured after a frame and again once webfonts land, because measuring
@@ -2519,11 +2542,19 @@ if(tgR) tgR.onclick=function(){
     setTimeout(pad, 600);
   }
   function show(){ bar.hidden=false; padLater(); }
-  function hide(){ bar.hidden=true; pad(); try{ localStorage.setItem(KEY,"1"); }catch(e){} }
+  function hide(){ bar.hidden=true; pad(); }
   window.addEventListener("resize", pad);
-  if(!seen()) show();
-  var ok=document.getElementById("privacyOk");
-  if(ok) ok.onclick=hide;
+  if(choice()!=="granted"&&choice()!=="denied") show();
+  var allow=document.getElementById("privacyAllow");
+  if(allow) allow.onclick=function(){
+    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.grant();
+    hide();
+  };
+  var decline=document.getElementById("privacyDecline");
+  if(decline) decline.onclick=function(){
+    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.deny();
+    hide();
+  };
   var open=document.getElementById("cookieOpen");
   if(open) open.onclick=function(e){ e.preventDefault(); show();
     bar.scrollIntoView({block:"nearest"}); };
