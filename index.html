@@ -19,7 +19,10 @@
   }
   w.thriveHubMarketingConsent={
     status:function(){return read()==='granted'?'granted':'denied';},
-    grant:function(){write('granted');load();},
+    grant:function(){
+      write('granted');load();
+      if(typeof w.thriveHubClaimMetaLead==='function') w.thriveHubClaimMetaLead();
+    },
     deny:function(){
       write('denied');
       if(loaded&&w.location&&typeof w.location.reload==='function') w.location.reload();
@@ -2609,13 +2612,58 @@ async function refreshAuthSession(){
   csrfToken=result.csrf_token;
   return result;
 }
+var metaLeadClaimStarted=false;
+function browserCookie(name){
+  var prefix=name+"=";
+  var parts=document.cookie?document.cookie.split(";"):[];
+  for(var i=0;i<parts.length;i++){
+    var part=parts[i].trim();
+    if(part.indexOf(prefix)===0) return part.slice(prefix.length);
+  }
+  return null;
+}
+async function claimChallengeMetaLead(){
+  if(metaLeadClaimStarted||authState!=="hub"||!csrfToken) return;
+  if(!window.thriveHubMarketingConsent||
+     window.thriveHubMarketingConsent.status()!=="granted") return;
+  metaLeadClaimStarted=true;
+  try{
+    var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/meta-lead/claim",{
+      method:"POST",credentials:"include",
+      headers:{"Accept":"application/json","Content-Type":"application/json","X-CAS-CSRF":csrfToken},
+      body:JSON.stringify({fbp:browserCookie("_fbp"),fbc:browserCookie("_fbc")})
+    });
+    var result=await response.json().catch(function(){return {};});
+    if(!response.ok||result.eligible!==true) return;
+    window.dataLayer=window.dataLayer||[];
+    window.dataLayer.push({
+      event:"meta_lead_dedupe_ready",
+      meta_event_id:result.meta_event_id,
+      meta_event_name:"Lead",
+      funnel:"challenge",
+      step:"sign_up",
+      challenge_cohort_id:result.challenge_cohort_id,
+      registration_timestamp:result.registration_timestamp,
+      registration_id:result.registration_id,
+      event_source_url:result.event_source_url,
+      browser_only:true,
+      server_delivery_status:"not_authorized"
+    });
+  }catch(error){
+    /* Fail closed. A claim is one-time and must never be guessed or replayed
+       after an ambiguous network result. */
+  }
+}
+window.thriveHubClaimMetaLead=claimChallengeMetaLead;
 async function bootstrapAuth(){
   authState="loading";loginError=false;authDown=false;render();
   try{
     var result=await refreshAuthSession();
     authState=result.authorized===true?"hub":"login";
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();selectRound(result.tag || result.round || "");}
-    render();return;
+    render();
+    if(authState==="hub") claimChallengeMetaLead();
+    return;
   }catch(error){
     /* The sign-in service could not be reached. That is NOT the same as "you
        are not registered", and it used to be shown with the same words, so a

@@ -96,7 +96,22 @@ test("no consent-bypassing noscript container is present", () => {
   assert.doesNotMatch(html, /googletagmanager\.com\/ns\.html/);
 });
 
-test("Hub source does not directly fire Meta Lead or initialize fbq", () => {
+test("Hub source does not directly initialize fbq", () => {
   assert.doesNotMatch(html, /fbq\s*\(/);
-  assert.doesNotMatch(html, /meta_lead_dedupe_ready/);
+});
+
+test("authenticated Hub bridge claims only the consented browser Lead contract", () => {
+  assert.match(html, /authState!=="hub"\|\|!csrfToken/);
+  assert.match(html, /thriveHubMarketingConsent\.status\(\)!=="granted"/);
+  assert.match(html, /\/browser\/challenge-hub\/meta-lead\/claim/);
+  assert.match(html, /"X-CAS-CSRF":csrfToken/);
+  assert.match(html, /event:"meta_lead_dedupe_ready"/);
+  assert.match(html, /browser_only:true/);
+  assert.match(html, /server_delivery_status:"not_authorized"/);
+  assert.match(html, /if\(!response\.ok\|\|result\.eligible!==true\) return/);
+});
+
+test("marketing consent grant resumes the bridge without a page reload", () => {
+  assert.match(html, /typeof w\.thriveHubClaimMetaLead==='function'/);
+  assert.match(html, /window\.thriveHubClaimMetaLead=claimChallengeMetaLead/);
 });
