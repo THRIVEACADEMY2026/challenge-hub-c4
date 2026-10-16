@@ -1517,7 +1517,7 @@ function vPre(){
      '<div class="pre-top-copy">'+
        '<p class="eyebrow">You&rsquo;re registered</p>'+
        '<h1 class="pre-hi">You&rsquo;re in'+(first?', '+esc(first):'')+'!</h1>'+
-       '<p class="pre-when">We go live at 10:00am PT / 1:00pm ET, Monday September 7 to Friday the 11th.</p>'+
+       '<p class="pre-when">We go live at 10:00am PT / 1:00pm ET, Monday November 2 to Friday the 6th.</p>'+
      '</div>'+
      '<div class="player"><video controls preload="none" playsinline poster="'+m_('welcome-poster.jpg')+'" '+
        'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
@@ -1536,7 +1536,7 @@ function vPre(){
         add the wrong week - the exact fault a lead reported on 1 Sept. Until
         someone creates the September calendar, show the dates instead of a
         button that misleads. */
-     : '<div class="locked-msg" style="max-width:520px">Mon 7, Tue 8, Wed 9, Thu 10 and Fri 11 September, '+
+     : '<div class="locked-msg" style="max-width:520px">Mon 2, Tue 3, Wed 4, Thu 5 and Fri 6 November, '+
        '10:00&ndash;11:00am PT / 1:00&ndash;2:00pm ET. Pop those five in now.</div>')+
 
    /* Sharla circled this step on her 6 Sept Loom and talked herself out of a
@@ -1561,6 +1561,10 @@ function vPre(){
 function preQuestBlock(){
   var q = CHALLENGE.preQuests && CHALLENGE.preQuests[0];
   if(!q) return "";
+  /* No URL pasted in yet, so there is nowhere to send anyone. Render nothing
+     rather than a button with an empty href. Same reasoning as the Summit
+     block. Paste the C1 pre-Challenge Quest URL and this reappears. */
+  if(!q.url) return "";
   /* One button, so the copy has to carry the whole idea. It leads on the
      reward rather than the admin: every warm-up earns a Golden Ticket, and
      they can be banked before Day 1 even starts. */
