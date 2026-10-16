@@ -1316,6 +1316,12 @@ function summitBlock(compact, force){
      on Day 2 before Day 1 has happened. The Hub home and Day 1 still wait, so
      nothing about the Summit appears before Sharla has introduced it. */
   if(!force && !summitOpen()) return "";
+  /* No Summit URL set yet, so there is nothing to send anyone to. Render
+     nothing rather than a button with an empty href, which reloads the page
+     and looks broken. Added for the Quad 3 roll-forward: the January opt-in
+     link is still outstanding. Set CHALLENGE.links.summit and the whole
+     block reappears. */
+  if(!SUMMIT) return "";
   return '<div class="card gold"'+(compact?'':' style="margin-top:30px"')+'>'+
     (compact?'':'<a class="summit-art" href="'+SUMMIT+'" target="_blank" rel="noopener">'+
       '<img src="'+m_('summit-banner.jpg')+'" alt="Client Attraction Summit, January 15 to 17, online" width="1800" height="790"></a>')+
