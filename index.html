@@ -861,7 +861,7 @@ body::before{
 </header>
 <div class="strip"><div class="in">
   <span>Book 5 Consults in 5 Days</span><span class="sep">|</span>
-  <span>November 2 to 6</span><span class="sep">|</span>
+  <span data-round-name>November 2 to 6</span><span class="sep">|</span>
   <span class="hi">Live daily 10:00am PT</span>
   <!-- Zoom lives here from Sharla's second Loom, 6 Sept: "let's put the Zoom
        link up here as a button. Join Zoom live. Now, as an orange button with
@@ -879,7 +879,7 @@ body::before{
     <div class="f-col">
       <span class="f-brand"><a href="https://www.thrive-academy.com" target="_blank" rel="noopener">Thrive Academy</a></span>
       <span>Book 5 Consults in 5 Days Challenge</span>
-      <span>November 2 to 6, 2026</span>
+      <span><span data-round-name>November 2 to 6</span>, 2026</span>
     </div>
     <div class="f-col">
       <span class="f-h">Need a hand</span>
@@ -952,6 +952,184 @@ var CHALLENGE = {
      Written as absolute instants with an explicit -07:00 offset, because
      September 2026 is inside US daylight time (DST ends Nov 1). That makes
      them correct for a viewer in any time zone with no guessing. */
+  rounds: {
+    /* ---------------------------------------------------------------------
+       ONE HUB, THREE ROUNDS.
+
+       Ads move to the next round while the current one is still running, and
+       the Hub doubles as the thank-you page, so a C2 lead who registers on
+       3 November lands here while C1 is mid-flight. They must see THEIR
+       dates and must not reach C1's sessions. So the day dates live per
+       round, keyed by the GHL tag that let the person in.
+
+       The key is the tag string exactly as it appears in GHL:
+         (5-day challenge) mmm dd-dd yyyy
+
+       Which round a viewer gets is decided by the tag the auth service
+       returns on login. Until that service returns it, selectRound() falls
+       back to the round that is running now, or the next one to open.
+       --------------------------------------------------------------------- */
+    "(5-day challenge) nov 02-06 2026": { name:"November 2 to 6",   days: [
+    /* ---------------------------------------------------------------------
+       QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
+       Grand Finale Monday 9 November.
+
+       OFFSETS ARE -08:00, NOT -07:00. US daylight time ends Sunday 1 November
+       2026, so this whole round is in standard time. Carrying -07:00 over from
+       the September round would open every tab, every session and every replay
+       exactly one hour early. Checked against the real zone, not assumed.
+
+       BLANK ON PURPOSE, waiting on Ella:
+         post      the Quest post URL in the new Group, per day
+         vimeo     the recording id, after each session
+         replay    the Facebook permalink, after each session
+         igPost    Day 1 only, and only if there is an Instagram post
+       An empty value is safe: the page falls back rather than showing a dead
+       link. Fill them in and the feature appears.
+       --------------------------------------------------------------------- */
+    {n:1, date:"Monday November 2",    short:"Mon Nov 2",  title:"Compelling Consult Name",
+     asset:"Compelling Consult Name",  quest:"day1",
+     unlockAt:"2026-11-02T09:00:00-08:00", startsAt:"2026-11-02T09:50:00-08:00", replayAt:"2026-11-02T11:00:00-08:00",
+     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/name"},
+
+    {n:2, date:"Tuesday November 3",   short:"Tue Nov 3",  title:"Create Intrigue",
+     asset:"Create Intrigue",          quest:"std",
+     unlockAt:"2026-11-03T09:00:00-08:00", startsAt:"2026-11-03T09:50:00-08:00", replayAt:"2026-11-03T11:00:00-08:00",
+     video:"", art:"quest-day2.jpg", post:"https://www.facebook.com/groups/1103115088773996/posts/1111070127978492", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/intrigue"},
+
+    {n:3, date:"Wednesday November 4", short:"Wed Nov 4",  title:"Trust and Transformation Story",
+     asset:"Trust and Transformation Story", quest:"std",
+     unlockAt:"2026-11-04T09:00:00-08:00", startsAt:"2026-11-04T09:50:00-08:00", replayAt:"2026-11-04T11:00:00-08:00",
+     video:"", art:"quest-day3.jpg", post:"https://www.facebook.com/groups/1103115088773996/posts/1111068627978642", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/trust"},
+
+    {n:4, date:"Thursday November 5",  short:"Thu Nov 5",  title:"Inspiring Invitation",
+     asset:"Inspiring Invitation",     quest:"std",
+     unlockAt:"2026-11-05T09:00:00-08:00", startsAt:"2026-11-05T09:50:00-08:00", replayAt:"2026-11-05T11:00:00-08:00",
+     video:"", art:"quest-day4.jpg", post:"https://www.facebook.com/groups/1103115088773996/posts/1111066751312163", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/invitation"},
+
+    {n:5, date:"Friday November 6",    short:"Fri Nov 6",  title:"Success Story",
+     asset:"Success Story or 2nd Inspiring Invitation", quest:"std",
+     unlockAt:"2026-11-06T09:00:00-08:00", startsAt:"2026-11-06T09:50:00-08:00", replayAt:"2026-11-06T11:00:00-08:00",
+     video:"", art:"quest-day5.jpg", post:"https://www.facebook.com/groups/1103115088773996/posts/1111057961313042", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/success"},
+
+    {n:8, date:"Monday November 9",    short:"Mon Nov 9", title:"Grand Finale",
+     asset:"", quest:"none", post:"", playbook:"",
+     unlockAt:"2026-11-09T09:00:00-08:00", startsAt:"2026-11-09T09:50:00-08:00", replayAt:"2026-11-09T11:00:00-08:00",
+     vimeo:"", replay:"",
+     replaysCloseAt:"2026-11-15T21:00:00-08:00"}] },
+    "(5-day challenge) nov 16-20 2026": { name:"November 16 to 20", days: [
+    /* ---------------------------------------------------------------------
+       QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
+       Grand Finale Monday 9 November.
+
+       OFFSETS ARE -08:00, NOT -07:00. US daylight time ends Sunday 1 November
+       2026, so this whole round is in standard time. Carrying -07:00 over from
+       the September round would open every tab, every session and every replay
+       exactly one hour early. Checked against the real zone, not assumed.
+
+       BLANK ON PURPOSE, waiting on Ella:
+         post      the Quest post URL in the new Group, per day
+         vimeo     the recording id, after each session
+         replay    the Facebook permalink, after each session
+         igPost    Day 1 only, and only if there is an Instagram post
+       An empty value is safe: the page falls back rather than showing a dead
+       link. Fill them in and the feature appears.
+       --------------------------------------------------------------------- */
+    {n:1, date:"Monday November 16",    short:"Mon Nov 16",  title:"Compelling Consult Name",
+     asset:"Compelling Consult Name",  quest:"day1",
+     unlockAt:"2026-11-16T09:00:00-08:00", startsAt:"2026-11-16T09:50:00-08:00", replayAt:"2026-11-16T11:00:00-08:00",
+     video:"", art:"quest-day1.jpg", post:"", igPost:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/name"},
+
+    {n:2, date:"Tuesday November 17",   short:"Tue Nov 17",  title:"Create Intrigue",
+     asset:"Create Intrigue",          quest:"std",
+     unlockAt:"2026-11-17T09:00:00-08:00", startsAt:"2026-11-17T09:50:00-08:00", replayAt:"2026-11-17T11:00:00-08:00",
+     video:"", art:"quest-day2.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/intrigue"},
+
+    {n:3, date:"Wednesday November 18", short:"Wed Nov 18",  title:"Trust and Transformation Story",
+     asset:"Trust and Transformation Story", quest:"std",
+     unlockAt:"2026-11-18T09:00:00-08:00", startsAt:"2026-11-18T09:50:00-08:00", replayAt:"2026-11-18T11:00:00-08:00",
+     video:"", art:"quest-day3.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/trust"},
+
+    {n:4, date:"Thursday November 19",  short:"Thu Nov 19",  title:"Inspiring Invitation",
+     asset:"Inspiring Invitation",     quest:"std",
+     unlockAt:"2026-11-19T09:00:00-08:00", startsAt:"2026-11-19T09:50:00-08:00", replayAt:"2026-11-19T11:00:00-08:00",
+     video:"", art:"quest-day4.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/invitation"},
+
+    {n:5, date:"Friday November 20",    short:"Fri Nov 20",  title:"Success Story",
+     asset:"Success Story or 2nd Inspiring Invitation", quest:"std",
+     unlockAt:"2026-11-20T09:00:00-08:00", startsAt:"2026-11-20T09:50:00-08:00", replayAt:"2026-11-20T11:00:00-08:00",
+     video:"", art:"quest-day5.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/success"},
+
+    {n:8, date:"Monday November 23",    short:"Mon Nov 23", title:"Grand Finale",
+     asset:"", quest:"none", post:"", playbook:"",
+     unlockAt:"2026-11-23T09:00:00-08:00", startsAt:"2026-11-23T09:50:00-08:00", replayAt:"2026-11-23T11:00:00-08:00",
+     vimeo:"", replay:"",
+     replaysCloseAt:"2026-11-29T21:00:00-08:00"}] },
+    "(5-day challenge) jan 04-08 2027": { name:"January 4 to 8",    days: [
+    /* ---------------------------------------------------------------------
+       QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
+       Grand Finale Monday 9 November.
+
+       OFFSETS ARE -08:00, NOT -07:00. US daylight time ends Sunday 1 November
+       2026, so this whole round is in standard time. Carrying -07:00 over from
+       the September round would open every tab, every session and every replay
+       exactly one hour early. Checked against the real zone, not assumed.
+
+       BLANK ON PURPOSE, waiting on Ella:
+         post      the Quest post URL in the new Group, per day
+         vimeo     the recording id, after each session
+         replay    the Facebook permalink, after each session
+         igPost    Day 1 only, and only if there is an Instagram post
+       An empty value is safe: the page falls back rather than showing a dead
+       link. Fill them in and the feature appears.
+       --------------------------------------------------------------------- */
+    {n:1, date:"Monday January 4",    short:"Mon Jan 4",  title:"Compelling Consult Name",
+     asset:"Compelling Consult Name",  quest:"day1",
+     unlockAt:"2027-01-04T09:00:00-08:00", startsAt:"2027-01-04T09:50:00-08:00", replayAt:"2027-01-04T11:00:00-08:00",
+     video:"", art:"quest-day1.jpg", post:"", igPost:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/name"},
+
+    {n:2, date:"Tuesday January 5",   short:"Tue Jan 5",  title:"Create Intrigue",
+     asset:"Create Intrigue",          quest:"std",
+     unlockAt:"2027-01-05T09:00:00-08:00", startsAt:"2027-01-05T09:50:00-08:00", replayAt:"2027-01-05T11:00:00-08:00",
+     video:"", art:"quest-day2.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/intrigue"},
+
+    {n:3, date:"Wednesday January 6", short:"Wed Jan 6",  title:"Trust and Transformation Story",
+     asset:"Trust and Transformation Story", quest:"std",
+     unlockAt:"2027-01-06T09:00:00-08:00", startsAt:"2027-01-06T09:50:00-08:00", replayAt:"2027-01-06T11:00:00-08:00",
+     video:"", art:"quest-day3.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/trust"},
+
+    {n:4, date:"Thursday January 7",  short:"Thu Jan 7",  title:"Inspiring Invitation",
+     asset:"Inspiring Invitation",     quest:"std",
+     unlockAt:"2027-01-07T09:00:00-08:00", startsAt:"2027-01-07T09:50:00-08:00", replayAt:"2027-01-07T11:00:00-08:00",
+     video:"", art:"quest-day4.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/invitation"},
+
+    {n:5, date:"Friday January 8",    short:"Fri Jan 8",  title:"Success Story",
+     asset:"Success Story or 2nd Inspiring Invitation", quest:"std",
+     unlockAt:"2027-01-08T09:00:00-08:00", startsAt:"2027-01-08T09:50:00-08:00", replayAt:"2027-01-08T11:00:00-08:00",
+     video:"", art:"quest-day5.jpg", post:"", replay:"", vimeo:"",
+     playbook:"https://giftfromthrive.com/success"},
+
+    {n:8, date:"Monday January 11",    short:"Mon Jan 11", title:"Grand Finale",
+     asset:"", quest:"none", post:"", playbook:"",
+     unlockAt:"2027-01-11T09:00:00-08:00", startsAt:"2027-01-11T09:50:00-08:00", replayAt:"2027-01-11T11:00:00-08:00",
+     vimeo:"", replay:"",
+     replaysCloseAt:"2027-01-17T21:00:00-08:00"}] }
+  },
+
   days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
@@ -1115,7 +1293,39 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
     FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
-var DAYS=CHALLENGE.days;
+/* The viewer's round. Set from the tag the auth service returns on login.
+   Until that service returns a tag, pick the round that is running now, or
+   the next one due to open, so the Hub is never wrong by default. */
+var ROUND_TAG = "", ROUND_NAME = "";
+var DAYS = CHALLENGE.days;
+
+function selectRound(tag){
+  var R = CHALLENGE.rounds || {};
+  var key = null;
+  if(tag && R[tag]) key = tag;
+  if(!key){
+    /* No tag, or one we do not recognise. Choose by the clock: the round
+       whose Finale has not yet passed, earliest first. */
+    var now = now_(), best = null, bestT = Infinity;
+    for(var k in R){
+      var d = R[k].days || [], last = d.length ? d[d.length-1] : null;
+      if(!last) continue;
+      var end = Date.parse(last.replaysCloseAt || last.replayAt || "");
+      if(isNaN(end) || end < now) continue;
+      var start = Date.parse((d[0]||{}).unlockAt || "");
+      if(!isNaN(start) && start < bestT){ bestT = start; best = k; }
+    }
+    key = best || Object.keys(R)[0];
+  }
+  if(!key || !R[key]) return;
+  ROUND_TAG = key;
+  ROUND_NAME = R[key].name || "";
+  DAYS = R[key].days;
+  CHALLENGE.days = DAYS;
+  /* The round name appears in the top strip, the footer and the login band. */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-round-name]"),
+    function(el){ el.textContent = ROUND_NAME; });
+}
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0;
@@ -1495,7 +1705,7 @@ function vLogin(err){
       '<p class="hint" style="margin-top:14px">Stuck? Text your Challenge Concierge at '+phoneLink()+'. '+
       'Please include your first and last name so we can find you fast.</p>'+
     '</div></div>'+
-  '<div class="band-strip"><span>November 2 to 6</span><span class="sep">|</span><span class="hi">Live daily 10:00am PT</span></div>'+
+  '<div class="band-strip"><span data-round-name>'+(ROUND_NAME||'November 2 to 6')+'</span><span class="sep">|</span><span class="hi">Live daily 10:00am PT</span></div>'+
   '</section>';
 }
 
@@ -1907,7 +2117,13 @@ function wire(){
      "now" only while a session is actually running so the word stays true. */
   var sz=q("stripZoom");
   if(sz){
-    if(!ZOOM || authState!=="hub"){ sz.innerHTML=""; }
+    /* Sharla, 14 Oct: "I'm wondering if before the challenge, if that banner
+       doesn't have that button, like we don't need to see it yet." So it stays
+       hidden until Day 1 actually unlocks, rather than advertising a room
+       nobody can join for another two weeks. */
+    var d1 = DAYS && DAYS[0], challengeStarted = false;
+    try{ challengeStarted = !!d1 && now_() >= Date.parse(d1.unlockAt); }catch(e){}
+    if(!ZOOM || authState!=="hub" || !challengeStarted){ sz.innerHTML=""; }
     else{
       var liveNow=DAYS.some(function(d){return isLiveNow(d.n);});
       sz.innerHTML='<a class="zoombtn'+(liveNow?' is-live':'')+'" href="'+ZOOM+'" '+
@@ -1992,6 +2208,7 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
+        selectRound(result.tag || result.round || "");
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
         render();loadTicketTotal();return;
       }
@@ -2293,7 +2510,7 @@ async function bootstrapAuth(){
   try{
     var result=await refreshAuthSession();
     authState=result.authorized===true?"hub":"login";
-    if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
+    if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();selectRound(result.tag || result.round || "");}
     render();return;
   }catch(error){
     /* The sign-in service could not be reached. That is NOT the same as "you
