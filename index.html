@@ -7,10 +7,19 @@
   var loaded=false;
   function read(){try{return localStorage.getItem(k);}catch(e){return null;}}
   function write(value){try{localStorage.setItem(k,value);}catch(e){}}
+  w[l]=w[l]||[];
+  function gtag(){w[l].push(arguments);}
+  function update(value){
+    gtag('consent','update',{
+      ad_storage:value,
+      ad_user_data:value,
+      ad_personalization:value,
+      analytics_storage:value
+    });
+  }
   function load(){
     if(loaded) return;
     loaded=true;
-    w[l]=w[l]||[];
     w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
     var f=d.getElementsByTagName(s)[0],j=d.createElement(s);
     j.async=true;
@@ -20,15 +29,40 @@
   w.thriveHubMarketingConsent={
     status:function(){return read()==='granted'?'granted':'denied';},
     grant:function(){
-      write('granted');load();
+      var changed=read()!=='granted';
+      write('granted');
+      /* A denied page has already blocklisted every Custom HTML tag. Reload so
+         the published Meta Custom HTML tags can become eligible only on the
+         new, explicitly granted page. Do not claim the one-time Lead before
+         that page is ready to deliver it. */
+      if(changed&&w.location&&typeof w.location.reload==='function'){
+        w.location.reload();
+        return;
+      }
+      update('granted');
       if(typeof w.thriveHubClaimMetaLead==='function') w.thriveHubClaimMetaLead();
     },
     deny:function(){
-      write('denied');
+      write('denied');update('denied');
       if(loaded&&w.location&&typeof w.location.reload==='function') w.location.reload();
     }
   };
-  if(read()==='granted') load();
+  gtag('consent','default',{
+    ad_storage:'denied',
+    ad_user_data:'denied',
+    ad_personalization:'denied',
+    analytics_storage:'denied',
+    wait_for_update:500
+  });
+  /* Version 36 initializes Meta through Custom HTML. Consent Mode does not
+     govern arbitrary Custom HTML by itself, so block that GTM tag type until
+     a fresh page load observes explicit marketing consent. Native Google tags
+     remain available under the denied analytics_storage default above. */
+  if(read()!=='granted') w[l].push({'gtm.blocklist':['html']});
+  if(read()==='granted'){
+    update('granted');
+  }
+  load();
 })(window,document,'script','dataLayer','GTM-W3NJN7NZ','thriveHub_marketing_consent');</script>
 <!-- End Google Tag Manager -->
 <meta charset="utf-8">

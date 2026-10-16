@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const loader = html.match(/<!-- Google Tag Manager -->\s*<script>([\s\S]*?)<\/script>/)?.[1];
-if (!loader) throw new Error("Consent-gated GTM loader was not found");
+if (!loader) throw new Error("Consent-aware GTM loader was not found");
 
 function runLoader({ stored = null, pathname = "/" } = {}) {
   const storage = new Map();
@@ -33,38 +33,66 @@ function runLoader({ stored = null, pathname = "/" } = {}) {
   return { context, inserted, reloads: () => reloads, storage };
 }
 
-test("ordinary Hub visits do not load GTM before explicit consent", () => {
+function consentCommands(result) {
+  return result.context.dataLayer.filter((entry) => (
+    Object.prototype.toString.call(entry) === "[object Arguments]" &&
+    entry[0] === "consent"
+  ));
+}
+
+function assertDenied(command) {
+  assert.equal(command[0], "consent");
+  assert.equal(command[1], "default");
+  assert.equal(command[2].ad_storage, "denied");
+  assert.equal(command[2].ad_user_data, "denied");
+  assert.equal(command[2].ad_personalization, "denied");
+  assert.equal(command[2].analytics_storage, "denied");
+}
+
+function assertCustomHtmlBlocked(result) {
+  const restrictions = result.context.dataLayer.filter((entry) => entry["gtm.blocklist"]);
+  assert.equal(restrictions.length, 1);
+  assert.deepEqual(Array.from(restrictions[0]["gtm.blocklist"]), ["html"]);
+}
+
+test("ordinary Hub visits load GTM once after denied consent defaults", () => {
   const result = runLoader();
-  assert.equal(result.inserted.length, 0);
-  assert.equal(result.context.dataLayer, undefined);
+  assert.equal(result.inserted.length, 1);
+  assert.equal(result.inserted[0].src, "https://www.googletagmanager.com/gtm.js?id=GTM-W3NJN7NZ");
+  assertDenied(consentCommands(result)[0]);
+  assertCustomHtmlBlocked(result);
+  assert.equal(result.context.dataLayer[2].event, "gtm.js");
   assert.equal(result.context.thriveHubMarketingConsent.status(), "denied");
 });
 
-test("Magic Link visits do not load GTM without explicit consent", () => {
+test("Magic Link visits initialize GTM under denied consent", () => {
   const result = runLoader({ pathname: "/m/example-magic-link" });
-  assert.equal(result.inserted.length, 0);
-  assert.equal(result.context.dataLayer, undefined);
+  assert.equal(result.inserted.length, 1);
+  assertDenied(consentCommands(result)[0]);
+  assertCustomHtmlBlocked(result);
 });
 
-test("an explicit decline persists and keeps GTM unloaded", () => {
+test("an explicit decline persists, updates denied consent, and reloads", () => {
   const result = runLoader();
   result.context.thriveHubMarketingConsent.deny();
   assert.equal(result.storage.get("thriveHub_marketing_consent"), "denied");
-  assert.equal(result.inserted.length, 0);
+  assert.equal(result.inserted.length, 1);
+  const commands = consentCommands(result);
+  assert.equal(commands[1][1], "update");
+  assert.equal(commands[1][2].ad_storage, "denied");
+  assert.equal(result.reloads(), 1);
 });
 
-test("an explicit grant loads the existing GTM container exactly once", () => {
+test("an explicit grant reloads once before any consented Custom HTML or Lead claim", () => {
   const result = runLoader();
-  result.context.thriveHubMarketingConsent.grant();
+  let claims = 0;
+  result.context.thriveHubClaimMetaLead = () => { claims += 1; };
   result.context.thriveHubMarketingConsent.grant();
   assert.equal(result.storage.get("thriveHub_marketing_consent"), "granted");
   assert.equal(result.inserted.length, 1);
-  assert.equal(
-    result.inserted[0].src,
-    "https://www.googletagmanager.com/gtm.js?id=GTM-W3NJN7NZ",
-  );
-  assert.equal(result.context.dataLayer.length, 1);
-  assert.equal(result.context.dataLayer[0].event, "gtm.js");
+  assert.equal(result.reloads(), 1);
+  assert.equal(consentCommands(result).length, 1);
+  assert.equal(claims, 0);
 });
 
 test("withdrawing previously granted consent reloads into the fail-closed state", () => {
@@ -78,11 +106,20 @@ test("previously granted consent loads GTM once on a later Hub visit", () => {
   const result = runLoader({ stored: "granted" });
   assert.equal(result.inserted.length, 1);
   assert.equal(result.context.thriveHubMarketingConsent.status(), "granted");
+  const commands = consentCommands(result);
+  assertDenied(commands[0]);
+  assert.equal(commands[1][1], "update");
+  assert.equal(commands[1][2].ad_storage, "granted");
+  assert.equal(result.context.dataLayer.some((entry) => entry["gtm.blocklist"]), false);
+  assert.equal(result.context.dataLayer[2].event, "gtm.js");
 });
 
 test("invalid consent values fail closed", () => {
   const result = runLoader({ stored: "yes" });
-  assert.equal(result.inserted.length, 0);
+  assert.equal(result.inserted.length, 1);
+  assert.equal(consentCommands(result).length, 1);
+  assertDenied(consentCommands(result)[0]);
+  assertCustomHtmlBlocked(result);
   assert.equal(result.context.thriveHubMarketingConsent.status(), "denied");
 });
 
@@ -111,7 +148,8 @@ test("authenticated Hub bridge claims only the consented browser Lead contract",
   assert.match(html, /if\(!response\.ok\|\|result\.eligible!==true\) return/);
 });
 
-test("marketing consent grant resumes the bridge without a page reload", () => {
+test("marketing consent grant defers the bridge until the consented reload", () => {
   assert.match(html, /typeof w\.thriveHubClaimMetaLead==='function'/);
+  assert.match(html, /w\.location\.reload\(\);\s*return;/);
   assert.match(html, /window\.thriveHubClaimMetaLead=claimChallengeMetaLead/);
 });
