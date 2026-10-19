@@ -204,3 +204,23 @@ test("authenticated Hub has an independent PII-free GA4 signup bridge", () => {
   assert.ok(ga4Push);
   assert.doesNotMatch(ga4Push, /email|phone|magic|token/i);
 });
+
+test("Ella's current Challenge round remains the active cohort", () => {
+  assert.match(html, /id:\s*"c1-nov-2026"/);
+  assert.match(html, /selectRound\(result\.tag \|\| result\.round \|\| ""\)/);
+});
+
+test("Ella's AddEvent calendar remains wired to the current calendar", () => {
+  assert.match(html, /https:\/\/www\.addevent\.com\/calendar\/yw2557c2xbsj/);
+});
+
+test("Ella's quest completion reporting remains present", () => {
+  assert.match(html, /function reportQuest\(n\)/);
+  assert.match(html, /reportQuest\(n\)/);
+});
+
+test("Hub authentication and the existing signed-link flow remain present", () => {
+  assert.match(html, /\/browser\/challenge-hub\/session/);
+  assert.match(html, /credentials:\s*"include"/);
+  assert.match(html, /authState===\s*"hub"/);
+});
