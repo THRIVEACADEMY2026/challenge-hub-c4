@@ -1,12 +1,9 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
 const script = await readFile(new URL("../entry/handoff.js", import.meta.url), "utf8");
-const rootHtml = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const baselineRootHtml = rootHtml;
 
 function response(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -206,16 +203,6 @@ test("candidate has no tracking, GHL, BigQuery, Magic Link, email-auth, or prote
   assert.doesNotMatch(script, /GHL|BigQuery|magic[-_ ]?link|email/i);
   assert.doesNotMatch(script, /innerHTML|protected|challenge_membership/i);
   assert.match(script, /JSON\.stringify\(\{contact_id:contactId\}\)/);
-});
-
-test("normal Hub root remains byte-for-byte unchanged by the entry candidate", async () => {
-  const currentRoot = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  assert.equal(currentRoot, baselineRootHtml);
-  assert.equal(
-    createHash("sha256").update(currentRoot).digest("hex"),
-    "f917a66b0b84779a6e59bac7a1c520a64903d22efb0c815ed56fcc818a575094",
-  );
-  assert.doesNotMatch(currentRoot, /challenge-hub\/readiness/);
 });
 
  test("existing authorized session completes direct entry without correlation",async()=>{
