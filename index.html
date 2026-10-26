@@ -1403,7 +1403,7 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
     FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
-var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
+var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_11_c1&utm_content=login_not_registered&utm_term=register_here";
 /* The viewer's round. Set from the tag the auth service returns on login.
    Until that service returns a tag, pick the round that is running now, or
    the next one due to open, so the Hub is never wrong by default. */
@@ -2135,7 +2135,10 @@ function vDay(n){
       'with your first and last name and they&rsquo;ll look after you.</p>'+
       '<p class="lede">Your Playbook is yours to keep, and everything in it still works.</p>'+
       (d.playbook ? '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a>' : '')+
-      (summitOpen()?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
+      /* summitOpen() only checks the clock, not whether a Summit URL exists, so
+   from Day 1's replay time this rendered href="" and the only CTA on the
+   post-Challenge page opened a copy of itself. Desktop QA, 26 Oct. */
+      ((summitOpen() && SUMMIT)?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
       winnerBlock(n)+
       concierge()+'</div>';
   }
