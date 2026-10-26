@@ -877,7 +877,14 @@ body::before{
     radial-gradient(circle at 70% 60%, rgba(26,50,92,.10) 1.3px, transparent 1.9px);
   background-size:90px 90px, 130px 130px;
 }
-.shell{position:relative;z-index:1}
+/* position only, NO z-index. Giving .shell z-index:1 made it a stacking
+   context, which trapped the mobile menu drawer (z-index:90) inside it, so
+   the masthead and the strip painted over the top 164px of the open drawer.
+   On Day 1 that buried both of the only two tappable items, and body.nav-open
+   locks scrolling so a lead could not scroll down to escape it.
+   Found by the phone QA walkthrough, 26 Oct. It was my own theme that caused
+   it, and it only ever existed here on the preview. */
+.shell{position:relative}
 
 /* The navy band deepens a touch and gains a cold edge, so it reads as a
    winter night rather than flat corporate navy. */
@@ -2213,8 +2220,12 @@ function vDay(n){
       speak". */
    (dn?(n===1
         ? 'Great job completing your Day 1 Quest!<br>'+
-          'You&rsquo;re now eligible for a Full Scholarship to the Client Attraction Summit.<br>'+
-          '<a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>'
+          'You&rsquo;re now eligible for a Full Scholarship to the Client Attraction Summit.'+
+          /* No Summit URL is set, so this rendered as href="" and a tap just
+             reloaded the Hub. Found by the phone QA walkthrough, 26 Oct, on
+             Day 1, the busiest day of the round. Sharla's sentence stays; only
+             the dead link goes, until there is a real URL. */
+          (SUMMIT ? '<br><a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>' : '')
         : '<b>Golden Ticket Earned.</b> Day '+n+' is done! You&rsquo;re in the drawing for '+
           'today&rsquo;s prize and one step closer to the Grand Prize.')
       :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize.')+
