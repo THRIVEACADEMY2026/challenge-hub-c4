@@ -41,6 +41,8 @@
       }
       updateMarketing('granted');
       if(typeof w.thriveHubClaimMetaLead==='function') w.thriveHubClaimMetaLead();
+      if(typeof w.thriveHubClaimGoogleRegistration==='function')
+        w.thriveHubClaimGoogleRegistration();
     },
     deny:function(){
       write(marketingKey,'denied');updateMarketing('denied');
@@ -996,7 +998,7 @@ var CHALLENGE = {
        returns on login. Until that service returns it, selectRound() falls
        back to the round that is running now, or the next one to open.
        --------------------------------------------------------------------- */
-    "(5-day challenge) nov 02-06 2026": { name:"November 2 to 6",   days: [
+    "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",   days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1102,7 +1104,7 @@ var CHALLENGE = {
      unlockAt:"2026-11-23T09:00:00-08:00", startsAt:"2026-11-23T09:50:00-08:00", replayAt:"2026-11-23T11:00:00-08:00",
      vimeo:"", replay:"",
      replaysCloseAt:"2026-11-29T21:00:00-08:00"}] },
-    "(5-day challenge) jan 04-08 2027": { name:"January 4 to 8",    days: [
+    "(5-day challenge) jan 4-8 2027": { name:"January 4 to 8",    days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1308,6 +1310,12 @@ var CHALLENGE = {
     /* Reads a Champion's real Golden Ticket total out of the Raffle Tickets
        Tracker. See apps-script/ticket-total.gs. Both values come from
        config.js so the tracker is never named in this public repo. */
+    /* Where the Hub reports on itself: sign-in attempts and faults it catches
+       on a real visitor's device. One sheet for C1, C2 and C3; every row
+       carries its round. Empty here; the Apps Script web app URL goes in.
+       Empty means no reporting at all, and no errors. */
+    hubLogEndpoint: window.THRIVE_HUB_LOG_ENDPOINT ||
+      "https://script.google.com/macros/s/AKfycbwsDmIYQGCyRB9QU_afeS2eKjwn_QTAnv2tJzMYUnCDuCLx_VH_xPyQnSDod15Nt4tDlA/exec",
     ticketsEndpoint: window.THRIVE_TICKETS_ENDPOINT || "",
     ticketsKey:      window.THRIVE_TICKETS_KEY || ""
   }
@@ -1318,7 +1326,7 @@ var CHALLENGE = {
    exactly what happened on 4 September. Each file carries a short hash of its
    own contents, so replacing the file changes the URL and the new one loads.
    Regenerate these whenever a media file is replaced. */
-var MEDIA = {"logo-navy.png":"e76a58c1", "summit-banner.jpg":"232a6c81", "hero.mp4":"85685da3", "hero-poster.jpg":"22612919", "welcome.mp4":"cf61e919", "welcome-poster.jpg":"6ec137a9"};
+var MEDIA = {"logo-navy.png":"e76a58c1", "summit-banner.jpg":"232a6c81", "hero.mp4":"85685da3", "hero-poster.jpg":"22612919", "welcome.mp4":"cf61e919", "welcome-poster.jpg":"6ec137a9", "quest-day1.jpg":"a8546bce", "quest-day2.jpg":"28ee402c", "quest-day3.jpg":"8534965c", "quest-day4.jpg":"f2194816", "quest-day5.jpg":"63a6514f"};
 function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
 
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
@@ -1485,6 +1493,105 @@ var TRACKER_ASOF  = "";     /* when the tracker was read */
      ships today. Same defensive pattern as the Summit block and the Zoom
      button: no endpoint, no behaviour, no error. */
 var questReportInFlight = {};
+/* Ella, 23 Oct: a record of who tried to sign in, who could not, and what
+   they saw. Until now nothing anywhere recorded a failed attempt, so a lead
+   who could not get in was invisible unless they wrote to the Concierge. In
+   September that is exactly how the 429 lockout stayed hidden.
+
+   Rules:
+   - Fire and forget. It must never slow down, block or break a sign-in. Any
+     failure to log is swallowed, because a broken logger must not become a
+     broken login.
+   - No endpoint set means no behaviour at all, which is how this ships.
+   - Never reports the review-host preview path; that is us, not a lead.
+   - It records the address the person typed. That is the point, it is how
+     the Concierge finds them. Nothing else about them is collected, and the
+     sheet is internal. */
+/* Ella, 23 Oct: track the Hub's own faults across C1 to C3, in the same
+   sheet. This catches the class of thing that has actually bitten us in front
+   of leads, which was never the sort of thing a syntax check finds:
+
+     - the masthead logo 404ing for 27 hours
+     - a Vimeo id that rendered "This video does not exist"
+     - Day pages rendering "undefined" after a stray return
+     - config.js 404ing on every single page load, still true today
+
+   All four were visible to leads before they were visible to us. Now the page
+   says so itself, from the device it happened on.
+
+   Guards, because a reporter that floods is worse than none:
+     - the same fault is sent once per visit, not once per occurrence
+     - hard cap per visit, so one broken loop cannot write a thousand rows
+     - silent: a lead must never learn that the page is complaining */
+var issueSeen = {}, issueSent = 0, ISSUE_CAP = 8;
+function reportIssue(kind, detail){
+  try{
+    var url = CHALLENGE.links.hubLogEndpoint;
+    if(!url) return;
+    var key = kind + "|" + String(detail||"").slice(0,120);
+    if(issueSeen[key] || issueSent >= ISSUE_CAP) return;
+    issueSeen[key] = true; issueSent++;
+    fetch(url,{method:"POST",mode:"cors",keepalive:true,
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({
+          type:"issue", kind:kind,
+          detail:String(detail||"").slice(0,480),
+          challenge:CHALLENGE.id,
+          round:(typeof ROUND_NAME==="string" && ROUND_NAME) || "",
+          email:(S && S.email) || "",
+          screen:(window.innerWidth||0)+"x"+(window.innerHeight||0),
+          agent:(navigator.userAgent||"").slice(0,180),
+          page:location.hash || "#/"
+        })}).catch(function(){});
+  }catch(e){}
+}
+
+/* Three listeners. The asset one is capture-phase because load failures on
+   img, video and iframe do not bubble. */
+(function(){
+  window.addEventListener("error", function(ev){
+    try{
+      var el = ev && ev.target;
+      if(el && el !== window && el.tagName){
+        var src = el.currentSrc || el.src || el.href || "";
+        if(src) return reportIssue("asset_missing", el.tagName.toLowerCase()+" "+src);
+      }
+      reportIssue("script_error",
+        (ev && ev.message ? ev.message : "unknown") +
+        (ev && ev.filename ? " @ "+ev.filename+":"+(ev.lineno||0) : ""));
+    }catch(e){}
+  }, true);
+  window.addEventListener("unhandledrejection", function(ev){
+    try{
+      var r = ev && ev.reason;
+      reportIssue("promise_error", (r && (r.message || r.toString && r.toString())) || "unknown");
+    }catch(e){}
+  });
+})();
+
+function reportLogin(outcome, email, status){
+  try{
+    var url = CHALLENGE.links.hubLogEndpoint;
+    if(!url) return;
+    var payload = {
+      challenge: CHALLENGE.id,
+      outcome:   outcome,                      /* in | not_on_list | rate_limited | service_down | unreachable */
+      email:     (email||"").trim().toLowerCase(),
+      status:    status || 0,
+      attempt:   (typeof loginTries==="number" ? loginTries + 1 : 0),
+      round:     (typeof ROUND_NAME==="string" && ROUND_NAME) || "",
+      tag:       (typeof ROUND_TAG==="string" && ROUND_TAG) || "",
+      screen:    (window.innerWidth||0)+"x"+(window.innerHeight||0),
+      agent:     (navigator.userAgent||"").slice(0,180),
+      page:      location.hash || "#/"
+    };
+    fetch(url,{method:"POST",mode:"cors",keepalive:true,
+        /* text/plain avoids the CORS preflight Apps Script cannot answer */
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(payload)}).catch(function(){});
+  }catch(e){}
+}
+
 function reportQuest(n){
   var url = CHALLENGE.links.questEndpoint;
   var em  = displayEmail(S.email);
@@ -2022,7 +2129,10 @@ function vDay(n){
   /* The same square artwork that heads that day's post in the Facebook Group,
      so the Hub and the Group read as one thing rather than two. */
   var art = (d.art && !before)
-   ? '<div class="questart"><img src="'+d.art+'" alt="Day '+n+' Quest" width="900" height="900" loading="lazy"></div>'
+   /* m_() not a raw src. These files were replaced on 26 Oct and without a
+      fingerprint Cloudflare would have gone on serving the old artwork for
+      hours, which is exactly how the masthead logo stayed broken for 27. */
+   ? '<div class="questart"><img src="'+m_(d.art)+'" alt="Day '+n+' Quest" width="900" height="900" loading="lazy"></div>'
    : '';
 
   var quest = !isQuestDay(d)
@@ -2288,6 +2398,7 @@ function wire(){
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         selectRound(result.tag || result.round || "");
+        reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
         render();loadTicketTotal();
         /* Email login establishes the same authenticated Hub state as the
@@ -2303,12 +2414,16 @@ function wire(){
          never be read as "not registered" - the address is often correct.
          A 5xx means our service is unwell, not that this person is a stranger.
          Say so, and never blame the lead for our outage. */
-      if(response.status===429){ authDown=false; loginError=false; loginLocked=true; }
-      else if(response.status>=500){ authDown=true; loginError=false; loginLocked=false; }
-      else { authDown=false; loginError=true; loginLocked=false; loginTries++; }
+      if(response.status===429){ authDown=false; loginError=false; loginLocked=true;
+        reportLogin("rate_limited", v, response.status); }
+      else if(response.status>=500){ authDown=true; loginError=false; loginLocked=false;
+        reportLogin("service_down", v, response.status); }
+      else { authDown=false; loginError=true; loginLocked=false;
+        reportLogin("not_on_list", v, response.status); loginTries++; }
     }catch(error){
       /* Could not reach the service at all. Same reasoning. */
       authDown=true; loginError=false; loginLocked=false;
+      reportLogin("unreachable", v, 0);
     }
     render();
     /* Put their email back so they are not retyping it to try again. */
@@ -2612,9 +2727,16 @@ async function refreshAuthSession(){
   var result=await response.json().catch(function(){return {};});
   if(!response.ok||typeof result.csrf_token!=="string") throw new Error("Session refresh failed");
   csrfToken=result.csrf_token;
+  var routing=result.conversion_routing;
+  coordinatedRoutingActive=!!(routing&&routing.coordinated===true&&
+    routing.google_browser_claim===true&&
+    routing.routing_rule_version==="challenge-platform-routing/v1");
+  coordinatedRoutingRuleVersion=coordinatedRoutingActive?routing.routing_rule_version:null;
   return result;
 }
 var metaLeadClaimStarted=false;
+var coordinatedRoutingActive=false;
+var coordinatedRoutingRuleVersion=null;
 function browserCookie(name){
   var prefix=name+"=";
   var parts=document.cookie?document.cookie.split(";"):[];
@@ -2633,7 +2755,10 @@ async function claimChallengeMetaLead(){
     var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/meta-lead/claim",{
       method:"POST",credentials:"include",
       headers:{"Accept":"application/json","Content-Type":"application/json","X-CAS-CSRF":csrfToken},
-      body:JSON.stringify({fbp:browserCookie("_fbp"),fbc:browserCookie("_fbc")})
+      body:JSON.stringify(coordinatedRoutingActive?{
+        fbp:browserCookie("_fbp"),fbc:browserCookie("_fbc"),
+        marketing_consent:"granted",routing_rule_version:coordinatedRoutingRuleVersion
+      }:{fbp:browserCookie("_fbp"),fbc:browserCookie("_fbc")})
     });
     var result=await response.json().catch(function(){return {};});
     if(!response.ok||result.eligible!==true) return;
@@ -2657,6 +2782,121 @@ async function claimChallengeMetaLead(){
   }
 }
 window.thriveHubClaimMetaLead=claimChallengeMetaLead;
+var GOOGLE_CLAIM_PENDING_KEY="thriveHub_google_registration_claim_v1";
+var googleRegistrationClaimStarted=false;
+var googleRegistrationClaimTimer=null;
+function readPendingGoogleClaim(){
+  try{
+    var value=JSON.parse(localStorage.getItem(GOOGLE_CLAIM_PENDING_KEY)||"null");
+    if(!value||value.event_name!=="cas_google_challenge_registration_authorized"||
+       typeof value.event_id!=="string"||typeof value.transaction_id!=="string"||
+       value.event_id!==value.transaction_id||
+       typeof value.destination_authorization_id!=="string") return null;
+    return value;
+  }catch(error){return null;}
+}
+function writePendingGoogleClaim(value){
+  try{localStorage.setItem(GOOGLE_CLAIM_PENDING_KEY,JSON.stringify(value));}catch(error){}
+}
+function clearPendingGoogleClaim(){
+  try{localStorage.removeItem(GOOGLE_CLAIM_PENDING_KEY);}catch(error){}
+}
+async function acknowledgeGoogleBrowserDispatch(claim){
+  if(!coordinatedRoutingActive||
+     coordinatedRoutingRuleVersion!=="challenge-platform-routing/v1") return "rejected";
+  try{
+    var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/google-registration/dispatched",{
+      method:"POST",credentials:"include",
+      headers:{"Accept":"application/json","Content-Type":"application/json","X-CAS-CSRF":csrfToken},
+      body:JSON.stringify({
+        destination_authorization_id:claim.destination_authorization_id,
+        event_id:claim.event_id,
+        routing_rule_version:coordinatedRoutingRuleVersion
+      })
+    });
+    var result=await response.json().catch(function(){return {};});
+    if(response.ok){
+      clearPendingGoogleClaim();
+      return result.recorded===true?"recorded":"rejected";
+    }
+  }catch(error){
+    /* Keep only the non-PII acknowledgement marker for a later same-browser
+       retry. Never push the conversion event again after an ambiguous ack. */
+  }
+  return "unknown";
+}
+async function dispatchPendingGoogleClaim(claim,freshServerResponse){
+  if(!coordinatedRoutingActive||
+     coordinatedRoutingRuleVersion!=="challenge-platform-routing/v1") return "rejected";
+  if(claim.client_state==="pushed"){
+    return acknowledgeGoogleBrowserDispatch(claim);
+  }
+  if(freshServerResponse!==true){
+    /* Local storage is not an authorization boundary. A claimed-but-not-pushed
+       marker cannot be trusted after a page lifecycle change, so fail closed. */
+    clearPendingGoogleClaim();
+    return "rejected";
+  }
+  window.dataLayer=window.dataLayer||[];
+  window.dataLayer.push({
+    event:"cas_google_challenge_registration_authorized",
+    event_id:claim.event_id,
+    transaction_id:claim.transaction_id,
+    destination_authorization_id:claim.destination_authorization_id,
+    challenge_cohort_id:claim.challenge_cohort_id,
+    registration_timestamp:claim.registration_timestamp,
+    routing_rule_version:claim.routing_rule_version,
+    google_authorization:true,
+    funnel:"challenge",
+    step:"sign_up"
+  });
+  claim.client_state="pushed";
+  writePendingGoogleClaim(claim);
+  return acknowledgeGoogleBrowserDispatch(claim);
+}
+async function claimChallengeGoogleRegistration(){
+  if(!coordinatedRoutingActive||
+     coordinatedRoutingRuleVersion!=="challenge-platform-routing/v1") return;
+  if(googleRegistrationClaimStarted||authState!=="hub"||!csrfToken) return;
+  if(!window.thriveHubMarketingConsent||
+     window.thriveHubMarketingConsent.status()!=="granted") return;
+  googleRegistrationClaimTimer=null;
+  var pending=readPendingGoogleClaim();
+  if(pending){
+    googleRegistrationClaimStarted=true;
+    var recovery=await dispatchPendingGoogleClaim(pending,false);
+    googleRegistrationClaimStarted=false;
+    if(recovery==="rejected") claimChallengeGoogleRegistration();
+    return;
+  }
+  googleRegistrationClaimStarted=true;
+  try{
+    var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/google-registration/claim",{
+      method:"POST",credentials:"include",
+      headers:{"Accept":"application/json","Content-Type":"application/json","X-CAS-CSRF":csrfToken},
+      body:JSON.stringify({marketing_consent:"granted",
+        routing_rule_version:coordinatedRoutingRuleVersion})
+    });
+    var result=await response.json().catch(function(){return {};});
+    if(!response.ok) return;
+    if(result.eligible===true){
+      result.client_state="claimed";
+      writePendingGoogleClaim(result);
+      await dispatchPendingGoogleClaim(result,true);
+      return;
+    }
+    if(result.status==="pending"){
+      googleRegistrationClaimStarted=false;
+      googleRegistrationClaimTimer=setTimeout(claimChallengeGoogleRegistration,5000);
+    }
+  }catch(error){
+    /* A claim request can succeed server-side even if its response is lost.
+       Never retry that ambiguous mutation or manufacture click context. */
+  }finally{
+    if(!googleRegistrationClaimTimer) googleRegistrationClaimStarted=false;
+  }
+}
+window.thriveHubClaimGoogleRegistration=claimChallengeGoogleRegistration;
 var ga4SignupClaimStarted=false;
 async function claimChallengeGa4Signup(){
   if(ga4SignupClaimStarted||authState!=="hub"||!csrfToken) return;
@@ -2696,6 +2936,7 @@ async function bootstrapAuth(){
     if(authState==="hub"){
       claimChallengeGa4Signup();
       claimChallengeMetaLead();
+      claimChallengeGoogleRegistration();
     }
     return;
   }catch(error){
