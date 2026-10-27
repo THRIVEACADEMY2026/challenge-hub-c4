@@ -1352,11 +1352,47 @@ var HUB_REPLAY_CUTOFFS = {
   challenge_2027_01_c3: "2027-01-10T21:00:00-08:00"
 };
 var ROUND_COHORT = "";
+var preservationExpiresAt=0, preservationTimer=null, preservationExpired=false;
+function checkPreservationExpiry(){
+  if(!preservationExpiresAt) return;
+  var remaining=preservationExpiresAt-Date.now();
+  if(remaining<=0){
+    preservationExpiresAt=0; ROUND_TAG=""; ROUND_NAME=""; ROUND_COHORT="";
+    DAYS=[]; CHALLENGE.days=[]; authState="login"; preservationExpired=true;
+    render(); return;
+  }
+  preservationTimer=setTimeout(refreshPreservationAccess,Math.min(remaining,60000));
+}
+async function refreshPreservationAccess(){
+  if(!preservationExpiresAt) return;
+  if(Date.now()>=preservationExpiresAt){checkPreservationExpiry();return;}
+  try{
+    var result=await refreshAuthSession();
+    if(result.authorized!==true || !selectRound(result.hub_cohort)){
+      selectRound(null); authState="login"; preservationExpired=true;
+    }
+    render();
+  }catch(error){
+    selectRound(null); authState="login"; authDown=true; preservationExpired=false; render();
+  }
+}
 function selectRound(cohort){
+  if(preservationTimer!==null){clearTimeout(preservationTimer);preservationTimer=null;}
+  preservationExpiresAt=0;
   ROUND_TAG=""; ROUND_NAME=""; ROUND_COHORT=""; DAYS=[]; CHALLENGE.days=[];
   if(!cohort || !Object.prototype.hasOwnProperty.call(HUB_COHORT_ROUNDS,cohort.challenge_cohort_id)) return false;
   var id=cohort.challenge_cohort_id, key=HUB_COHORT_ROUNDS[id];
   if(cohort.round!==key || !CHALLENGE.rounds[key]) return false;
+  if(cohort.access_basis==="temporary_c1_preservation"){
+    var expiry=Date.parse(cohort.expires_at||"");
+    if(id!=="challenge_2027_01_c1" || cohort.policy_id!=="C2C3-22-C1-preservation-v1" ||
+      !isFinite(expiry) || expiry>Date.parse("2026-11-15T21:00:00-08:00") || Date.now()>=expiry){
+      preservationExpired=true; return false;
+    }
+    preservationExpiresAt=expiry;
+    checkPreservationExpiry();
+  }
+  preservationExpired=false;
   ROUND_COHORT=id; ROUND_TAG=key; ROUND_NAME=CHALLENGE.rounds[key].name;
   DAYS=CHALLENGE.rounds[key].days; CHALLENGE.days=DAYS;
   Array.prototype.forEach.call(document.querySelectorAll("[data-round-name]"),
@@ -1843,6 +1879,8 @@ function acct(){
    words, and the locked state gets a way out. */
 function loginNotice(){
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
+  if(preservationExpired) return box('Your C1 access window has ended. '+
+    'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
   if(authDown) return box('We can&rsquo;t reach our system right now. This is us, not you. '+
     'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.');
   if(loginLocked) return box('That is a few tries in a row, so sign-in has paused itself for a moment. '+
@@ -2225,6 +2263,10 @@ function nudgeBroll(){
 
 /* ---------------- router ---------------- */
 function render(keep){
+  if(preservationExpiresAt && Date.now()>=preservationExpiresAt){
+    preservationExpiresAt=0; ROUND_TAG=""; ROUND_NAME=""; ROUND_COHORT="";
+    DAYS=[]; CHALLENGE.days=[]; authState="login"; preservationExpired=true;
+  }
   var y=window.scrollY, h=location.hash, html, m;
   if(authState==="loading"){
     document.body.className="";
