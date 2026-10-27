@@ -205,9 +205,9 @@ test("authenticated Hub has an independent PII-free GA4 signup bridge", () => {
   assert.doesNotMatch(ga4Push, /email|phone|magic|token/i);
 });
 
-test("Ella's current Challenge round remains the active cohort", () => {
+test("Ella's C1 configuration remains available through the authoritative cohort contract", () => {
   assert.match(html, /id:\s*"c1-nov-2026"/);
-  assert.match(html, /selectRound\(result\.tag \|\| result\.round \|\| ""\)/);
+  assert.match(html, /selectRound\(result\.hub_cohort\)/);
 });
 
 test("Ella's AddEvent calendar remains wired to the current calendar", () => {

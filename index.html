@@ -994,9 +994,9 @@ var CHALLENGE = {
        The key is the tag string exactly as it appears in GHL:
          (5-day challenge) mmm dd-dd yyyy
 
-       Which round a viewer gets is decided by the tag the auth service
-       returns on login. Until that service returns it, selectRound() falls
-       back to the round that is running now, or the next one to open.
+       CAS returns the D1-derived cohort on login and session restoration.
+       selectRound() maps that validated response to these existing keys;
+       missing or unknown cohorts fail closed.
        --------------------------------------------------------------------- */
     "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",   days: [
     /* ---------------------------------------------------------------------
@@ -1334,38 +1334,33 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
     FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
-/* The viewer's round. Set from the tag the auth service returns on login.
-   Until that service returns a tag, pick the round that is running now, or
-   the next one due to open, so the Hub is never wrong by default. */
+/* CAS supplies a D1-derived cohort on login and session restoration.
+   GHL tags and the browser clock never choose a participant's cohort. */
 var ROUND_TAG = "", ROUND_NAME = "";
-var DAYS = CHALLENGE.days;
-
-function selectRound(tag){
-  var R = CHALLENGE.rounds || {};
-  var key = null;
-  if(tag && R[tag]) key = tag;
-  if(!key){
-    /* No tag, or one we do not recognise. Choose by the clock: the round
-       whose Finale has not yet passed, earliest first. */
-    var now = now_(), best = null, bestT = Infinity;
-    for(var k in R){
-      var d = R[k].days || [], last = d.length ? d[d.length-1] : null;
-      if(!last) continue;
-      var end = Date.parse(last.replaysCloseAt || last.replayAt || "");
-      if(isNaN(end) || end < now) continue;
-      var start = Date.parse((d[0]||{}).unlockAt || "");
-      if(!isNaN(start) && start < bestT){ bestT = start; best = k; }
-    }
-    key = best || Object.keys(R)[0];
-  }
-  if(!key || !R[key]) return;
-  ROUND_TAG = key;
-  ROUND_NAME = R[key].name || "";
-  DAYS = R[key].days;
-  CHALLENGE.days = DAYS;
-  /* The round name appears in the top strip, the footer and the login band. */
+var DAYS = [];
+var HUB_COHORT_ROUNDS = {
+  challenge_2027_01_c1: "(5-day challenge) nov 2-6 2026",
+  challenge_2027_01_c2: "(5-day challenge) nov 16-20 2026",
+  challenge_2027_01_c3: "(5-day challenge) jan 4-8 2027"
+};
+/* Null means not approved. Keep C1 unchanged; configure other cutoffs only
+   after business approval. These settings do not change permanent links. */
+var HUB_REPLAY_CUTOFFS = {
+  challenge_2027_01_c1: "2026-11-08T21:00:00-08:00",
+  challenge_2027_01_c2: null,
+  challenge_2027_01_c3: null
+};
+var ROUND_COHORT = "";
+function selectRound(cohort){
+  ROUND_TAG=""; ROUND_NAME=""; ROUND_COHORT=""; DAYS=[]; CHALLENGE.days=[];
+  if(!cohort || !Object.prototype.hasOwnProperty.call(HUB_COHORT_ROUNDS,cohort.challenge_cohort_id)) return false;
+  var id=cohort.challenge_cohort_id, key=HUB_COHORT_ROUNDS[id];
+  if(cohort.round!==key || !CHALLENGE.rounds[key]) return false;
+  ROUND_COHORT=id; ROUND_TAG=key; ROUND_NAME=CHALLENGE.rounds[key].name;
+  DAYS=CHALLENGE.rounds[key].days; CHALLENGE.days=DAYS;
   Array.prototype.forEach.call(document.querySelectorAll("[data-round-name]"),
-    function(el){ el.textContent = ROUND_NAME; });
+    function(el){ el.textContent=ROUND_NAME; });
+  return true;
 }
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
@@ -1375,9 +1370,12 @@ var loginLocked=false, loginTries=0;
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
    Days 1 to 5. Client side this is presentation only; the real cut-off has to
    be enforced by the server, same as access. */
+function replayCutoff(d){
+  return (d && d.replaysCloseAt) || HUB_REPLAY_CUTOFFS[ROUND_COHORT] || null;
+}
 function replaysClosed(d){
-  var when = (d && d.replaysCloseAt) || CHALLENGE.replaysCloseAt;
-  try{ return new Date(now_()) >= new Date(when); }catch(e){ return false; }
+  var when=replayCutoff(d), end=Date.parse(when || "");
+  return !isFinite(end) || now_()>=end;
 }
 
 /* ============================================================================
@@ -1922,14 +1920,14 @@ function vPre(){
       delete this and just have it have the button". The time is already
       given once above, so repeating it here was the repetition she flagged. */
    '<h3 class="pre-step">Step 1 &middot; Put the Challenge events in your calendar now</h3>'+
-   (ADDCAL
+   (ADDCAL && ROUND_COHORT==="challenge_2027_01_c1"
      ? '<a class="btn btn-action" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
      /* No September calendar exists yet. Every AddEvent calendar currently on
         the funnel is either disabled or titled Aug 17-21, so wiring one would
         add the wrong week - the exact fault a lead reported on 1 Sept. Until
         someone creates the September calendar, show the dates instead of a
         button that misleads. */
-     : '<div class="locked-msg" style="max-width:520px">Mon 2, Tue 3, Wed 4, Thu 5 and Fri 6 November, '+
+     : '<div class="locked-msg" style="max-width:520px">'+esc(ROUND_NAME)+', '+
        '10:00&ndash;11:00am PT / 1:00&ndash;2:00pm ET. Pop those five in now.</div>')+
 
    /* Sharla circled this step on her 6 Sept Loom and talked herself out of a
@@ -2059,8 +2057,8 @@ function vDay(n){
   if(!before && replaysClosed(d)){
     return '<div class="measure">'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
-      '<h1>Replay is no longer available</h1>'+
-      '<p class="lede">The Day '+n+' replay came down at 9:00pm PT on Sunday. '+
+      (replayCutoff(d)?'<h1>Replay is no longer available</h1>':'<h1>Replay availability is being confirmed</h1>')+
+      '<p class="lede">'+(replayCutoff(d)?'The Day '+n+' replay came down at 9:00pm PT on Sunday. ':'We will confirm replay availability soon. ')+
       'Please reach out to <b>Maite</b> or <b>Sarah</b> for any queries &mdash; text '+phoneLink()+' '+
       'with your first and last name and they&rsquo;ll look after you.</p>'+
       '<p class="lede">Your Playbook is yours to keep, and everything in it still works.</p>'+
@@ -2397,7 +2395,7 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
-        selectRound(result.tag || result.round || "");
+        if(!selectRound(result.hub_cohort)) throw new Error("Hub enrollment unavailable");
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
         render();loadTicketTotal();
@@ -2930,8 +2928,10 @@ async function bootstrapAuth(){
   authState="loading";loginError=false;authDown=false;render();
   try{
     var result=await refreshAuthSession();
-    authState=result.authorized===true?"hub":"login";
-    if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();selectRound(result.tag || result.round || "");}
+    var enrolled=result.authorized===true && selectRound(result.hub_cohort);
+    authState=enrolled?"hub":"login";
+    authDown=result.authorized===true && !enrolled;
+    if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){
       claimChallengeGa4Signup();
