@@ -1401,7 +1401,7 @@ function selectRound(cohort){
 }
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
-var loginLocked=false, loginTries=0;
+var loginLocked=false, loginTries=0, cohortUnavailable=false;
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
@@ -1878,6 +1878,7 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
+  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized, but we couldn’t confirm your Challenge round. Please contact your Challenge Concierge for help with access.</div>';
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
   if(preservationExpired) return box('Your C1 access window has ended. '+
     'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
@@ -2406,6 +2407,7 @@ function wire(){
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
     e.preventDefault();
+    cohortUnavailable=false;
     var v=(q("em").value||"").trim().toLowerCase();
     /* The form carries novalidate, so nothing was checking this. Tapping the
        big button on an empty field used to tell a lead their registration
@@ -2438,7 +2440,9 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
-        if(!selectRound(result.hub_cohort)) throw new Error("Hub enrollment unavailable");
+        if(!selectRound(result.hub_cohort)){
+          authState="login";authDown=false;cohortUnavailable=true;render();return;
+        }
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
         render();loadTicketTotal();
@@ -2968,12 +2972,13 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
-  authState="loading";loginError=false;authDown=false;render();
+  authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
   try{
     var result=await refreshAuthSession();
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
-    authDown=result.authorized===true && !enrolled;
+    cohortUnavailable=result.authorized===true && !enrolled;
+    authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){
