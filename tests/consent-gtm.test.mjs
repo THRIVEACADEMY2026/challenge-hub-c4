@@ -161,11 +161,15 @@ test("invalid consent values fail closed", () => {
 });
 
 test("the privacy UI has explicit allow and decline controls", () => {
-  assert.match(html, /id="privacyAllow"/);
-  assert.match(html, /id="privacyDecline"/);
-  assert.match(html, /Analytics and marketing tracking[\s\n]+stay off unless/);
-  assert.match(html, /id="analyticsAllow"/);
-  assert.match(html, /id="analyticsDecline"/);
+  /* One Allow and one Reject, per Ella 28 Oct. Both consents are still set
+     explicitly and separately underneath - the lead is just not asked twice. */
+  assert.match(html, /id="cookiesAllow"/);
+  assert.match(html, /id="cookiesReject"/);
+  assert.match(html, /Analytics and marketing stay off unless you allow them/);
+  assert.match(html, /thriveHubAnalyticsConsent/);
+  assert.match(html, /thriveHubMarketingConsent/);
+  /* Reject must be present and no less reachable than Allow. */
+  assert.ok(html.indexOf('id="cookiesReject"') < html.indexOf('id="cookiesAllow"'));
 });
 
 test("no consent-bypassing noscript container is present", () => {
