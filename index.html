@@ -753,11 +753,8 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pb-actions{display:flex;gap:10px;flex:0 0 auto;flex-wrap:wrap}
 @media (max-width:620px){
   .pb-in{padding:14px 16px;gap:12px}
-  /* Two buttons, so they share a row rather than stacking. Stacked full-width
-     they made the bar 348px tall - 43% of a phone screen - which buried Step 1
-     under the bar on first load. Ella, 28 Oct. */
-  .pb-actions{width:100%;flex-wrap:nowrap}
-  .pb-in .btn{width:auto;flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
+  .pb-actions{width:100%}
+  .pb-in .btn{width:100%}
 }
 
 /* --- Sharla's 6 Sept Loom: prepare page above the fold --------------------
@@ -927,13 +924,15 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
      There is intentionally no noscript iframe because it cannot be consent-gated. -->
 <div id="privacyBar" class="pbar-privacy" hidden>
   <div class="pb-in">
-    <p><b>Your data.</b> We keep you signed in and remember your ticked Quests.
-    Analytics and marketing stay off unless you allow them. Change this anytime
-    from the footer.
+    <p><b>Your data on this page.</b> We keep you signed in and remember which Quests
+    you have ticked off using essential storage. Analytics and marketing tracking
+    stay off unless you choose to allow each one. You can change either choice from the footer.
     <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
     <div class="pb-actions">
-      <button type="button" id="cookiesReject" class="btn btn-outline">Reject cookies</button>
-      <button type="button" id="cookiesAllow" class="btn btn-primary">Allow cookies</button>
+      <button type="button" id="analyticsDecline" class="btn btn-outline">Keep analytics off</button>
+      <button type="button" id="analyticsAllow" class="btn btn-primary">Allow analytics</button>
+      <button type="button" id="privacyDecline" class="btn btn-outline">Keep marketing off</button>
+      <button type="button" id="privacyAllow" class="btn btn-primary">Allow marketing</button>
     </div>
   </div>
 </div>
@@ -1402,7 +1401,7 @@ function selectRound(cohort){
 }
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
-var loginLocked=false, loginTries=0;
+var loginLocked=false, loginTries=0, cohortUnavailable=false;
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
@@ -1879,6 +1878,7 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
+  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized, but we couldn’t confirm your Challenge round. Please contact your Challenge Concierge for help with access.</div>';
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
   if(preservationExpired) return box('Your C1 access window has ended. '+
     'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
@@ -2407,6 +2407,7 @@ function wire(){
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
     e.preventDefault();
+    cohortUnavailable=false;
     var v=(q("em").value||"").trim().toLowerCase();
     /* The form carries novalidate, so nothing was checking this. Tapping the
        big button on an empty field used to tell a lead their registration
@@ -2439,7 +2440,9 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
-        if(!selectRound(result.hub_cohort)) throw new Error("Hub enrollment unavailable");
+        if(!selectRound(result.hub_cohort)){
+          authState="login";authDown=false;cohortUnavailable=true;render();return;
+        }
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
         render();loadTicketTotal();
@@ -2697,20 +2700,26 @@ if(tgR) tgR.onclick=function(){
   window.addEventListener("resize", pad);
   function decided(key){var value=choice(key);return value==="granted"||value==="denied";}
   if(!decided(MARKETING_KEY)||!decided(ANALYTICS_KEY)) show();
-  /* Ella, 28 Oct: one Allow and one Reject, nothing else. Four buttons made
-     the bar 348px tall on a phone - 43% of the screen - and it covered Step 1
-     entirely. Both consents are still stored and still sent separately to the
-     consent engine below; this only stops asking the lead to decide twice. */
-  function setBoth(grant){
-    var m=window.thriveHubMarketingConsent, a=window.thriveHubAnalyticsConsent;
-    if(a){ grant ? a.grant() : a.deny(); }
-    if(m){ grant ? m.grant() : m.deny(); }
+  var allow=document.getElementById("privacyAllow");
+  if(allow) allow.onclick=function(){
+    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.grant();
     if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
-  }
-  var allow=document.getElementById("cookiesAllow");
-  if(allow) allow.onclick=function(){ setBoth(true); };
-  var decline=document.getElementById("cookiesReject");
-  if(decline) decline.onclick=function(){ setBoth(false); };
+  };
+  var decline=document.getElementById("privacyDecline");
+  if(decline) decline.onclick=function(){
+    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.deny();
+    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+  };
+  var analyticsAllow=document.getElementById("analyticsAllow");
+  if(analyticsAllow) analyticsAllow.onclick=function(){
+    if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.grant();
+    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+  };
+  var analyticsDecline=document.getElementById("analyticsDecline");
+  if(analyticsDecline) analyticsDecline.onclick=function(){
+    if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.deny();
+    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+  };
   var open=document.getElementById("cookieOpen");
   if(open) open.onclick=function(e){ e.preventDefault(); show();
     bar.scrollIntoView({block:"nearest"}); };
@@ -2963,12 +2972,13 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
-  authState="loading";loginError=false;authDown=false;render();
+  authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
   try{
     var result=await refreshAuthSession();
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
-    authDown=result.authorized===true && !enrolled;
+    cohortUnavailable=result.authorized===true && !enrolled;
+    authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){
