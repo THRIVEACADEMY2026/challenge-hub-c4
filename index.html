@@ -753,8 +753,9 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pb-actions{display:flex;gap:10px;flex:0 0 auto;flex-wrap:wrap}
 @media (max-width:620px){
   .pb-in{padding:14px 16px;gap:12px}
-  .pb-actions{width:100%}
-  .pb-in .btn{width:100%}
+  /* Two buttons, so they share a row rather than stacking full width. */
+  .pb-actions{width:100%;flex-wrap:nowrap}
+  .pb-in .btn{width:auto;flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
 }
 
 /* --- Sharla's 6 Sept Loom: prepare page above the fold --------------------
@@ -924,15 +925,13 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
      There is intentionally no noscript iframe because it cannot be consent-gated. -->
 <div id="privacyBar" class="pbar-privacy" hidden>
   <div class="pb-in">
-    <p><b>Your data on this page.</b> We keep you signed in and remember which Quests
-    you have ticked off using essential storage. Analytics and marketing tracking
-    stay off unless you choose to allow each one. You can change either choice from the footer.
+    <p><b>Your data.</b> We keep you signed in and remember your ticked Quests.
+    Analytics and marketing stay off unless you allow them. Change this anytime
+    from the footer.
     <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
     <div class="pb-actions">
-      <button type="button" id="analyticsDecline" class="btn btn-outline">Keep analytics off</button>
-      <button type="button" id="analyticsAllow" class="btn btn-primary">Allow analytics</button>
-      <button type="button" id="privacyDecline" class="btn btn-outline">Keep marketing off</button>
-      <button type="button" id="privacyAllow" class="btn btn-primary">Allow marketing</button>
+      <button type="button" id="cookiesReject" class="btn btn-outline">Reject cookies</button>
+      <button type="button" id="cookiesAllow" class="btn btn-primary">Allow cookies</button>
     </div>
   </div>
 </div>
@@ -2441,6 +2440,11 @@ function wire(){
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         if(!selectRound(result.hub_cohort)){
+          /* Authenticated, but no single Challenge round resolved. The lead
+             sees honest copy for this, but until now nothing reached the log,
+             so nobody could count how often it happens or to whom. Ella,
+             28 Oct. Its own outcome, never folded into an outage. */
+          reportLogin("no_round", v, response.status);
           authState="login";authDown=false;cohortUnavailable=true;render();return;
         }
         reportLogin("in", v, response.status);
@@ -2700,26 +2704,20 @@ if(tgR) tgR.onclick=function(){
   window.addEventListener("resize", pad);
   function decided(key){var value=choice(key);return value==="granted"||value==="denied";}
   if(!decided(MARKETING_KEY)||!decided(ANALYTICS_KEY)) show();
-  var allow=document.getElementById("privacyAllow");
-  if(allow) allow.onclick=function(){
-    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.grant();
+  /* Ella, 28 Oct: one Allow and one Reject, nothing else. Four buttons made
+     the bar 348px tall on a phone, 43% of the screen, and it covered Step 1
+     entirely on first load. Both consents are still stored and dispatched
+     separately below; this only stops asking the lead to decide twice. */
+  function setBoth(grant){
+    var m=window.thriveHubMarketingConsent, a=window.thriveHubAnalyticsConsent;
+    if(a){ grant ? a.grant() : a.deny(); }
+    if(m){ grant ? m.grant() : m.deny(); }
     if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
-  };
-  var decline=document.getElementById("privacyDecline");
-  if(decline) decline.onclick=function(){
-    if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.deny();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
-  };
-  var analyticsAllow=document.getElementById("analyticsAllow");
-  if(analyticsAllow) analyticsAllow.onclick=function(){
-    if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.grant();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
-  };
-  var analyticsDecline=document.getElementById("analyticsDecline");
-  if(analyticsDecline) analyticsDecline.onclick=function(){
-    if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.deny();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
-  };
+  }
+  var allow=document.getElementById("cookiesAllow");
+  if(allow) allow.onclick=function(){ setBoth(true); };
+  var decline=document.getElementById("cookiesReject");
+  if(decline) decline.onclick=function(){ setBoth(false); };
   var open=document.getElementById("cookieOpen");
   if(open) open.onclick=function(e){ e.preventDefault(); show();
     bar.scrollIntoView({block:"nearest"}); };
@@ -2979,6 +2977,10 @@ async function bootstrapAuth(){
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
     authDown=false;
+    /* Same failure, reached by restoring a session rather than typing an
+       email. It ejects someone who was in the Hub yesterday, so it has to be
+       visible in the log too. */
+    if(cohortUnavailable) reportLogin("no_round", result.email || S.email || "", 200);
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){

@@ -27,6 +27,46 @@ var actions=document.getElementById("entryActions");
 var retry=document.getElementById("entryRetry");
 var card=document.querySelector(".card");
 
+/* ---------------------------------------------------------------------------
+   Report where this handoff ended up. Every paid lead arrives through here,
+   and until now it reported nothing at all: a lead who never got past this
+   screen left no trace, so nobody could tell whether the ad spend was landing
+   people in the Hub or stranding them. Ella, 28 Oct.
+
+   Same sheet as the Hub's own sign-in log, so one tab answers "who got in and
+   who did not" for both the automatic and the manual routes. Fire and forget,
+   wrapped, once per outcome: logging must never be the reason a handoff
+   fails, and this page gains no new dependency by doing it.
+   --------------------------------------------------------------------------- */
+var LOG_ENDPOINT = window.THRIVE_HUB_LOG_ENDPOINT ||
+  "https://script.google.com/macros/s/AKfycbwsDmIYQGCyRB9QU_afeS2eKjwn_QTAnv2tJzMYUnCDuCLx_VH_xPyQnSDod15Nt4tDlA/exec";
+var startedAt = Date.now();
+var reported = false;
+function reportEntry(outcome, status){
+  if(reported) return;
+  reported = true;
+  try{
+    if(!LOG_ENDPOINT) return;
+    fetch(LOG_ENDPOINT,{method:"POST",mode:"cors",keepalive:true,
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        challenge:"c1-nov-2026",
+        outcome:outcome,
+        /* The correlation id this page already holds. Not proof of identity,
+           but it is what a Concierge can look up when someone says they could
+           not get in. No address is read or sent from here. */
+        contact: contactId || "",
+        status: status || 0,
+        attempt: attempt,
+        waited: Math.round((Date.now()-startedAt)/1000),
+        round:"", tag:"",
+        screen:(window.innerWidth||0)+"x"+(window.innerHeight||0),
+        agent:(navigator.userAgent||"").slice(0,180),
+        page:"/entry"
+      })}).catch(function(){});
+  }catch(e){}
+}
+
 function validContactId(value){
   return typeof value==="string"&&value.length>0&&value.length<=MAX_CONTACT_ID_LENGTH&&
     value===value.trim()&&!/\s/.test(value);
@@ -55,8 +95,15 @@ function captureCorrelation(){
   return contactId;
 }
 
+var ENTRY_OUTCOMES={
+  IDENTITY_CONFLICT:"entry_other_account",
+  AUTH_UNAVAILABLE:"entry_session_lost",
+  RECOVERABLE_ERROR:"entry_still_waiting",
+  LONG_WAIT:"entry_gave_up"
+};
 function setState(state){
   card.setAttribute("data-entry-state",state);
+  if(ENTRY_OUTCOMES[state]) reportEntry(ENTRY_OUTCOMES[state], 0);
   if(state==="INITIALIZING"||state==="PROVISIONING"){
     title.textContent="Setting up your Challenge Hub...";
     message.textContent="Your registration was received. We’re preparing your access now.";
@@ -148,6 +195,7 @@ async function checkReadiness(){
     if(stopped) return;
     if(response.ok&&result.status==="READY"&&result.ready===true){
       stop();
+      reportEntry("entry_in", response.status);
       window.location.replace("/");
       return;
     }
