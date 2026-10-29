@@ -1285,7 +1285,10 @@ var CHALLENGE = {
        traffic to the Summit is attributable. Used by the scholarship button,
        the Summit banner image and the replay-page CTA, so every route from
        the Hub carries the same tagging. */
-    summit:  ""   /* TODO Ella: Jan 15-17 2027 Summit opt-in, UTM-tagged */,
+    /* Ella, 28 Oct. giftfromthrive.com/prize redirects to the Jan 15-17 2027
+       Summit scholarship page and carries its own UTMs, so nothing is appended
+       here. Verified 200 and the page headline reads "CLAIM YOUR SCHOLARSHIP". */
+    summit:  "https://giftfromthrive.com/prize",
     optin:   "https://apply.clientattractionsummit.com/challenge-optin-organic-socials",
     /* The Zoom room. The meeting has no passcode and uses a waiting room
        instead - Ella confirmed and tested it on 6 Sept - so the bare join link
@@ -1332,7 +1335,7 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
     FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
-var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_09_c4&utm_content=login_not_registered&utm_term=register_here";
+var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_11_c1&utm_content=login_not_registered&utm_term=register_here";
 /* CAS supplies a D1-derived cohort on login and session restoration.
    GHL tags and the browser clock never choose a participant's cohort. */
 var ROUND_TAG = "", ROUND_NAME = "";
@@ -2102,7 +2105,7 @@ function vDay(n){
       'with your first and last name and they&rsquo;ll look after you.</p>'+
       '<p class="lede">Your Playbook is yours to keep, and everything in it still works.</p>'+
       (d.playbook ? '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a>' : '')+
-      (summitOpen()?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
+      (summitOpen() && SUMMIT ?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
       winnerBlock(n)+
       concierge()+'</div>';
   }
@@ -2188,7 +2191,7 @@ function vDay(n){
    (dn?(n===1
         ? 'Great job completing your Day 1 Quest!<br>'+
           'You&rsquo;re now eligible for a Full Scholarship to the Client Attraction Summit.<br>'+
-          '<a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>'
+          (SUMMIT ? '<a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>' : '')
         : '<b>Golden Ticket Earned.</b> Day '+n+' is done! You&rsquo;re in the drawing for '+
           'today&rsquo;s prize and one step closer to the Grand Prize.')
       :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize.')+
