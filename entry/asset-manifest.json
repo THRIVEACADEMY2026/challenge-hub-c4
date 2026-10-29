@@ -1,7 +1,1 @@
-{
-  "version": 1,
-  "assets": {
-    "entry/index.html": "8c2b9c391e8a9769bcb70d44ec17dcc050f5f14d601c2c9ef88ffcef41c692a5",
-    "entry/handoff.js": "32ba2e9729ea1745d58695c0f25e0edefc30bfc3da2f9c27458dd508ba0d8658"
-  }
-}
+{"assets": {"entry/index.html": "df6d41c10a016457fdea67c66e8ff03bc1783751dd648e71919540b769044ea7", "entry/handoff.js": "c482b2cc0c16ec1aae0deb905a248ab5780ba14b6f7d273ab62d8b42f8b53b48"}}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="cas-release" content="entry-incident-12">
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i,marketingKey,analyticsKey){
   "use strict";
@@ -1402,6 +1403,14 @@ function selectRound(cohort){
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
+var cohortRetryTimer=null,cohortRetryAttempt=0;
+var COHORT_RETRY_DELAYS=[1000,2000,4000,8000,15000];
+function stopCohortRetry(){if(cohortRetryTimer!==null){clearTimeout(cohortRetryTimer);cohortRetryTimer=null;}}
+function retryPendingCohort(){
+  stopCohortRetry();
+  if(cohortRetryAttempt>=COHORT_RETRY_DELAYS.length) return;
+  cohortRetryTimer=setTimeout(function(){cohortRetryTimer=null;bootstrapAuth();},COHORT_RETRY_DELAYS[cohortRetryAttempt++]);
+}
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
@@ -1878,7 +1887,7 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
-  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized, but we couldn’t confirm your Challenge round. Please contact your Challenge Concierge for help with access.</div>';
+  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized. Your Challenge round is still being confirmed. This page will open automatically when your round is ready; you do not need to sign in again. If access remains unavailable, your Challenge Concierge can help.</div>';
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
   if(preservationExpired) return box('Your C1 access window has ended. '+
     'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
@@ -1909,7 +1918,7 @@ function vLogin(err){
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Sign in with the email you signed up with.</p>'+
       loginNotice()+
-      '<form id="loginForm" novalidate>'+
+      '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRetryAttempt<COHORT_RETRY_DELAYS.length?' hidden':'')+'>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
@@ -2406,6 +2415,7 @@ function wire(){
 
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
+    stopCohortRetry();cohortRetryAttempt=0;
     e.preventDefault();
     cohortUnavailable=false;
     var v=(q("em").value||"").trim().toLowerCase();
@@ -2441,7 +2451,7 @@ function wire(){
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         if(!selectRound(result.hub_cohort)){
-          authState="login";authDown=false;cohortUnavailable=true;render();return;
+          authState="login";authDown=false;cohortUnavailable=true;retryPendingCohort();render();return;
         }
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
@@ -2972,12 +2982,15 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
+  stopCohortRetry();
   authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
   try{
     var result=await refreshAuthSession();
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
+    if(cohortUnavailable) retryPendingCohort();
+    else cohortRetryAttempt=0;
     authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();

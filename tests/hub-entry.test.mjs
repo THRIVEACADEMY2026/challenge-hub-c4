@@ -40,6 +40,7 @@ async function runEntry({
   const actions = element();
   const retry = element();
   const card = element();
+  const signIn=element(), emailInput=element(), submit=element(), signInMessage=element();
   const storage = new Map();
   if (storedContactId) storage.set("thriveChallengeHubEntryContactId", storedContactId);
   const fetchCalls = [];
@@ -55,7 +56,7 @@ async function runEntry({
   const document = {
     visibilityState,
     getElementById(id) {
-      return { entryTitle: title, entryMessage: message, entryPulse: pulse, entryActions: actions, entryRetry: retry }[id] ?? null;
+      return { entryTitle: title, entryMessage: message, entryPulse: pulse, entryActions: actions, entryRetry: retry,entrySignIn:signIn,entryEmail:emailInput,entrySubmit:submit,entrySignInMessage:signInMessage }[id] ?? null;
     },
     querySelector(selector) { return selector === ".card" ? card : null; },
     addEventListener(name, handler) { listeners[name] = handler; },
@@ -68,6 +69,7 @@ async function runEntry({
     sessionStorage: {
       getItem(key) { return storage.get(key) ?? null; },
       setItem(key, value) { storage.set(key, value); },
+      removeItem(key){storage.delete(key);},
     },
     fetch: async (url, options = {}) => {
       fetchCalls.push({ url, options });
@@ -93,7 +95,7 @@ async function runEntry({
   context.window.THRIVE_CAS_ORIGIN = "https://id.test";
   vm.runInNewContext(script, context, { filename: "handoff.js" });
   await flush();
-  return { get timers(){return timers.filter(t=>t.active&&t.delay!==90000);}, allTimers:timers, actions, card, context, document, fetchCalls, historyCalls, listeners, location, message, replacements, retry, storage, title };
+  return { signIn,emailInput,submit,signInMessage,get timers(){return timers.filter(t=>t.active&&t.delay!==90000);}, allTimers:timers, actions, card, context, document, fetchCalls, historyCalls, listeners, location, message, replacements, retry, storage, title };
 }
 
 test("captures contact_id, stores it in sessionStorage, and scrubs it from the URL", async () => {
@@ -198,15 +200,15 @@ test("an in-flight readiness request cannot overlap itself", async () => {
   await flush();
 });
 
-test("candidate has no tracking, GHL, BigQuery, Magic Link, email-auth, or protected-Hub dependencies", () => {
+test("candidate has no tracking, GHL, BigQuery, Magic Link, or protected-Hub dependencies", () => {
   assert.doesNotMatch(script, /dataLayer|fbq|Meta Pixel|Stape|CompleteRegistration|Lead\b/);
-  assert.doesNotMatch(script, /GHL|BigQuery|magic[-_ ]?link|email/i);
+  assert.doesNotMatch(script, /GHL|BigQuery|magic[-_ ]?link/i);
   assert.doesNotMatch(script, /innerHTML|protected|challenge_membership/i);
   assert.match(script, /JSON\.stringify\(\{contact_id:contactId\}\)/);
 });
 
  test("existing authorized session completes direct entry without correlation",async()=>{
- const e=await runEntry({href:"https://hub.test/entry/",session:{authorized:true,csrf_token:"valid"}});
+ const e=await runEntry({href:"https://hub.test/entry/",session:{authorized:true,csrf_token:"valid",hub_cohort:{challenge_cohort_id:"challenge_2027_01_c1"}}});
  assert.deepEqual(e.replacements,["/"]);
  assert.equal(e.fetchCalls.length,1);
  });
@@ -251,3 +253,29 @@ test("candidate has no tracking, GHL, BigQuery, Magic Link, email-auth, or prote
  const e=await runEntry({session:{authorized:true,csrf_token:"valid"},readiness:[{status:"IDENTITY_CONFLICT"}]});
  assert.equal(e.card.getAttribute("data-entry-state"),"IDENTITY_CONFLICT");assert.deepEqual(e.replacements,[]);
  });
+
+const cohort={challenge_cohort_id:'challenge_2027_01_c1'};
+async function manualFixture(replies){return runEntry({readiness:[{status:'IDENTITY_CONFLICT'}],fetchOverride:async(url)=>{if(url.endsWith('/session'))return response({authorized:true,csrf_token:'initial'});if(url.endsWith('/readiness'))return response({status:'IDENTITY_CONFLICT'},409);return replies(url);}});}
+test('conflict exposes explicit email sign-in without automatically logging out',async()=>{const e=await manualFixture(()=>{throw Error('unexpected')});assert.equal(e.signIn.hidden,false);assert.equal(e.fetchCalls.some(c=>c.url.endsWith('/logout')),false);});
+test('explicit conflicting email login rotates visitor via supported logout then authenticates',async()=>{let calls=0;const e=await manualFixture(url=>url.endsWith('/logout')?response({logged_out:true,csrf_token:'rotated'}):++calls===1?response({authorized:false},409):response({authorized:true,hub_cohort:cohort}));e.emailInput.value='synthetic@example.invalid';await e.signIn.onsubmit({preventDefault(){}});assert.deepEqual(e.replacements,['/']);const logout=e.fetchCalls.find(c=>c.url.endsWith('/logout'));assert(logout);const logins=e.fetchCalls.filter(c=>c.url.endsWith('/login'));assert.equal(logins.length,2);assert.equal(logins[1].options.headers['X-CAS-CSRF'],'rotated');assert.equal(e.storage.size,0);});
+test('invalid email remains denied and never logs out another owner',async()=>{const e=await manualFixture(()=>response({authorized:false},401));e.emailInput.value='invalid@example.invalid';await e.signIn.onsubmit({preventDefault(){}});assert.equal(e.replacements.length,0);assert.equal(e.fetchCalls.some(c=>c.url.endsWith('/logout')),false);assert.match(e.signInMessage.textContent,/couldn’t confirm/);});
+test('pending cohort completes the original sign-in without another login',async()=>{
+let sessions=0,logins=0;const e=await runEntry({fetchOverride:async url=>{
+ if(url.endsWith('/session')){sessions++;return response({authorized:true,csrf_token:'test',email:'synthetic@example.invalid',hub_cohort:sessions>2?cohort:null});}
+ if(url.endsWith('/readiness'))return response({status:'IDENTITY_CONFLICT'},409);
+ if(url.endsWith('/login')){logins++;return response({authorized:true,hub_cohort:null});}throw Error('unexpected');
+}});e.emailInput.value='synthetic@example.invalid';const done=e.signIn.onsubmit({preventDefault(){}});await flush();
+assert.equal(e.submit.disabled,true);assert.equal(e.replacements.length,0);
+const timer=e.timers.find(t=>t.delay===1000);assert(timer);timer.active=false;timer.handler();await done;
+assert.equal(logins,1);assert.deepEqual(e.replacements,['/']);
+});
+test('pending sign-in refuses a session changed to another identity',async()=>{
+let sessions=0;const e=await runEntry({fetchOverride:async url=>{
+ if(url.endsWith('/session'))return response({authorized:true,csrf_token:'test',email:++sessions>2?'other@example.invalid':'synthetic@example.invalid',hub_cohort:sessions>2?cohort:null});
+ if(url.endsWith('/readiness'))return response({status:'IDENTITY_CONFLICT'},409);
+ return response({authorized:true,hub_cohort:null});
+}});e.emailInput.value='synthetic@example.invalid';const done=e.signIn.onsubmit({preventDefault(){}});await flush();const timer=e.timers.find(t=>t.delay===1000);timer.active=false;timer.handler();await done;assert.equal(e.replacements.length,0);
+});
+test('failed logout stops account switching without retrying login',async()=>{const e=await manualFixture(url=>url.endsWith('/logout')?response({},503):response({authorized:false},409));e.emailInput.value='synthetic@example.invalid';await e.signIn.onsubmit({preventDefault(){}});assert.equal(e.replacements.length,0);assert.equal(e.fetchCalls.filter(c=>c.url.endsWith('/login')).length,1);});
+
+test('returning member with no correlation waits for enrollment before redirect',async()=>{let reads=0;const e=await runEntry({href:'https://hub.test/entry/',fetchOverride:async()=>response({authorized:true,csrf_token:'valid',hub_cohort:++reads>1?cohort:null})});assert.equal(e.replacements.length,0);await e.timers[0].handler();await flush();assert.deepEqual(e.replacements,['/']);assert.equal(reads,2)});

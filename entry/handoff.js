@@ -19,6 +19,7 @@ var timer=null;
 var waitingForVisibility=false;
 var contactId=null;
 var csrfToken=null;
+var sessionCohortReady=false;
 
 var title=document.getElementById("entryTitle");
 var message=document.getElementById("entryMessage");
@@ -26,6 +27,11 @@ var pulse=document.getElementById("entryPulse");
 var actions=document.getElementById("entryActions");
 var retry=document.getElementById("entryRetry");
 var card=document.querySelector(".card");
+var signIn=document.getElementById("entrySignIn");
+var emailInput=document.getElementById("entryEmail");
+var submit=document.getElementById("entrySubmit");
+var signInMessage=document.getElementById("entrySignInMessage");
+var signingIn=false;
 
 function validContactId(value){
   return typeof value==="string"&&value.length>0&&value.length<=MAX_CONTACT_ID_LENGTH&&
@@ -57,6 +63,7 @@ function captureCorrelation(){
 
 function setState(state){
   card.setAttribute("data-entry-state",state);
+  if(signIn) signIn.hidden=state==="INITIALIZING"||state==="PROVISIONING";
   if(state==="INITIALIZING"||state==="PROVISIONING"){
     title.textContent="Setting up your Challenge Hub...";
     message.textContent="Your registration was received. We’re preparing your access now.";
@@ -64,7 +71,7 @@ function setState(state){
   }
   if(state==="IDENTITY_CONFLICT"){
     title.textContent="Let’s confirm the right account";
-    message.textContent="This browser is already connected to another account. Open the Hub to sign out or switch accounts before continuing.";
+    message.textContent="This browser is connected to another account. Enter your registration email below to continue with the right account.";
   }else if(state==="AUTH_UNAVAILABLE"){
     title.textContent="Sign in to continue";
     message.textContent="We couldn’t restore this browser’s signup session. You can continue with the Hub’s normal sign-in option.";
@@ -114,9 +121,10 @@ async function refreshSession(){
   });
   var response=reply.response;
   var result=reply.result;
-  if(stopped) return;
+  if(stopped&&!signingIn) return;
   if(!response.ok||typeof result.csrf_token!=="string") throw new Error("AUTH_UNAVAILABLE");
   csrfToken=result.csrf_token;
+  sessionCohortReady=!!(result.hub_cohort&&typeof result.hub_cohort.challenge_cohort_id==="string");
   return result.authorized===true;
 }
 
@@ -130,11 +138,12 @@ async function checkReadiness(){
   setState(attempt===0?"INITIALIZING":"PROVISIONING");
   try{
     var authorized=false;
-    if(!csrfToken) authorized=await refreshSession();
+    if(!csrfToken||!contactId) authorized=await refreshSession();
     if(stopped) return;
     if(!contactId){
+      if(authorized&&!sessionCohortReady){attempt+=1;schedule(1000);return;}
       stop();
-      if(authorized) window.location.replace("/");
+      if(authorized&&sessionCohortReady) window.location.replace("/");
       else setState("AUTH_UNAVAILABLE");
       return;
     }
@@ -177,7 +186,7 @@ async function checkReadiness(){
 }
 
 function start(){
-  if(inFlight) return;
+  if(inFlight||signingIn) return;
   stop();
   stopped=false;attempt=0;csrfToken=null;waitingForVisibility=false;
   deadline=setTimeout(function(){stop();setState("RECOVERABLE_ERROR");},MAX_WAIT_MS);
@@ -190,6 +199,67 @@ document.addEventListener("visibilitychange",function(){
   }
 });
 
+async function loginEmail(email){
+  return request(CAS_ORIGIN+"/browser/challenge-hub/login",{
+    method:"POST",credentials:"include",
+    headers:{"Accept":"application/json","Content-Type":"application/json","X-CAS-CSRF":csrfToken},
+    body:JSON.stringify({email:email})
+  });
+}
+// A successful email verification may precede native enrollment commit. Keep
+// that single sign-in alive; subsequent checks only restore its bound session.
+async function awaitEnrolledSession(reply,email){
+  var end=Date.now()+MAX_WAIT_MS;
+  for(var n=0;((reply.response.ok&&reply.result.authorized===true&&!reply.result.hub_cohort)||reply.response.status>=500)&&n<MAX_AUTOMATIC_ATTEMPTS&&Date.now()<end;n++){
+    signInMessage.textContent="Your registration is confirmed. We’re preparing your Challenge Hub...";
+    await new Promise(function(resolve){setTimeout(resolve,DEFAULT_DELAYS[Math.min(n,DEFAULT_DELAYS.length-1)]);});
+    reply=await request(CAS_ORIGIN+"/browser/challenge-hub/session",{
+      method:"GET",credentials:"include",headers:{"Accept":"application/json"}
+    });
+    // Another tab may switch accounts while enrollment is pending. Never
+    // redirect this sign-in into that person's Hub.
+    if(reply.result.authorized===true&&typeof reply.result.email==="string"&&
+       reply.result.email.toLowerCase()!==email.toLowerCase()) throw new Error("Session changed");
+  }
+  return reply;
+}
+async function signInToHub(event){
+  event.preventDefault();
+  if(signingIn||inFlight) return;
+  var email=emailInput.value.trim();
+  if(!email||email.length>320) return;
+  signingIn=true;submit.disabled=true;stop();
+  signInMessage.textContent="Checking your Challenge access...";
+  try{
+    await refreshSession();
+    var reply=await loginEmail(email);
+    if(reply.response.status===409){
+      // Only an explicit email sign-in may switch accounts. Logout creates a
+      // new visitor; it never rebinds or edits the previous visitor owner.
+      var logout=await request(CAS_ORIGIN+"/browser/challenge-hub/logout",{
+        method:"POST",credentials:"include",
+        headers:{"Accept":"application/json","X-CAS-CSRF":csrfToken}
+      });
+      if(!logout.response.ok||logout.result.logged_out!==true||typeof logout.result.csrf_token!=="string") throw new Error("Logout unavailable");
+      csrfToken=logout.result.csrf_token;
+      reply=await loginEmail(email);
+    }
+    reply=await awaitEnrolledSession(reply,email);
+    if(reply.response.ok&&reply.result.authorized===true&&reply.result.hub_cohort&&
+       typeof reply.result.hub_cohort.challenge_cohort_id==="string"){
+      try{sessionStorage.removeItem(STORAGE_KEY);}catch(error){}
+      window.location.replace("/");return;
+    }
+    signInMessage.textContent=reply.response.status===429
+      ? "Too many sign-in attempts. Please wait before trying again."
+      : reply.result.authorized===true
+      ? "Your enrollment is still being prepared. Please try again shortly."
+      : "We couldn’t confirm access for that email. Use the email you registered with, or retry shortly if you just registered.";
+  }catch(error){
+    signInMessage.textContent="We couldn’t reach sign-in. Please try again.";
+  }finally{signingIn=false;submit.disabled=false;}
+}
+if(signIn) signIn.addEventListener("submit",signInToHub);
 retry.addEventListener("click",start);
 captureCorrelation();
 start();

@@ -1,0 +1,47 @@
+<script data-cas-release="entry-incident-13-giveaway-v1">
+(function(){
+// ENTRY-INCIDENT-13: Giveaway-only native signing barrier.
+function installChallengeSigningGuard(runtime){
+ const {document,location}=runtime;
+ const paths=new Set(['/giveaway-ty-optin','/5-day-challenge-giveaway-ty']);
+ const forms=['iALkSXEt4ufFsZpTbLw0'];
+ if(location.hostname!=='apply.clientattractionsummit.com'||!paths.has(location.pathname.replace(/\/$/,'')))return false;
+ const pending=new WeakSet(),replay=new WeakSet();
+ document.addEventListener('click',async event=>{
+  const button=event.target.closest?.('button[type="submit"]'),wrap=button?.closest?.('#_builder-form');
+  if(!wrap||!forms.some(id=>wrap.querySelector('[id^="el_'+id+'_"]')))return;
+  const field=wrap.querySelector('[data-q="cas_browser_assertion"]');
+  if(replay.has(button)){replay.delete(button);return;}
+  event.preventDefault();event.stopImmediatePropagation();
+  if(pending.has(button))return;pending.add(button);button.disabled=true;runtime.showStatus(wrap,'Preparing secure Challenge access...');
+  let timer;
+  try{
+   if(!field)throw Error('Missing configured assertion field');
+   const assertion=await Promise.race([runtime.getFreshAssertion(),new Promise((_,reject)=>{timer=runtime.setTimeout(()=>reject(Error('Signing unavailable')),12000);})]);
+   if(typeof assertion!=='string'||assertion.length>2048||!/^[-_A-Za-z0-9]+\.[-_A-Za-z0-9]+$/.test(assertion))throw Error('Invalid assertion');
+   if(!field.isConnected||!button.isConnected)throw Error('Native form replaced');
+   runtime.setNativeValue(field,assertion);
+   await Promise.resolve();
+   if(field.value!==assertion||!field.isConnected||!button.isConnected||wrap.querySelector('[data-q="cas_browser_assertion"]')!==field)throw Error('Native form did not retain assertion');
+   runtime.showStatus(wrap,'');
+   button.disabled=false;replay.add(button);button.click();
+  }catch{
+   replay.delete(button);runtime.showStatus(wrap,'We couldn’t prepare secure access. Your registration has not been submitted. Please try again shortly.');
+  }finally{runtime.clearTimeout(timer);button.disabled=false;pending.delete(button);}
+ },true);
+ return true;
+}
+
+// Adapter for the existing production CAS signing contract. Install as an
+// ordinary inline script before asynchronous integration modules (not deployed).
+function productionAdapter(window){return {
+ document:window.document,location:window.location,
+ setTimeout:window.setTimeout.bind(window),clearTimeout:window.clearTimeout.bind(window),
+ async getFreshAssertion(){const {getCasIdentityClient}=await import('https://id.clientattractionsummit.com/cas-identity.js');const cas=getCasIdentityClient({apiBase:'https://id.clientattractionsummit.com'});await cas.bootstrapVisitor();return cas.getFreshBrowserAssertion();},
+ setNativeValue(field,value){const proto=field.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(field,value);field.dispatchEvent(new window.Event('input',{bubbles:true}));field.dispatchEvent(new window.Event('change',{bubbles:true}));},
+ showStatus(wrap,text){let status=wrap.querySelector('[data-cas-signing-status]');if(!status){status=window.document.createElement('p');status.setAttribute('data-cas-signing-status','');status.setAttribute('role','status');wrap.appendChild(status);}status.textContent=text;}
+};}
+
+installChallengeSigningGuard(productionAdapter(window));
+})();
+</script>

@@ -1,0 +1,43 @@
+{
+  "release_tag": "cas-entry-known-good-2026-10-29",
+  "hub_commit_resolution": "git rev-parse cas-entry-known-good-2026-10-29^{commit}",
+  "hub_repository": "https://github.com/THRIVEACADEMY2026/challenge-hub-c4",
+  "worker_repository": "https://github.com/philippe-zbl/cas-identity-worker",
+  "worker_commit": "40bde8bfb6a29b7f5179ef6a01c02ecb30a1227b",
+  "worker_production_version": "492ceae6-d26f-4e2c-ba7c-72c7c511e41d",
+  "apache_root": "/opt/github/apps/challenge-hub/htdocs",
+  "frontend_release": "entry-incident-12",
+  "asset_manifest": "frontend-sha256.json",
+  "origin_assets_verified": 29,
+  "giveaway": {
+    "release": "entry-incident-13-giveaway-v1",
+    "page_id": "IbDvTLWZtb8EglgRtkHJ",
+    "form_id": "iALkSXEt4ufFsZpTbLw0",
+    "paths": [
+      "/giveaway-ty-optin",
+      "/5-day-challenge-giveaway-ty"
+    ],
+    "header_sha256": "7969b08e5f909b56ba6e5d52b4636d95064592b758f94bdebed8ba5f93758b64",
+    "previous_header": "",
+    "scope": "GHL page-level header only; global tracking and other pages unchanged"
+  },
+  "reporting_scheduler": "PAUSED",
+  "reporting_release_b": "HOLD",
+  "validation": {
+    "worker_tests_passed": 1682,
+    "worker_tests_skipped": 2,
+    "typecheck": "PASS",
+    "frontend_tests_passed": 85,
+    "guard_tests_passed": 11,
+    "worker_live_bundle": "byte-for-byte exact",
+    "worker_rebuild": "only source-path comments differ",
+    "frontend_build": "byte-for-byte exact static allowlist"
+  },
+  "summit_pay28": {
+    "worker_base_commit": "40bde8bfb6a29b7f5179ef6a01c02ecb30a1227b",
+    "hub_base_ref": "cas-entry-known-good-2026-10-29^{commit}",
+    "separate_branch_required": true,
+    "summit_deployment": "NOT AUTHORIZED"
+  },
+  "production_modifications": "NONE"
+}

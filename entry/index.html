@@ -23,7 +23,7 @@ body{margin:0;min-height:100vh;background:linear-gradient(168deg,#ECEAEC 0%,var(
 h1{margin:0 0 18px;color:var(--ink);font-size:clamp(31px,5vw,46px);font-weight:200;line-height:1.08;text-wrap:balance}
 p{margin:0 auto 24px;max-width:44ch}
 .pulse{width:38px;height:38px;margin:30px auto;border:3px solid #DDE4EA;border-top-color:var(--teal);border-radius:50%;animation:spin .9s linear infinite}
-.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px}
+.signin{margin:24px auto 0;max-width:390px;text-align:left}.signin label{display:block;margin-bottom:6px}.signin input{width:100%;font:inherit;padding:12px;border:1px solid var(--line);margin-bottom:12px}.signin .btn{width:100%}.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px}
 .btn{display:inline-block;min-width:180px;padding:14px 20px;border:1px solid var(--btn);background:var(--btn);color:#fff;font-family:Oswald,Impact,sans-serif;font-size:13px;font-weight:400;letter-spacing:.28em;text-decoration:none;text-transform:uppercase;cursor:pointer}
 .btn:hover{background:var(--btn-hover);border-color:var(--btn-hover)}
 .btn-secondary{background:var(--ink);border-color:var(--ink)}
@@ -31,7 +31,7 @@ p{margin:0 auto 24px;max-width:44ch}
 [hidden]{display:none!important}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none;border-color:var(--teal)}}
-@media (max-width:520px){.entry{padding:24px 16px 64px}.card{padding:34px 24px}.actions{display:grid}.btn{width:100%}}
+@media (max-width:520px){.entry{padding:24px 16px 64px}.card{padding:34px 24px}.signin{margin:24px auto 0;max-width:390px;text-align:left}.signin label{display:block;margin-bottom:6px}.signin input{width:100%;font:inherit;padding:12px;border:1px solid var(--line);margin-bottom:12px}.signin .btn{width:100%}.actions{display:grid}.btn{width:100%}}
 </style>
 </head>
 <body>
@@ -44,6 +44,12 @@ p{margin:0 auto 24px;max-width:44ch}
     <h1 id="entryTitle">Setting up your Challenge Hub...</h1>
     <p id="entryMessage">We&rsquo;re checking your access. If this page does not continue, use the link below or your registration confirmation email.</p>
     <div id="entryPulse" class="pulse" hidden aria-hidden="true"></div>
+    <form id="entrySignIn" class="signin" hidden>
+      <label for="entryEmail">Email used for your Challenge registration</label>
+      <input id="entryEmail" name="email" type="email" autocomplete="email" required maxlength="320">
+      <button id="entrySubmit" class="btn" type="submit">Continue to my Hub</button>
+      <p id="entrySignInMessage" role="status" style="margin-top:12px"></p>
+    </form>
     <div id="entryActions" class="actions">
       <button id="entryRetry" class="btn" type="button">Retry</button>
       <a class="btn btn-secondary" href="/">Go to Hub sign in</a>
@@ -51,6 +57,6 @@ p{margin:0 auto 24px;max-width:44ch}
   </section>
 </main>
 <noscript><p style="text-align:center">JavaScript is needed for automatic entry. Use the Hub sign-in link above or your confirmation email.</p></noscript>
-<script src="./handoff.js?v=entry-incident-01"></script>
+<script src="./handoff.js?v=entry-incident-12-c482b2cc"></script>
 </body>
 </html>

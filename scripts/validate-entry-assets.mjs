@@ -13,7 +13,7 @@ export function validateEntryAssets(root){
  if(Object.keys(manifest.assets).length!==2)throw Error('Incomplete manifest');
  const html=readFileSync(resolve(root,'entry/index.html'),'utf8');
  const scripts=[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)];
- if(scripts.length!==1||scripts[0][1]!=='./handoff.js?v=entry-incident-01')throw Error('Invalid entry script source');
+ if(scripts.length!==1||scripts[0][1]!=='./handoff.js?v=entry-incident-12-c482b2cc')throw Error('Invalid entry script source');
  for(const id of ['entryTitle','entryMessage','entryPulse','entryActions','entryRetry'])if(!html.includes('id="'+id+'"'))throw Error('Missing entry DOM contract: '+id);
  const js=readFileSync(resolve(root,'entry/handoff.js'),'utf8');new vm.Script(js);
  for(const contract of ['retry.addEventListener("click",start)','captureCorrelation();','start();','/browser/challenge-hub/session','/browser/challenge-hub/readiness'])if(!js.includes(contract))throw Error('Missing initialization contract');
