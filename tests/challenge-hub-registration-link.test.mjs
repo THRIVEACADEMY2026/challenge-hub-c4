@@ -1,2 +1,9 @@
 import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';import{execFileSync}from'node:child_process';
-test('18B changes only Register here destination against verified live script checkpoint',()=>{const current=readFileSync(new URL('../index.html',import.meta.url),'utf8');const old=execFileSync('git',['show','7aea24785f9e36739029a80b5e0bf3c328f065e8:index.html'],{encoding:'utf8'});const pattern=/var REGISTER="[^"]*";/;assert.equal(current.replace(pattern,'REGISTER_PLACEHOLDER'),old.replace(pattern,'REGISTER_PLACEHOLDER'));assert.equal(current.match(pattern)[0],'var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-challenge-hub";');assert.ok(current.includes('cohortUnavailable'));assert.ok(!current.includes('THRIVE_PROPOSED_HUB_SOURCE_ENABLED'));});
+const root=new URL('../',import.meta.url).pathname;
+test('approved Hub registration destination and all cohort/resource configuration are preserved',()=>{
+ const current=readFileSync(root+'index.html','utf8'),old=execFileSync('git',['show','e41374123765ba7690fe4f4c58f123556b6dafa6:index.html'],{cwd:root,encoding:'utf8'});
+ const config=s=>s.slice(s.indexOf('var CHALLENGE ='),s.indexOf('var CAS_ORIGIN='));
+ assert.equal(config(current),config(old));
+ assert.equal(current.match(/var REGISTER="[^\"]*";/)[0],'var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-challenge-hub";');
+ assert.ok(!current.includes('THRIVE_PROPOSED_HUB_SOURCE_ENABLED'));
+});

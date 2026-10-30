@@ -1405,11 +1405,44 @@ var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
 var cohortRetryTimer=null,cohortRetryAttempt=0;
 var COHORT_RETRY_DELAYS=[1000,2000,4000,8000,15000];
+var cohortRecoveryState="INITIALIZING",cohortResultCode="COHORT_UNRESOLVED";
+var cohortCheckInFlight=false,cohortGeneration=0;
+var COHORT_DIAGNOSTIC_CODES=["SESSION_VALID","COHORT_RESOLVED","ENROLLMENT_PENDING","RETRIES_EXHAUSTED","MULTIPLE_COHORT_HOLD","ZERO_SUPPORTED_ENROLLMENT","AUTHENTICATION_FAILURE","TRANSIENT_LOOKUP_FAILURE","COHORT_UNRESOLVED"];
+function cohortDiagnostic(code,requestId){
+  if(COHORT_DIAGNOSTIC_CODES.indexOf(code)<0) return;
+  var record={event:"challenge_hub_cohort_result",code:code,attempt:cohortRetryAttempt};
+  if(typeof requestId==="string"&&/^[a-f0-9]{16,32}(?:-[A-Z0-9]+)?$/i.test(requestId)) record.request_id=requestId;
+  // Existing browser console only. Do not use the legacy issue reporter,
+  // which attaches email. Never include token, cookie, CSRF or owner identity.
+  if(typeof console!=="undefined"&&console.info) console.info(record);
+  if(typeof document!=="undefined"&&document.documentElement) document.documentElement.setAttribute("data-cas-cohort-result",code);
+}
 function stopCohortRetry(){if(cohortRetryTimer!==null){clearTimeout(cohortRetryTimer);cohortRetryTimer=null;}}
+function cancelCohortChecks(){stopCohortRetry();cohortGeneration++;}
 function retryPendingCohort(){
   stopCohortRetry();
-  if(cohortRetryAttempt>=COHORT_RETRY_DELAYS.length) return;
-  cohortRetryTimer=setTimeout(function(){cohortRetryTimer=null;bootstrapAuth();},COHORT_RETRY_DELAYS[cohortRetryAttempt++]);
+  if(cohortRetryAttempt>=COHORT_RETRY_DELAYS.length){
+    cohortRecoveryState="EXHAUSTED";cohortDiagnostic("RETRIES_EXHAUSTED");return;
+  }
+  cohortRecoveryState="CHECKING";
+  var generation=cohortGeneration;
+  cohortRetryTimer=setTimeout(function(){cohortRetryTimer=null;if(generation===cohortGeneration) bootstrapAuth();},COHORT_RETRY_DELAYS[cohortRetryAttempt++]);
+}
+function handleUnavailableCohort(result){
+  var code=result&&result.cohort_result_code;
+  cohortResultCode=["ENROLLMENT_PENDING","MULTIPLE_COHORT_HOLD","ZERO_SUPPORTED_ENROLLMENT"].indexOf(code)>=0?code:"COHORT_UNRESOLVED";
+  cohortDiagnostic(cohortResultCode,result&&result.request_id);
+  if(cohortResultCode==="MULTIPLE_COHORT_HOLD"){cohortRecoveryState="HOLD";stopCohortRetry();}
+  else if(cohortResultCode==="ZERO_SUPPORTED_ENROLLMENT"){cohortRecoveryState="ZERO";stopCohortRetry();}
+  else retryPendingCohort();
+}
+function retryCohortNow(){
+  if(cohortCheckInFlight) return;
+  cancelCohortChecks();cohortRetryAttempt=0;
+  return bootstrapAuth();
+}
+function cohortRetryButton(){
+  return '<div style="margin-top:12px"><button type="button" id="cohortRetry" class="btn btn-primary"'+(cohortCheckInFlight?' disabled':'')+'>Try Again</button></div>';
 }
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
@@ -1887,12 +1920,18 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
-  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized. Your Challenge round is still being confirmed. This page will open automatically when your round is ready; you do not need to sign in again. If access remains unavailable, your Challenge Concierge can help.</div>';
+  if(cohortUnavailable){
+    var notice=cohortRecoveryState==="HOLD"?"Your registration is recognized, but more than one Challenge round is associated with your account. Your Challenge Concierge can help confirm the right round.":
+      cohortRecoveryState==="ZERO"?"Your registration is recognized, but no supported Challenge round is currently assigned. Please contact your Challenge Concierge, or check again.":
+      cohortRecoveryState==="EXHAUSTED"?"We couldn’t confirm your Challenge round after several checks. Automatic checking has stopped. Select Try Again to check your access again.":
+      "Your registration is recognized. We’re checking your Challenge round. If your access is confirmed during these checks, the Hub will open automatically.";
+    return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px" role="status" aria-live="polite">'+notice+(cohortRecoveryState==="CHECKING"?'':cohortRetryButton())+'</div>';
+  }
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
   if(preservationExpired) return box('Your C1 access window has ended. '+
     'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
   if(authDown) return box('We can&rsquo;t reach our system right now. This is us, not you. '+
-    'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.');
+    'Please try again in a few minutes, or text your Concierge at '+phoneLink()+'.'+cohortRetryButton());
   if(loginLocked) return box('That is a few tries in a row, so sign-in has paused itself for a moment. '+
     'Nothing is wrong with your registration. Start a clean session below, '+
     'or text us at '+phoneLink()+' and we&rsquo;ll let you straight in.'+
@@ -1918,7 +1957,7 @@ function vLogin(err){
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Sign in with the email you signed up with.</p>'+
       loginNotice()+
-      '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRetryAttempt<COHORT_RETRY_DELAYS.length?' hidden':'')+'>'+
+      '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
@@ -2371,6 +2410,7 @@ function wire(){
     }
   }
   var so=q("signout"); if(so) so.onclick=async function(){
+    cancelCohortChecks();
     try{
       await refreshAuthSession();
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/logout",{
@@ -2413,9 +2453,10 @@ function wire(){
     var em=document.getElementById("em"); if(em) em.focus();
   };
 
+  var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
-    stopCohortRetry();cohortRetryAttempt=0;
+    cancelCohortChecks();cohortRetryAttempt=0;
     e.preventDefault();
     cohortUnavailable=false;
     var v=(q("em").value||"").trim().toLowerCase();
@@ -2451,7 +2492,7 @@ function wire(){
       if(response.ok&&result.authorized===true){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         if(!selectRound(result.hub_cohort)){
-          authState="login";authDown=false;cohortUnavailable=true;retryPendingCohort();render();return;
+          authState="login";authDown=false;cohortUnavailable=true;handleUnavailableCohort(result);render();return;
         }
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
@@ -2775,12 +2816,19 @@ if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
   rt.textContent=open?"Hide review tools":"Review tools";};
 
 window.addEventListener("hashchange",function(){render();});
-async function refreshAuthSession(){
+async function refreshAuthSession(expectedGeneration){
+  var controller=new AbortController();
+  var timeout=setTimeout(function(){controller.abort();},8000);
+  try{
   var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/session",{
-    method:"GET",credentials:"include",headers:{"Accept":"application/json"}
+    method:"GET",credentials:"include",headers:{"Accept":"application/json"},signal:controller.signal
   });
   var result=await response.json().catch(function(){return {};});
-  if(!response.ok||typeof result.csrf_token!=="string") throw new Error("Session refresh failed");
+  if(expectedGeneration!==undefined&&expectedGeneration!==cohortGeneration) return result;
+  if(!response.ok||typeof result.csrf_token!=="string"){
+    var failure=new Error("Session refresh failed");
+    failure.cohortCode=response.status===401||response.status===403?"AUTHENTICATION_FAILURE":"TRANSIENT_LOOKUP_FAILURE";throw failure;
+  }
   csrfToken=result.csrf_token;
   var routing=result.conversion_routing;
   coordinatedRoutingActive=!!(routing&&routing.coordinated===true&&
@@ -2788,6 +2836,7 @@ async function refreshAuthSession(){
     routing.routing_rule_version==="challenge-platform-routing/v1");
   coordinatedRoutingRuleVersion=coordinatedRoutingActive?routing.routing_rule_version:null;
   return result;
+  }finally{clearTimeout(timeout);}
 }
 var metaLeadClaimStarted=false;
 var coordinatedRoutingActive=false;
@@ -2982,15 +3031,24 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
+  if(cohortCheckInFlight) return;
+  cohortCheckInFlight=true;
+  var generation=cohortGeneration;
   stopCohortRetry();
   authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
   try{
-    var result=await refreshAuthSession();
+    var result=await refreshAuthSession(generation);
+    if(generation!==cohortGeneration) return;
+    cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
-    if(cohortUnavailable) retryPendingCohort();
-    else cohortRetryAttempt=0;
+    if(cohortUnavailable) handleUnavailableCohort(result);
+    else{
+      cohortRetryAttempt=0;
+      cohortRecoveryState=enrolled?"RESOLVED":"AUTHENTICATION_FAILURE";
+      if(enrolled) cohortDiagnostic("COHORT_RESOLVED",result.request_id);
+    }
     authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
@@ -3001,11 +3059,16 @@ async function bootstrapAuth(){
     }
     return;
   }catch(error){
-    /* The sign-in service could not be reached. That is NOT the same as "you
-       are not registered", and it used to be shown with the same words, so a
-       registrant hitting a maintenance window was told their registration did
-       not exist. Flagged separately now. */
-    authDown=true;
+    if(generation!==cohortGeneration) return;
+    if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
+      authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
+      cohortDiagnostic("AUTHENTICATION_FAILURE");render();return;
+    }
+    authDown=true;cohortRecoveryState="TRANSIENT_LOOKUP_FAILURE";
+    cohortDiagnostic("TRANSIENT_LOOKUP_FAILURE");
+  }finally{
+    cohortCheckInFlight=false;
+    if(generation===cohortGeneration&&cohortUnavailable) render();
   }
   /* Review hosts only. On our own preview this skips the gate so the Hub can
      be reviewed without the live auth service. showReview is false on every
