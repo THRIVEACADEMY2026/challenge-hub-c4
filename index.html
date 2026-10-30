@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 <meta name="cas-release" content="entry-incident-12">
+<!-- Capture non-bearer handoff context before any analytics or application loader. -->
+<script data-cas-identity-handoff>(function(w){
+  var m=/^#cas-handoff=([A-Za-z0-9_-]{43})$/.exec(w.location.hash||"");
+  if(!m) return;
+  w.thriveHubIncomingIdentity=m[1];
+  try{w.sessionStorage.setItem("thriveHubExpectedIdentity",m[1]);}catch(error){}
+  w.history.replaceState(null,"",w.location.pathname+w.location.search);
+})(window);</script>
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i,marketingKey,analyticsKey){
   "use strict";
@@ -1404,6 +1412,60 @@ var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com"
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
 var cohortRetryTimer=null,cohortRetryAttempt=0;
+var expectedIdentityContext=null,currentIdentityContext=null,identityHandoffInitialized=false;
+var activeSessionController=null;
+var HUB_IDENTITY_NOTICE_KEY="thriveHubIdentityNotice",HUB_EXPECTED_CONTEXT_KEY="thriveHubExpectedIdentity";
+function validIdentityContext(value){return typeof value==="string"&&/^[A-Za-z0-9_-]{43}$/.test(value);}
+function setExpectedIdentityContext(value){
+  expectedIdentityContext=validIdentityContext(value)?value:null;
+  try{if(expectedIdentityContext) sessionStorage.setItem(HUB_EXPECTED_CONTEXT_KEY,expectedIdentityContext);else sessionStorage.removeItem(HUB_EXPECTED_CONTEXT_KEY);}catch(error){}
+}
+function publishIdentityNotice(context){
+  // Notification only, never identity proof. Every resulting read must still
+  // pass server cookie authentication and the expected owner-context check.
+  try{localStorage.setItem(HUB_IDENTITY_NOTICE_KEY,JSON.stringify({context:context,nonce:Date.now()+":"+Math.random()}));}catch(error){}
+}
+function identityNoticeReceived(context){
+  if(context!==null&&!validIdentityContext(context)) return;
+  cancelCohortChecks();setExpectedIdentityContext(context);currentIdentityContext=null;
+  selectRound(null);authState="loading";cohortUnavailable=false;S.email=null;S.first=null;render();
+  bootstrapAuth();
+}
+function initializeIdentityHandoff(){
+  identityHandoffInitialized=true;
+  if(typeof window==="undefined"||!window.location) return;
+  try{
+    var incoming=window.thriveHubIncomingIdentity;
+    try{delete window.thriveHubIncomingIdentity;}catch(error){}
+    var match=validIdentityContext(incoming)?["",incoming]:/^#cas-handoff=([A-Za-z0-9_-]{43})$/.exec(window.location.hash||"");
+    if(match){
+      setExpectedIdentityContext(match[1]);
+      history.replaceState(null,"",window.location.pathname+window.location.search);
+      publishIdentityNotice(match[1]);
+    }else{
+      var saved=sessionStorage.getItem(HUB_EXPECTED_CONTEXT_KEY);
+      if(validIdentityContext(saved)) expectedIdentityContext=saved;
+    }
+  }catch(error){}
+  if(window.addEventListener){
+    window.addEventListener("storage",function(event){
+      if(event.key!==HUB_IDENTITY_NOTICE_KEY||!event.newValue) return;
+      try{var notice=JSON.parse(event.newValue);if(notice&&Object.prototype.hasOwnProperty.call(notice,"context")) identityNoticeReceived(notice.context);}catch(error){}
+    });
+    // Also restore authoritative state after returning from another tab or
+    // a Summit identity transition that did not pass through the Hub itself.
+    window.addEventListener("focus",function(){
+      if(cohortCheckInFlight) return;
+      cancelCohortChecks();selectRound(null);authState="loading";render();bootstrapAuth();
+    });
+  }
+}
+function acceptExplicitIdentity(result){
+  setExpectedIdentityContext(null);
+  currentIdentityContext=validIdentityContext(result.identity_context)?result.identity_context:null;
+  if(currentIdentityContext) publishIdentityNotice(currentIdentityContext);
+}
+
 var COHORT_RETRY_DELAYS=[1000,2000,4000,8000,15000];
 var cohortRecoveryState="INITIALIZING",cohortResultCode="COHORT_UNRESOLVED";
 var cohortCheckInFlight=false,cohortGeneration=0;
@@ -1418,7 +1480,11 @@ function cohortDiagnostic(code,requestId){
   if(typeof document!=="undefined"&&document.documentElement) document.documentElement.setAttribute("data-cas-cohort-result",code);
 }
 function stopCohortRetry(){if(cohortRetryTimer!==null){clearTimeout(cohortRetryTimer);cohortRetryTimer=null;}}
-function cancelCohortChecks(){stopCohortRetry();cohortGeneration++;}
+function cancelCohortChecks(){
+  stopCohortRetry();cohortGeneration++;
+  if(activeSessionController){activeSessionController.abort();activeSessionController=null;}
+  cohortCheckInFlight=false;
+}
 function retryPendingCohort(){
   stopCohortRetry();
   if(cohortRetryAttempt>=COHORT_RETRY_DELAYS.length){
@@ -2420,6 +2486,7 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(!response.ok||result.logged_out!==true) return;
       if(typeof result.csrf_token==="string") csrfToken=result.csrf_token;
+      setExpectedIdentityContext(null);currentIdentityContext=null;publishIdentityNotice(null);
       S.email=null;S.first=null;save();authState="login";loginError=false;loginLocked=false;loginTries=0;
       location.hash="#/login";render();
     }catch(error){}
@@ -2482,6 +2549,7 @@ function wire(){
       location.hash="#/prechallenge"; render(); return;
     }
     try{
+      setExpectedIdentityContext(null);
       await refreshAuthSession();
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
         method:"POST",credentials:"include",
@@ -2490,6 +2558,7 @@ function wire(){
       });
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
+        acceptExplicitIdentity(result);
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         if(!selectRound(result.hub_cohort)){
           authState="login";authDown=false;cohortUnavailable=true;handleUnavailableCohort(result);render();return;
@@ -2818,16 +2887,23 @@ if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
 window.addEventListener("hashchange",function(){render();});
 async function refreshAuthSession(expectedGeneration){
   var controller=new AbortController();
+  if(expectedGeneration!==undefined) activeSessionController=controller;
   var timeout=setTimeout(function(){controller.abort();},8000);
   try{
   var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/session",{
-    method:"GET",credentials:"include",headers:{"Accept":"application/json"},signal:controller.signal
+    method:"GET",credentials:"include",headers:Object.assign({"Accept":"application/json"},expectedIdentityContext?{"X-CAS-Identity-Context":expectedIdentityContext}:{}),signal:controller.signal
   });
   var result=await response.json().catch(function(){return {};});
   if(expectedGeneration!==undefined&&expectedGeneration!==cohortGeneration) return result;
   if(!response.ok||typeof result.csrf_token!=="string"){
     var failure=new Error("Session refresh failed");
     failure.cohortCode=response.status===401||response.status===403?"AUTHENTICATION_FAILURE":"TRANSIENT_LOOKUP_FAILURE";throw failure;
+  }
+  if(expectedIdentityContext&&result.authorized===true&&result.identity_context!==expectedIdentityContext){
+    var mismatch=new Error("Identity handoff was not confirmed");mismatch.cohortCode="AUTHENTICATION_FAILURE";throw mismatch;
+  }
+  if(result.authorized===true&&validIdentityContext(result.identity_context)){
+    currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);
   }
   csrfToken=result.csrf_token;
   var routing=result.conversion_routing;
@@ -2836,7 +2912,7 @@ async function refreshAuthSession(expectedGeneration){
     routing.routing_rule_version==="challenge-platform-routing/v1");
   coordinatedRoutingRuleVersion=coordinatedRoutingActive?routing.routing_rule_version:null;
   return result;
-  }finally{clearTimeout(timeout);}
+  }finally{clearTimeout(timeout);if(activeSessionController===controller) activeSessionController=null;}
 }
 var metaLeadClaimStarted=false;
 var coordinatedRoutingActive=false;
@@ -3031,6 +3107,7 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
+  if(!identityHandoffInitialized) initializeIdentityHandoff();
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
@@ -3067,8 +3144,10 @@ async function bootstrapAuth(){
     authDown=true;cohortRecoveryState="TRANSIENT_LOOKUP_FAILURE";
     cohortDiagnostic("TRANSIENT_LOOKUP_FAILURE");
   }finally{
-    cohortCheckInFlight=false;
-    if(generation===cohortGeneration&&cohortUnavailable) render();
+    if(generation===cohortGeneration){
+      cohortCheckInFlight=false;
+      if(cohortUnavailable) render();
+    }
   }
   /* Review hosts only. On our own preview this skips the gate so the Hub can
      be reviewed without the live auth service. showReview is false on every
