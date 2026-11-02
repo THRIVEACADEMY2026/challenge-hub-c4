@@ -163,7 +163,10 @@ test("invalid consent values fail closed", () => {
 test("the privacy UI has explicit allow and decline controls", () => {
   assert.match(html, /id="privacyAllow"/);
   assert.match(html, /id="privacyDecline"/);
-  assert.match(html, /Analytics and marketing tracking[\s\n]+stay off unless/);
+  assert.match(html, /Allow analytics and marketing cookies\?/);
+  assert.match(html, /Essential cookies stay on\./);
+  assert.match(html, /id="privacyRejectAll"/);
+  assert.match(html, /id="privacyAcceptAll"/);
   assert.match(html, /id="analyticsAllow"/);
   assert.match(html, /id="analyticsDecline"/);
 });

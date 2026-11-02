@@ -60,9 +60,9 @@
   };
   w.thriveHubAnalyticsConsent={
     status:function(){return read(analyticsKey)==='granted'?'granted':'denied';},
-    grant:function(){
+    grant:function(deferClaimUntilReload){
       write(analyticsKey,'granted');updateAnalytics('granted');
-      if(typeof w.thriveHubClaimGa4Signup==='function') w.thriveHubClaimGa4Signup();
+      if(!deferClaimUntilReload&&typeof w.thriveHubClaimGa4Signup==='function') w.thriveHubClaimGa4Signup();
     },
     deny:function(){write(analyticsKey,'denied');updateAnalytics('denied');}
   };
@@ -747,23 +747,33 @@ footer.site a:hover{border-bottom-color:var(--btn)}
 footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:flex;
   flex-wrap:wrap;gap:6px 20px;justify-content:space-between;font-size:12px;color:#8A97A5}
 
-/* privacy notice */
-.pbar-privacy{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;
-  border-top:2px solid var(--delft);box-shadow:0 -6px 24px rgba(26,50,92,.13)}
-.pb-in{max-width:1060px;margin:0 auto;padding:16px 20px;display:flex;gap:20px;
-  align-items:center;flex-wrap:wrap}
-.pb-in p{margin:0;flex:1 1 420px;font-size:13px;line-height:1.6;color:var(--body);max-width:78ch}
-.pb-in p b{color:var(--delft);font-weight:600}
-.pb-in a{color:var(--btn)}
-/* .btn is display:block;width:100% by default, which made the button 1020px
-   wide and forced the bar onto three lines. Inside the notice it sits inline. */
-.pb-in .btn{margin:0;flex:0 0 auto;width:auto;display:inline-block;
-  padding:11px 26px;white-space:nowrap}
-.pb-actions{display:flex;gap:10px;flex:0 0 auto;flex-wrap:wrap}
+/* Compact privacy notice; independent preferences remain in footer settings. */
+.pbar-privacy{position:fixed;left:50%;bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);width:calc(100% - 16px);max-width:680px;z-index:60;
+  background:#fff;border:1px solid var(--delft);border-radius:8px;
+  box-shadow:0 2px 14px rgba(26,50,92,.13)}
+.pb-in{padding:10px 12px;display:flex;gap:12px;align-items:center}
+.pb-in p{margin:0;flex:1;min-width:0;font-size:14px;line-height:1.35;color:var(--body)}
+.pb-in p span{display:block}
+.pb-in a,.privacy-settings a{color:var(--btn);text-decoration:underline}
+.pb-actions{display:flex;gap:8px;flex:0 0 auto;flex-wrap:nowrap}
+.pb-in .btn{margin:0;min-width:88px;min-height:44px;width:auto;display:inline-flex;
+  justify-content:center;align-items:center;padding:8px 14px;white-space:nowrap}
+.pbar-privacy button:focus-visible,.pbar-privacy a:focus-visible,
+.privacy-settings button:focus-visible,.privacy-settings a:focus-visible{
+  outline:3px solid var(--delft);outline-offset:3px}
+.privacy-settings{max-width:480px;width:calc(100% - 32px);padding:20px;
+  border:1px solid var(--delft);border-radius:8px;color:var(--body);background:#fff}
+.privacy-settings::backdrop{background:rgba(26,50,92,.3)}
+.privacy-settings h2{margin:0 0 12px;font-size:22px}
+.privacy-settings p{margin:10px 0;font-size:14px}
+.privacy-settings .privacy-category{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.privacy-settings .btn{width:auto;margin:0;min-height:44px;padding:8px 10px}
+.privacy-settings .privacy-close{margin-top:16px}
 @media (max-width:620px){
-  .pb-in{padding:14px 16px;gap:12px}
+  .pb-in{flex-direction:column;align-items:stretch;gap:8px}
   .pb-actions{width:100%}
-  .pb-in .btn{width:100%}
+  .pb-in .btn{flex:1;min-width:0}
 }
 
 /* --- Sharla's 6 Sept Loom: prepare page above the fold --------------------
@@ -931,20 +941,32 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 <!-- Privacy choices. Essential Hub storage is always available. GTM loads with
      denied defaults; analytics and advertising permissions are independent.
      There is intentionally no noscript iframe because it cannot be consent-gated. -->
-<div id="privacyBar" class="pbar-privacy" hidden>
+<div id="privacyBar" class="pbar-privacy" role="region" aria-label="Privacy choices" hidden>
   <div class="pb-in">
-    <p><b>Your data on this page.</b> We keep you signed in and remember which Quests
-    you have ticked off using essential storage. Analytics and marketing tracking
-    stay off unless you choose to allow each one. You can change either choice from the footer.
-    <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
+    <p><span>Allow analytics and marketing cookies?</span>
+    <span>Essential cookies stay on. <a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span></p>
     <div class="pb-actions">
-      <button type="button" id="analyticsDecline" class="btn btn-outline">Keep analytics off</button>
-      <button type="button" id="analyticsAllow" class="btn btn-primary">Allow analytics</button>
-      <button type="button" id="privacyDecline" class="btn btn-outline">Keep marketing off</button>
-      <button type="button" id="privacyAllow" class="btn btn-primary">Allow marketing</button>
+      <button type="button" id="privacyRejectAll" class="btn btn-outline">Reject</button>
+      <button type="button" id="privacyAcceptAll" class="btn btn-primary">Accept</button>
     </div>
   </div>
 </div>
+<dialog id="privacySettings" class="privacy-settings" aria-labelledby="privacySettingsTitle">
+  <h2 id="privacySettingsTitle">Cookies &amp; your data</h2>
+  <p>Essential cookies stay on. Change optional categories independently.</p>
+  <p id="analyticsPreference" aria-live="polite">Analytics</p>
+  <div class="privacy-category" role="group" aria-label="Analytics consent">
+    <button type="button" id="analyticsDecline" class="btn btn-outline">Keep analytics off</button>
+    <button type="button" id="analyticsAllow" class="btn btn-primary">Allow analytics</button>
+  </div>
+  <p id="marketingPreference" aria-live="polite">Marketing</p>
+  <div class="privacy-category" role="group" aria-label="Marketing consent">
+    <button type="button" id="privacyDecline" class="btn btn-outline">Keep marketing off</button>
+    <button type="button" id="privacyAllow" class="btn btn-primary">Allow marketing</button>
+  </div>
+  <p><a href="https://clientattractionsummit.com/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></p>
+  <button type="button" id="privacySettingsClose" class="btn btn-outline privacy-close">Close settings</button>
+</dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script src="config.js"></script>
@@ -2820,29 +2842,62 @@ if(tgR) tgR.onclick=function(){
   window.addEventListener("resize", pad);
   function decided(key){var value=choice(key);return value==="granted"||value==="denied";}
   if(!decided(MARKETING_KEY)||!decided(ANALYTICS_KEY)) show();
+  var settings=document.getElementById("privacySettings");
+  function updatePreferences(){
+    document.getElementById("analyticsPreference").textContent="Analytics: "+(choice(ANALYTICS_KEY)==="granted"?"allowed":"off");
+    document.getElementById("marketingPreference").textContent="Marketing: "+(choice(MARKETING_KEY)==="granted"?"allowed":"off");
+  }
+  function finishChoice(){
+    updatePreferences();
+    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+  }
+  var combinedChoiceInFlight=false;
+  function combinedChoice(grant){
+    if(combinedChoiceInFlight) return;
+    // Marketing can reload. Persist analytics first using the existing API.
+    // If either API is unavailable, keep the notice visible rather than imply consent.
+    if(!window.thriveHubAnalyticsConsent||!window.thriveHubMarketingConsent) return;
+    combinedChoiceInFlight=true;
+    document.getElementById("privacyAcceptAll").disabled=true;
+    document.getElementById("privacyRejectAll").disabled=true;
+    // Avoid consuming a one-time GA4 claim immediately before marketing reloads.
+    // The existing authenticated bootstrap claims it on the consented page.
+    if(grant) window.thriveHubAnalyticsConsent.grant(window.thriveHubMarketingConsent.status()!=="granted");
+    else window.thriveHubAnalyticsConsent.deny();
+    window.thriveHubMarketingConsent[grant?"grant":"deny"]();
+    finishChoice();
+    if(!bar.hidden){
+      combinedChoiceInFlight=false;
+      document.getElementById("privacyAcceptAll").disabled=false;
+      document.getElementById("privacyRejectAll").disabled=false;
+    }
+  }
+  document.getElementById("privacyAcceptAll").onclick=function(){combinedChoice(true);};
+  document.getElementById("privacyRejectAll").onclick=function(){combinedChoice(false);};
   var allow=document.getElementById("privacyAllow");
   if(allow) allow.onclick=function(){
     if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.grant();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+    finishChoice();
   };
   var decline=document.getElementById("privacyDecline");
   if(decline) decline.onclick=function(){
     if(window.thriveHubMarketingConsent) window.thriveHubMarketingConsent.deny();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+    finishChoice();
   };
   var analyticsAllow=document.getElementById("analyticsAllow");
   if(analyticsAllow) analyticsAllow.onclick=function(){
     if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.grant();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+    finishChoice();
   };
   var analyticsDecline=document.getElementById("analyticsDecline");
   if(analyticsDecline) analyticsDecline.onclick=function(){
     if(window.thriveHubAnalyticsConsent) window.thriveHubAnalyticsConsent.deny();
-    if(decided(MARKETING_KEY)&&decided(ANALYTICS_KEY)) hide();
+    finishChoice();
   };
+  document.getElementById("privacySettingsClose").onclick=function(){settings.close();};
   var open=document.getElementById("cookieOpen");
-  if(open) open.onclick=function(e){ e.preventDefault(); show();
-    bar.scrollIntoView({block:"nearest"}); };
+  if(open) open.onclick=function(e){e.preventDefault();updatePreferences();settings.showModal();};
+
 })();
 
 /* Nudge the b-roll into playing. Muted autoplay is allowed everywhere modern,
