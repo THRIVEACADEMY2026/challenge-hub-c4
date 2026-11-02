@@ -1431,6 +1431,7 @@ function selectRound(cohort){
   return true;
 }
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
+var identitySelectionPending=false;
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
 var cohortRetryTimer=null,cohortRetryAttempt=0;
@@ -1994,7 +1995,7 @@ function sidebar(){
 
 function acct(){
   if(authState!=="hub") return '<span>Not signed in</span>';
-  return esc(displayEmail(S.email)||'Email unavailable')+'<br><button id="signout">Sign out</button>';
+  return esc(displayEmail(S.email)||'Email unavailable')+'<br><button id="signout">Sign out</button> <button id="switchaccount">Use another account</button>';
 }
 
 /* ---------------- views ---------------- */
@@ -2026,13 +2027,17 @@ function loginNotice(){
     '<div style="margin-top:12px"><button type="button" id="freshsession" class="btn btn-primary" '+
     'style="width:auto;padding:10px 18px">Start a clean session</button></div>');
   if(!loginError) return '';
-  /* Past a few misses, stop inviting more guesses. The old copy said "try
-     another", and every extra guess walks them closer to the lockout above. */
-  if(loginTries>=3) return box('Still no match on that address. Rather than keep guessing, '+
-    'text us at '+phoneLink()+' and we&rsquo;ll find your registration and let you in.');
-  return box('We couldn&rsquo;t verify that email. '+
-    'Check it is the address you registered with, which is often not the one you use day to day. '+
-    'If you are sure it is right, open the Hub in a private browsing window, or text us at '+phoneLink()+'.');
+  return box('Use the personal Challenge Hub sign-in link from your registration email. '+
+    'If you cannot find it, contact your Concierge at '+phoneLink()+'.');
+
+}
+function parseChallengeSignInLink(value){
+  try{
+    var u=new URL(value);
+    if(u.origin!==CAS_ORIGIN||u.username||u.password||u.search||u.hash) return null;
+    if(!/^\/m\/[a-f0-9]{64}$/.test(u.pathname)) return null;
+    return u.origin+u.pathname;
+  }catch(error){return null;}
 }
 function vLogin(err){
   return '<section class="hero">'+
@@ -2043,11 +2048,11 @@ function vLogin(err){
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
-      'Sign in with the email you signed up with.</p>'+
+      'Use your personal Challenge Hub sign-in link from your registration email.</p>'+
       loginNotice()+
       '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
-        '<label class="fl" for="em">Your email</label>'+
-        '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
+        '<label class="fl" for="em">Your personal Challenge Hub link</label>'+
+        '<input type="url" id="em" placeholder="Paste your personal sign-in link" autocomplete="off" spellcheck="false" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
       '</form>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
@@ -2497,6 +2502,12 @@ function wire(){
         'target="_blank" rel="noopener">Join LIVE on Zoom Now</a>';
     }
   }
+  var sw=q("switchaccount");if(sw) sw.onclick=function(){
+    identitySelectionPending=true;cancelCohortChecks();
+    authState="login";loginError=false;authDown=false;loginLocked=false;
+    cohortUnavailable=false;preservationExpired=false;
+    S.email=null;S.first=null;save();render();
+  };
   var so=q("signout"); if(so) so.onclick=async function(){
     cancelCohortChecks();
     try{
@@ -2545,76 +2556,13 @@ function wire(){
   var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
-    cancelCohortChecks();cohortRetryAttempt=0;
-    e.preventDefault();
-    cohortUnavailable=false;
-    var v=(q("em").value||"").trim().toLowerCase();
-    /* The form carries novalidate, so nothing was checking this. Tapping the
-       big button on an empty field used to tell a lead their registration
-       did not exist. */
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
-      authDown=false; loginError=false;
-      var box=lf.parentNode.querySelector(".errorbox");
-      if(!box){ box=document.createElement("div"); box.className="errorbox";
-        box.style.cssText="max-width:420px;margin:0 auto 20px"; lf.parentNode.insertBefore(box,lf); }
-      box.innerHTML="Pop your email in the box above and we&rsquo;ll take you straight in.";
-      q("em").focus(); return;
-    }
-    var btn=lf.querySelector('button[type="submit"]');
-    if(btn){btn.disabled=true;btn.textContent="Verifying";}
-    /* Preview hosts only. The real auth service is locked to the production
-       hostname, so it can never answer from here; without this the welcome
-       page on our preview would be a dead end. Never runs on a customer host. */
-    if(showReview){
-      S.email=v; S.first=displayFirst(S.first)||"Preview"; save();
-      authState="hub"; loginError=false; authDown=false;
-      location.hash="#/prechallenge"; render(); return;
-    }
-    try{
-      setExpectedIdentityContext(null);
-      await refreshAuthSession();
-      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
-        method:"POST",credentials:"include",
-        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},
-        body:JSON.stringify({email:v})
-      });
-      var result=await response.json().catch(function(){return {};});
-      if(response.ok&&result.authorized===true){
-        acceptExplicitIdentity(result);
-        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
-        if(!selectRound(result.hub_cohort)){
-          authState="login";authDown=false;cohortUnavailable=true;handleUnavailableCohort(result);render();return;
-        }
-        reportLogin("in", v, response.status);
-        authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
-        render();loadTicketTotal();
-        /* Email login establishes the same authenticated Hub state as the
-           session bootstrap above. Run the existing consent-gated, one-time
-           claim handlers here as well so this supported recovery path does
-           not silently skip registration conversion delivery. */
-        claimChallengeGa4Signup();
-        claimChallengeMetaLead();
-        return;
-      }
-      /* 429 is the per-visitor rate limit. Its body is identical to the 401,
-         so the status line is the only thing that separates them, and it must
-         never be read as "not registered" - the address is often correct.
-         A 5xx means our service is unwell, not that this person is a stranger.
-         Say so, and never blame the lead for our outage. */
-      if(response.status===429){ authDown=false; loginError=false; loginLocked=true;
-        reportLogin("rate_limited", v, response.status); }
-      else if(response.status>=500){ authDown=true; loginError=false; loginLocked=false;
-        reportLogin("service_down", v, response.status); }
-      else { authDown=false; loginError=true; loginLocked=false;
-        reportLogin("not_on_list", v, response.status); loginTries++; }
-    }catch(error){
-      /* Could not reach the service at all. Same reasoning. */
-      authDown=true; loginError=false; loginLocked=false;
-      reportLogin("unreachable", v, 0);
-    }
-    render();
-    /* Put their email back so they are not retyping it to try again. */
-    var em=q("em");if(em){em.value=v;em.focus();}
+    e.preventDefault();cancelCohortChecks();
+    var proof=parseChallengeSignInLink((q("em").value||"").trim());
+    if(!proof){loginError=true;authDown=false;loginLocked=false;render();return;}
+    // No browser state or email is authority. The existing server validates the
+    // bearer credential and rotates only after successful token redemption.
+    // Navigate directly; do not send the credential to telemetry or storage.
+    window.location.assign(proof);
   };
 
   var ce=q("copyEmail");
@@ -3162,6 +3110,8 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
+  if(typeof identitySelectionPending!=="undefined"&&identitySelectionPending) return;
+
   if(!identityHandoffInitialized) initializeIdentityHandoff();
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
