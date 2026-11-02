@@ -1029,7 +1029,14 @@ var CHALLENGE = {
        selectRound() maps that validated response to these existing keys;
        missing or unknown cohorts fail closed.
        --------------------------------------------------------------------- */
-    "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",   days: [
+    "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",
+     /* C1's own Group and calendar. Calendar verified 16 Oct: titled
+        "(Nov 2-6 + 9)", six events, 10:00-11:00am PST, Group 1103115088773996
+        inside it. */
+     links:{ fbGroup:"https://www.facebook.com/groups/1103115088773996",
+             fbGuides:"https://www.facebook.com/groups/1103115088773996/learning_content",
+             addCal:"https://www.addevent.com/calendar/yw2557c2xbsj" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1082,7 +1089,17 @@ var CHALLENGE = {
      unlockAt:"2026-11-09T09:00:00-08:00", startsAt:"2026-11-09T09:50:00-08:00", replayAt:"2026-11-09T11:00:00-08:00",
      vimeo:"", replay:"",
      replaysCloseAt:"2026-11-15T21:00:00-08:00"}] },
-    "(5-day challenge) nov 16-20 2026": { name:"November 16 to 20", days: [
+    "(5-day challenge) nov 16-20 2026": { name:"November 16 to 20",
+     /* C2 has a DIFFERENT Group and a DIFFERENT calendar. Ella, 2 Nov.
+        Both read off the live pages before wiring: the calendar is titled
+        "(Nov 16-20 + 23)", holds six events - the 16th to the 20th plus the
+        23rd Grand Finale - all 18:00-19:00 UTC, which is 10:00-11:00am PST,
+        the advertised time. The Group inside that calendar is
+        1721649735561700, matching the Group below. Not C1's 1103115088773996. */
+     links:{ fbGroup:"https://www.facebook.com/groups/1721649735561700",
+             fbGuides:"https://www.facebook.com/groups/1721649735561700/learning_content",
+             addCal:"https://www.addevent.com/calendar/7cjxmls27t6s" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1135,7 +1152,13 @@ var CHALLENGE = {
      unlockAt:"2026-11-23T09:00:00-08:00", startsAt:"2026-11-23T09:50:00-08:00", replayAt:"2026-11-23T11:00:00-08:00",
      vimeo:"", replay:"",
      replaysCloseAt:"2026-11-29T21:00:00-08:00"}] },
-    "(5-day challenge) jan 4-8 2027": { name:"January 4 to 8",    days: [
+    "(5-day challenge) jan 4-8 2027": { name:"January 4 to 8",
+     /* BLANK ON PURPOSE, waiting on Ella: C3's Group and calendar do not
+        exist yet. Empty is safe - the page shows the dates in words and hides
+        the buttons. Do NOT fall back to C1's: that is the bug this replaced,
+        where every round pointed at C1's Group. */
+     links:{ fbGroup:"", fbGuides:"", addCal:"" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1361,14 +1384,30 @@ var MEDIA = {"logo-navy.png":"e76a58c1", "summit-banner.jpg":"232a6c81", "hero.m
 function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
 
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
-    OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
-    FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
-    ADDCAL=CHALLENGE.links.addCal;
+    OPTIN=CHALLENGE.links.optin;
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-challenge-hub";
 /* CAS supplies a D1-derived cohort on login and session restoration.
    GHL tags and the browser clock never choose a participant's cohort. */
 var ROUND_TAG = "", ROUND_NAME = "";
 var DAYS = [];
+/* The Group and the calendar belong to the ROUND, not to the Hub. Each round
+   runs its own Facebook Group and its own AddEvent calendar, so these were
+   read per round rather than once at load. As single globals they sent a C2
+   lead into C1's Group, and the calendar button was hard-coded to show for
+   C1 alone, which left C2 and C3 with no calendar button at all. Ella, 2 Nov:
+   "buttons not working for C2".
+
+   An empty value means that round's link does not exist yet. Every caller
+   hides its button in that case. Nothing falls back to another round's
+   links: sending a January lead into November's Group is the fault this
+   replaced, not a graceful degradation. */
+function roundLinks(){
+  var r = ROUND_TAG && CHALLENGE.rounds[ROUND_TAG];
+  return (r && r.links) || {};
+}
+function fbGroupUrl(){ return roundLinks().fbGroup || ""; }
+function fbGuidesUrl(){ return roundLinks().fbGuides || fbGroupUrl(); }
+function addCalUrl(){ return roundLinks().addCal || ""; }
 var HUB_COHORT_ROUNDS = {
   challenge_2027_01_c1: "(5-day challenge) nov 2-6 2026",
   challenge_2027_01_c2: "(5-day challenge) nov 16-20 2026",
@@ -2096,8 +2135,8 @@ function vPre(){
       delete this and just have it have the button". The time is already
       given once above, so repeating it here was the repetition she flagged. */
    '<h3 class="pre-step">Step 1 &middot; Put the Challenge events in your calendar now</h3>'+
-   (ADDCAL && ROUND_COHORT==="challenge_2027_01_c1"
-     ? '<a class="btn btn-action" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
+   (addCalUrl()
+     ? '<a class="btn btn-action" href="'+addCalUrl()+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
      /* No September calendar exists yet. Every AddEvent calendar currently on
         the funnel is either disabled or titled Aug 17-21, so wiring one would
         add the wrong week - the exact fault a lead reported on 1 Sept. Until
@@ -2111,11 +2150,19 @@ function vPre(){
       we're not seeing it helping with the Facebook group join rate." That is
       an open question, not an instruction, and it stays until she answers it.
       Removing it also strands the Quests, which live in this Group. */
-   '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
-   '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
-   '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
-   '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
-   '<a class="btn btn-action" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
+   /* The whole step disappears for a round whose Group does not exist yet,
+      rather than a heading and an email box above a missing button. Hiding it
+      keeps every word on this page one Sharla has already approved: there is
+      no approved wording for "your Group is not ready", so none is invented
+      here. The step reappears by itself the moment that round's fbGroup is
+      filled in. */
+   (fbGroupUrl()
+     ? '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
+       '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
+       '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
+       '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
+       '<a class="btn btn-action" href="'+fbGroupUrl()+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'
+     : '')+
 
    preQuestBlock()+
    dayList()+
@@ -2177,7 +2224,7 @@ function questBlock(d){
      unchanged; only the destination differs, so no new copy is introduced.
      Someone still lands in the right place and can find the post. Added for
      the Quad 3 roll-forward, where every post URL starts empty. */
-  var QP = d.post || FBGROUP || '';
+  var QP = d.post || fbGroupUrl() || '';
   if(d.quest==="day1"){
     return '<h3>Complete your Day 1 Quest</h3>'+
       '<p>Comment your Compelling Consult Name on our Day 1 Quest post, then claim your prize.</p>'+
@@ -2293,7 +2340,7 @@ function vDay(n){
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
         '<p>Go to the Facebook Group to watch the Day '+n+' replay now, '+
         'or wait here and it will be ready soon.</p>'+
-        ((d.replay||FBGROUP) ? '<a class="btn btn-outline" href="'+(d.replay||FBGROUP)+'" '+
+        ((d.replay||fbGroupUrl()) ? '<a class="btn btn-outline" href="'+(d.replay||fbGroupUrl())+'" '+
           'target="_blank" rel="noopener">Watch it in the Facebook Group</a>' : '')+'</div>')+
        /* the Join button rides along in the replay state too: it is the same
           Zoom room all week, so somebody catching up on Wednesday still needs
