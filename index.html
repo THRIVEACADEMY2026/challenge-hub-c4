@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="cas-release" content="entry-incident-12">
+<!-- Capture non-bearer handoff context before any analytics or application loader. -->
+<script data-cas-identity-handoff>(function(w){
+  var m=/^#cas-handoff=([A-Za-z0-9_-]{43})$/.exec(w.location.hash||"");
+  if(!m) return;
+  w.thriveHubIncomingIdentity=m[1];
+  try{w.sessionStorage.setItem("thriveHubExpectedIdentity",m[1]);}catch(error){}
+  w.history.replaceState(null,"",w.location.pathname+w.location.search);
+})(window);</script>
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i,marketingKey,analyticsKey){
   "use strict";
@@ -753,7 +762,7 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
 .pb-actions{display:flex;gap:10px;flex:0 0 auto;flex-wrap:wrap}
 @media (max-width:620px){
   .pb-in{padding:14px 16px;gap:12px}
-  /* Two buttons, so they share a row rather than stacking full width. */
+  /* Two buttons share one row instead of stacking full width. */
   .pb-actions{width:100%;flex-wrap:nowrap}
   .pb-in .btn{width:auto;flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
 }
@@ -1018,7 +1027,7 @@ var CHALLENGE = {
     {n:1, date:"Monday November 2",    short:"Mon Nov 2",  title:"Compelling Consult Name",
      asset:"Compelling Consult Name",  quest:"day1",
      unlockAt:"2026-11-02T09:00:00-08:00", startsAt:"2026-11-02T09:50:00-08:00", replayAt:"2026-11-02T11:00:00-08:00",
-     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"https://www.instagram.com/p/DfPywg2DRUX/", replay:"", vimeo:"",
+     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"",
      playbook:"https://giftfromthrive.com/name"},
 
     {n:2, date:"Tuesday November 3",   short:"Tue Nov 3",  title:"Create Intrigue",
@@ -1179,7 +1188,7 @@ var CHALLENGE = {
     {n:1, date:"Monday November 2",    short:"Mon Nov 2",  title:"Compelling Consult Name",
      asset:"Compelling Consult Name",  quest:"day1",
      unlockAt:"2026-11-02T09:00:00-08:00", startsAt:"2026-11-02T09:50:00-08:00", replayAt:"2026-11-02T11:00:00-08:00",
-     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"https://www.instagram.com/p/DfPywg2DRUX/", replay:"", vimeo:"",
+     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"",
      playbook:"https://giftfromthrive.com/name"},
 
     {n:2, date:"Tuesday November 3",   short:"Tue Nov 3",  title:"Create Intrigue",
@@ -1285,10 +1294,7 @@ var CHALLENGE = {
        traffic to the Summit is attributable. Used by the scholarship button,
        the Summit banner image and the replay-page CTA, so every route from
        the Hub carries the same tagging. */
-    /* Ella, 28 Oct. giftfromthrive.com/prize redirects to the Jan 15-17 2027
-       Summit scholarship page and carries its own UTMs, so nothing is appended
-       here. Verified 200 and the page headline reads "CLAIM YOUR SCHOLARSHIP". */
-    summit:  "https://giftfromthrive.com/prize",
+    summit:  "https://giftfromthrive.com/prize"   /* TODO Ella: Jan 15-17 2027 Summit opt-in, UTM-tagged */,
     optin:   "https://apply.clientattractionsummit.com/challenge-optin-organic-socials",
     /* The Zoom room. The meeting has no passcode and uses a waiting room
        instead - Ella confirmed and tested it on 6 Sept - so the bare join link
@@ -1335,7 +1341,7 @@ var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLEN
     OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
     FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
     ADDCAL=CHALLENGE.links.addCal;
-var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-fb-ads-542644?utm_source=challenge_hub&utm_medium=internal&utm_campaign=challenge_2026_11_c1&utm_content=login_not_registered&utm_term=register_here";
+var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-challenge-hub";
 /* CAS supplies a D1-derived cohort on login and session restoration.
    GHL tags and the browser clock never choose a participant's cohort. */
 var ROUND_TAG = "", ROUND_NAME = "";
@@ -1404,6 +1410,105 @@ function selectRound(cohort){
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
+var cohortRetryTimer=null,cohortRetryAttempt=0;
+var expectedIdentityContext=null,currentIdentityContext=null,identityHandoffInitialized=false;
+var activeSessionController=null;
+var HUB_IDENTITY_NOTICE_KEY="thriveHubIdentityNotice",HUB_EXPECTED_CONTEXT_KEY="thriveHubExpectedIdentity";
+function validIdentityContext(value){return typeof value==="string"&&/^[A-Za-z0-9_-]{43}$/.test(value);}
+function setExpectedIdentityContext(value){
+  expectedIdentityContext=validIdentityContext(value)?value:null;
+  try{if(expectedIdentityContext) sessionStorage.setItem(HUB_EXPECTED_CONTEXT_KEY,expectedIdentityContext);else sessionStorage.removeItem(HUB_EXPECTED_CONTEXT_KEY);}catch(error){}
+}
+function publishIdentityNotice(context){
+  // Notification only, never identity proof. Every resulting read must still
+  // pass server cookie authentication and the expected owner-context check.
+  try{localStorage.setItem(HUB_IDENTITY_NOTICE_KEY,JSON.stringify({context:context,nonce:Date.now()+":"+Math.random()}));}catch(error){}
+}
+function identityNoticeReceived(context){
+  if(context!==null&&!validIdentityContext(context)) return;
+  cancelCohortChecks();setExpectedIdentityContext(context);currentIdentityContext=null;
+  selectRound(null);authState="loading";cohortUnavailable=false;S.email=null;S.first=null;render();
+  bootstrapAuth();
+}
+function initializeIdentityHandoff(){
+  identityHandoffInitialized=true;
+  if(typeof window==="undefined"||!window.location) return;
+  try{
+    var incoming=window.thriveHubIncomingIdentity;
+    try{delete window.thriveHubIncomingIdentity;}catch(error){}
+    var match=validIdentityContext(incoming)?["",incoming]:/^#cas-handoff=([A-Za-z0-9_-]{43})$/.exec(window.location.hash||"");
+    if(match){
+      setExpectedIdentityContext(match[1]);
+      history.replaceState(null,"",window.location.pathname+window.location.search);
+      publishIdentityNotice(match[1]);
+    }else{
+      var saved=sessionStorage.getItem(HUB_EXPECTED_CONTEXT_KEY);
+      if(validIdentityContext(saved)) expectedIdentityContext=saved;
+    }
+  }catch(error){}
+  if(window.addEventListener){
+    window.addEventListener("storage",function(event){
+      if(event.key!==HUB_IDENTITY_NOTICE_KEY||!event.newValue) return;
+      try{var notice=JSON.parse(event.newValue);if(notice&&Object.prototype.hasOwnProperty.call(notice,"context")) identityNoticeReceived(notice.context);}catch(error){}
+    });
+    // Also restore authoritative state after returning from another tab or
+    // a Summit identity transition that did not pass through the Hub itself.
+    window.addEventListener("focus",function(){
+      if(cohortCheckInFlight) return;
+      cancelCohortChecks();selectRound(null);authState="loading";render();bootstrapAuth();
+    });
+  }
+}
+function acceptExplicitIdentity(result){
+  setExpectedIdentityContext(null);
+  currentIdentityContext=validIdentityContext(result.identity_context)?result.identity_context:null;
+  if(currentIdentityContext) publishIdentityNotice(currentIdentityContext);
+}
+
+var COHORT_RETRY_DELAYS=[1000,2000,4000,8000,15000];
+var cohortRecoveryState="INITIALIZING",cohortResultCode="COHORT_UNRESOLVED";
+var cohortCheckInFlight=false,cohortGeneration=0;
+var COHORT_DIAGNOSTIC_CODES=["SESSION_VALID","COHORT_RESOLVED","ENROLLMENT_PENDING","RETRIES_EXHAUSTED","MULTIPLE_COHORT_HOLD","ZERO_SUPPORTED_ENROLLMENT","AUTHENTICATION_FAILURE","TRANSIENT_LOOKUP_FAILURE","COHORT_UNRESOLVED"];
+function cohortDiagnostic(code,requestId){
+  if(COHORT_DIAGNOSTIC_CODES.indexOf(code)<0) return;
+  var record={event:"challenge_hub_cohort_result",code:code,attempt:cohortRetryAttempt};
+  if(typeof requestId==="string"&&/^[a-f0-9]{16,32}(?:-[A-Z0-9]+)?$/i.test(requestId)) record.request_id=requestId;
+  // Existing browser console only. Do not use the legacy issue reporter,
+  // which attaches email. Never include token, cookie, CSRF or owner identity.
+  if(typeof console!=="undefined"&&console.info) console.info(record);
+  if(typeof document!=="undefined"&&document.documentElement) document.documentElement.setAttribute("data-cas-cohort-result",code);
+}
+function stopCohortRetry(){if(cohortRetryTimer!==null){clearTimeout(cohortRetryTimer);cohortRetryTimer=null;}}
+function cancelCohortChecks(){
+  stopCohortRetry();cohortGeneration++;
+  if(activeSessionController){activeSessionController.abort();activeSessionController=null;}
+  cohortCheckInFlight=false;
+}
+function retryPendingCohort(){
+  stopCohortRetry();
+  if(cohortRetryAttempt>=COHORT_RETRY_DELAYS.length){
+    cohortRecoveryState="EXHAUSTED";cohortDiagnostic("RETRIES_EXHAUSTED");return;
+  }
+  cohortRecoveryState="CHECKING";
+  var generation=cohortGeneration;
+  cohortRetryTimer=setTimeout(function(){cohortRetryTimer=null;if(generation===cohortGeneration) bootstrapAuth();},COHORT_RETRY_DELAYS[cohortRetryAttempt++]);
+}
+function handleUnavailableCohort(result){
+  var code=result&&result.cohort_result_code;
+  cohortResultCode=["ENROLLMENT_PENDING","MULTIPLE_COHORT_HOLD","ZERO_SUPPORTED_ENROLLMENT"].indexOf(code)>=0?code:"COHORT_UNRESOLVED";
+  cohortDiagnostic(cohortResultCode,result&&result.request_id);
+  if(cohortResultCode==="MULTIPLE_COHORT_HOLD"){cohortRecoveryState="HOLD";stopCohortRetry();}
+  else if(cohortResultCode==="ZERO_SUPPORTED_ENROLLMENT"){cohortRecoveryState="ZERO";stopCohortRetry();}
+  else retryPendingCohort();
+}
+function retryCohortNow(){
+  if(cohortCheckInFlight) return;
+  cancelCohortChecks();cohortRetryAttempt=0;
+  return bootstrapAuth();
+}
+function cohortRetryButton(){
+  return '<div style="margin-top:12px"><button type="button" id="cohortRetry" class="btn btn-primary"'+(cohortCheckInFlight?' disabled':'')+'>Try Again</button></div>';
+}
 
 /* Replays close on a schedule. A day may carry its own window: the Grand
    Finale needs one because it airs AFTER the Sunday cut-off that applies to
@@ -1880,12 +1985,18 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
-  if(cohortUnavailable) return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">Your registration is recognized, but we couldn’t confirm your Challenge round. Please contact your Challenge Concierge for help with access.</div>';
+  if(cohortUnavailable){
+    var notice=cohortRecoveryState==="HOLD"?"Your registration is recognized, but more than one Challenge round is associated with your account. Your Challenge Concierge can help confirm the right round.":
+      cohortRecoveryState==="ZERO"?"Your registration is recognized, but no supported Challenge round is currently assigned. Please contact your Challenge Concierge, or check again.":
+      cohortRecoveryState==="EXHAUSTED"?"We couldn’t confirm your Challenge round after several checks. Automatic checking has stopped. Select Try Again to check your access again.":
+      "Your registration is recognized. We’re checking your Challenge round. If your access is confirmed during these checks, the Hub will open automatically.";
+    return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px" role="status" aria-live="polite">'+notice+(cohortRecoveryState==="CHECKING"?'':cohortRetryButton())+'</div>';
+  }
   var box=function(h){return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px">'+h+'</div>';};
   if(preservationExpired) return box('Your C1 access window has ended. '+
     'Please contact your Concierge at '+phoneLink()+' if you need help with your registration.');
   if(authDown) return box('We can&rsquo;t reach our system right now. This is us, not you. '+
-    'Please try again in a few minutes, or text your Concierge at '+phoneLink()+' and we&rsquo;ll let you straight in.');
+    'Please try again in a few minutes, or text your Concierge at '+phoneLink()+'.'+cohortRetryButton());
   if(loginLocked) return box('That is a few tries in a row, so sign-in has paused itself for a moment. '+
     'Nothing is wrong with your registration. Start a clean session below, '+
     'or text us at '+phoneLink()+' and we&rsquo;ll let you straight in.'+
@@ -1911,7 +2022,7 @@ function vLogin(err){
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Sign in with the email you signed up with.</p>'+
       loginNotice()+
-      '<form id="loginForm" novalidate>'+
+      '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
         '<label class="fl" for="em">Your email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
@@ -2105,7 +2216,7 @@ function vDay(n){
       'with your first and last name and they&rsquo;ll look after you.</p>'+
       '<p class="lede">Your Playbook is yours to keep, and everything in it still works.</p>'+
       (d.playbook ? '<a class="btn btn-outline" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a>' : '')+
-      (summitOpen() && SUMMIT ?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
+      (summitOpen()?'<a class="btn btn-outline" href="'+SUMMIT+'" target="_blank" rel="noopener">Claim your scholarship</a>':'')+
       winnerBlock(n)+
       concierge()+'</div>';
   }
@@ -2191,7 +2302,7 @@ function vDay(n){
    (dn?(n===1
         ? 'Great job completing your Day 1 Quest!<br>'+
           'You&rsquo;re now eligible for a Full Scholarship to the Client Attraction Summit.<br>'+
-          (SUMMIT ? '<a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>' : '')
+          '<a href="'+SUMMIT+'" target="_blank" rel="noopener">Learn more here.</a>'
         : '<b>Golden Ticket Earned.</b> Day '+n+' is done! You&rsquo;re in the drawing for '+
           'today&rsquo;s prize and one step closer to the Grand Prize.')
       :'Complete all the steps to earn <b>1 Golden Ticket</b> toward the Grand Prize.')+
@@ -2364,6 +2475,7 @@ function wire(){
     }
   }
   var so=q("signout"); if(so) so.onclick=async function(){
+    cancelCohortChecks();
     try{
       await refreshAuthSession();
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/logout",{
@@ -2373,6 +2485,7 @@ function wire(){
       var result=await response.json().catch(function(){return {};});
       if(!response.ok||result.logged_out!==true) return;
       if(typeof result.csrf_token==="string") csrfToken=result.csrf_token;
+      setExpectedIdentityContext(null);currentIdentityContext=null;publishIdentityNotice(null);
       S.email=null;S.first=null;save();authState="login";loginError=false;loginLocked=false;loginTries=0;
       location.hash="#/login";render();
     }catch(error){}
@@ -2406,8 +2519,10 @@ function wire(){
     var em=document.getElementById("em"); if(em) em.focus();
   };
 
+  var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
+    cancelCohortChecks();cohortRetryAttempt=0;
     e.preventDefault();
     cohortUnavailable=false;
     var v=(q("em").value||"").trim().toLowerCase();
@@ -2433,6 +2548,7 @@ function wire(){
       location.hash="#/prechallenge"; render(); return;
     }
     try{
+      setExpectedIdentityContext(null);
       await refreshAuthSession();
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
         method:"POST",credentials:"include",
@@ -2441,14 +2557,10 @@ function wire(){
       });
       var result=await response.json().catch(function(){return {};});
       if(response.ok&&result.authorized===true){
+        acceptExplicitIdentity(result);
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         if(!selectRound(result.hub_cohort)){
-          /* Authenticated, but no single Challenge round resolved. The lead
-             sees honest copy for this, but until now nothing reached the log,
-             so nobody could count how often it happens or to whom. Ella,
-             28 Oct. Its own outcome, never folded into an outage. */
-          reportLogin("no_round", v, response.status);
-          authState="login";authDown=false;cohortUnavailable=true;render();return;
+          authState="login";authDown=false;cohortUnavailable=true;handleUnavailableCohort(result);render();return;
         }
         reportLogin("in", v, response.status);
         authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
@@ -2707,10 +2819,10 @@ if(tgR) tgR.onclick=function(){
   window.addEventListener("resize", pad);
   function decided(key){var value=choice(key);return value==="granted"||value==="denied";}
   if(!decided(MARKETING_KEY)||!decided(ANALYTICS_KEY)) show();
-  /* Ella, 28 Oct: one Allow and one Reject, nothing else. Four buttons made
-     the bar 348px tall on a phone, 43% of the screen, and it covered Step 1
-     entirely on first load. Both consents are still stored and dispatched
-     separately below; this only stops asking the lead to decide twice. */
+  /* Ella, 28 Oct, seen live on Day 1: four buttons made this bar 348px tall on
+     a phone, 43% of the screen, and it covered the bottom of ENTER THE HUB.
+     Both consents are still stored and dispatched separately below; the lead
+     is simply not asked to make the same call twice. */
   function setBoth(grant){
     var m=window.thriveHubMarketingConsent, a=window.thriveHubAnalyticsConsent;
     if(a){ grant ? a.grant() : a.deny(); }
@@ -2766,12 +2878,26 @@ if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
   rt.textContent=open?"Hide review tools":"Review tools";};
 
 window.addEventListener("hashchange",function(){render();});
-async function refreshAuthSession(){
+async function refreshAuthSession(expectedGeneration){
+  var controller=new AbortController();
+  if(expectedGeneration!==undefined) activeSessionController=controller;
+  var timeout=setTimeout(function(){controller.abort();},8000);
+  try{
   var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/session",{
-    method:"GET",credentials:"include",headers:{"Accept":"application/json"}
+    method:"GET",credentials:"include",headers:Object.assign({"Accept":"application/json"},expectedIdentityContext?{"X-CAS-Identity-Context":expectedIdentityContext}:{}),signal:controller.signal
   });
   var result=await response.json().catch(function(){return {};});
-  if(!response.ok||typeof result.csrf_token!=="string") throw new Error("Session refresh failed");
+  if(expectedGeneration!==undefined&&expectedGeneration!==cohortGeneration) return result;
+  if(!response.ok||typeof result.csrf_token!=="string"){
+    var failure=new Error("Session refresh failed");
+    failure.cohortCode=response.status===401||response.status===403?"AUTHENTICATION_FAILURE":"TRANSIENT_LOOKUP_FAILURE";throw failure;
+  }
+  if(expectedIdentityContext&&result.authorized===true&&result.identity_context!==expectedIdentityContext){
+    var mismatch=new Error("Identity handoff was not confirmed");mismatch.cohortCode="AUTHENTICATION_FAILURE";throw mismatch;
+  }
+  if(result.authorized===true&&validIdentityContext(result.identity_context)){
+    currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);
+  }
   csrfToken=result.csrf_token;
   var routing=result.conversion_routing;
   coordinatedRoutingActive=!!(routing&&routing.coordinated===true&&
@@ -2779,6 +2905,7 @@ async function refreshAuthSession(){
     routing.routing_rule_version==="challenge-platform-routing/v1");
   coordinatedRoutingRuleVersion=coordinatedRoutingActive?routing.routing_rule_version:null;
   return result;
+  }finally{clearTimeout(timeout);if(activeSessionController===controller) activeSessionController=null;}
 }
 var metaLeadClaimStarted=false;
 var coordinatedRoutingActive=false;
@@ -2973,17 +3100,26 @@ async function claimChallengeGa4Signup(){
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
 async function bootstrapAuth(){
+  if(!identityHandoffInitialized) initializeIdentityHandoff();
+  if(cohortCheckInFlight) return;
+  cohortCheckInFlight=true;
+  var generation=cohortGeneration;
+  stopCohortRetry();
   authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
   try{
-    var result=await refreshAuthSession();
+    var result=await refreshAuthSession(generation);
+    if(generation!==cohortGeneration) return;
+    cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
+    if(cohortUnavailable) handleUnavailableCohort(result);
+    else{
+      cohortRetryAttempt=0;
+      cohortRecoveryState=enrolled?"RESOLVED":"AUTHENTICATION_FAILURE";
+      if(enrolled) cohortDiagnostic("COHORT_RESOLVED",result.request_id);
+    }
     authDown=false;
-    /* Same failure, reached by restoring a session rather than typing an
-       email. It ejects someone who was in the Hub yesterday, so it has to be
-       visible in the log too. */
-    if(cohortUnavailable) reportLogin("no_round", result.email || S.email || "", 200);
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){
@@ -2993,11 +3129,18 @@ async function bootstrapAuth(){
     }
     return;
   }catch(error){
-    /* The sign-in service could not be reached. That is NOT the same as "you
-       are not registered", and it used to be shown with the same words, so a
-       registrant hitting a maintenance window was told their registration did
-       not exist. Flagged separately now. */
-    authDown=true;
+    if(generation!==cohortGeneration) return;
+    if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
+      authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
+      cohortDiagnostic("AUTHENTICATION_FAILURE");render();return;
+    }
+    authDown=true;cohortRecoveryState="TRANSIENT_LOOKUP_FAILURE";
+    cohortDiagnostic("TRANSIENT_LOOKUP_FAILURE");
+  }finally{
+    if(generation===cohortGeneration){
+      cohortCheckInFlight=false;
+      if(cohortUnavailable) render();
+    }
   }
   /* Review hosts only. On our own preview this skips the gate so the Hub can
      be reviewed without the live auth service. showReview is false on every
