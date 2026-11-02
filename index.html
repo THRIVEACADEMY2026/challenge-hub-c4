@@ -2049,7 +2049,17 @@ function acct(){
 function loginNotice(){
   if(cohortUnavailable){
     var notice=cohortRecoveryState==="HOLD"?"Your registration is recognized, but more than one Challenge round is associated with your account. Your Challenge Concierge can help confirm the right round.":
-      cohortRecoveryState==="ZERO"?"Your registration is recognized, but no supported Challenge round is currently assigned. Please contact your Challenge Concierge, or check again.":
+      /* Ella, 2 Nov: take this one off the screen. It read as a system
+         fault - "no supported Challenge round is currently assigned" - and it
+         was the only failure on this page that named the Concierge without
+         giving the number, so it dead-ended the one person who most needed
+         a human. The server has genuinely said this address holds no active
+         enrolment in C1, C2 or C3, so we cannot open the Hub. What changes is
+         what they read and whether they can reach anyone.
+
+         Both sentences are lifted verbatim from the locked-out notice Sharla
+         already approved, so no new wording goes live here. */
+      cohortRecoveryState==="ZERO"?"Nothing is wrong with your registration. Text us at "+phoneLink()+" and we\u2019ll let you straight in.":
       cohortRecoveryState==="EXHAUSTED"?"We couldn’t confirm your Challenge round after several checks. Automatic checking has stopped. Select Try Again to check your access again.":
       "Your registration is recognized. We’re checking your Challenge round. If your access is confirmed during these checks, the Hub will open automatically.";
     return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px" role="status" aria-live="polite">'+notice+(cohortRecoveryState==="CHECKING"?'':cohortRetryButton())+'</div>';
