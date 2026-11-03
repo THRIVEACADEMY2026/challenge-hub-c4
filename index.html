@@ -1774,8 +1774,11 @@ function reportLogin(outcome, email, status){
     if(!url) return;
     var payload = {
       challenge: CHALLENGE.id,
-      outcome:   outcome,                      /* in | not_on_list | rate_limited | service_down | unreachable */
-      email:     (email||"").trim().toLowerCase(),
+      outcome:   outcome,                      /* in | no_round | not_on_list | service_down | bad_link */
+      /* Deliberately always blank. The sheet counts outcomes; it does not
+         identify people. Kept in the payload so the sheet's columns and the
+         /entry reporter's shape stay the same. */
+      email:     "",
       status:    status || 0,
       attempt:   (typeof loginTries==="number" ? loginTries + 1 : 0),
       round:     (typeof ROUND_NAME==="string" && ROUND_NAME) || "",
@@ -1791,15 +1794,21 @@ function reportLogin(outcome, email, status){
   }catch(e){}
 }
 
-/* The magic-link rewrite on 2 Nov removed all five reportLogin call sites
-   along with the email form they lived in. The function survived, orphaned,
-   and the sign-ins sheet has recorded nothing since. These calls are the same
-   reporting written against the new flow: bootstrapAuth is now the only place
-   that decides whether somebody gets in, so that is where they belong.
+/* Counts only. No address, no contact id, no pasted text ever leaves the
+   page through here.
 
-   Once per outcome per page load. bootstrapAuth runs again on every cohort
-   retry, and without this a single stuck visitor would write a row every few
-   seconds until the sheet was useless. */
+   The five old call sites went with the email form on 2 Nov, and that was
+   deliberate: the note on cohortDiagnostic says plainly not to use the
+   reporter that attaches an email. The server already records who got in,
+   in its own events table, which is where a Concierge should look somebody
+   up. What it cannot see is a failure that never reaches it - a visitor
+   pasting the wrong thing into the link box, or a browser that cannot reach
+   the service at all. Those leave no trace anywhere else, so they are
+   counted here, and only counted.
+
+   Once per outcome per page load. bootstrapAuth re-enters on every cohort
+   retry, and without this one stuck visitor would write a row every few
+   seconds. */
 var loginOutcomesSent = {};
 function reportLoginOnce(outcome, email, status){
   if(loginOutcomesSent[outcome]) return;
@@ -3187,12 +3196,12 @@ async function bootstrapAuth(){
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
-    if(cohortUnavailable){ reportLoginOnce("no_round", result.email, 200); handleUnavailableCohort(result); }
+    if(cohortUnavailable){ reportLoginOnce("no_round","",200); handleUnavailableCohort(result); }
     else{
       cohortRetryAttempt=0;
       cohortRecoveryState=enrolled?"RESOLVED":"AUTHENTICATION_FAILURE";
       if(enrolled) cohortDiagnostic("COHORT_RESOLVED",result.request_id);
-      if(enrolled) reportLoginOnce("in", result.email, 200);
+      if(enrolled) reportLoginOnce("in","",200);
     }
     authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
