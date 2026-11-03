@@ -2026,7 +2026,7 @@ function sidebar(){
   return '<div class="stick">'+
     '<button type="button" id="navClose" class="navclose">Close</button>'+
     '<h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
-    (authState==="limited"?limitedAccessNotice():ticketPanel())+
+    (authState==="limited"?"":ticketPanel())+
     '<div style="margin-top:28px">'+concierge()+'</div></div>';
 }
 
@@ -2124,9 +2124,9 @@ function vPre(){
        'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
        'Your browser cannot play this video. <a href="'+m_('welcome.mp4')+'">Download it instead.</a></video></div>'+
    '</div>';}
-  if(typeof authState!=="undefined"&&authState==="limited")return '<div class="measure prep">'+welcomePanel(null)+limitedAccessNotice()+'</div>';
-  var first=displayFirst(S.first);
-  var email=displayEmail(S.email);
+  var learning=typeof authState!=="undefined"&&authState==="limited";
+  var first=learning?null:displayFirst(S.first);
+  var email=learning?null:displayEmail(S.email);
   /* Hierarchy set by Sharla on the 4 Sept call. Her words: the largest thing
      on the page should be "take these two quick steps", then the Step headers,
      then the greeting. She asked for at least five font sizes between each
@@ -2169,8 +2169,8 @@ function vPre(){
    (fbGroupUrl()
      ? '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
        '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
-       '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
-       '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
+       (learning?'':'<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
+       '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>')+
        '<a class="btn btn-action" href="'+fbGroupUrl()+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'
      : '')+
 
@@ -2228,7 +2228,8 @@ function dayList(){
 }
 
 function questBlock(d){
-  var p=prog(d.n);
+  var learning=typeof authState!=="undefined"&&authState==="limited";
+  var p=learning?{quest:false,steps:[]}:prog(d.n);
   /* A day whose Quest post URL has not been pasted in yet falls back to the
      Group itself rather than rendering a dead button. Links and labels are
      unchanged; only the destination differs, so no new copy is introduced.
@@ -2240,7 +2241,7 @@ function questBlock(d){
       '<p>Comment your Compelling Consult Name on our Day 1 Quest post, then claim your prize.</p>'+
       '<a class="btn btn-primary" href="'+QP+'" target="_blank" rel="noopener">Go to the Day 1 Quest post</a>'+
       '<div class="steps"><div class="step'+(p.quest?' checked':'')+'">'+
-      '<input type="checkbox" id="q1"'+(p.quest?' checked':'')+'>'+
+      (learning?'':'<input type="checkbox" id="q1"'+(p.quest?' checked':'')+'>')+
       '<label class="txt" for="q1"><span class="k">Day 1 Quest</span>I posted my Compelling Consult Name on the Quest post.</label></div></div>';
   }
   var L=[
@@ -2256,7 +2257,7 @@ function questBlock(d){
    '<a class="btn btn-primary" href="'+QP+'" target="_blank" rel="noopener">Go to the Day '+d.n+' Quest post</a>'+
    '<div class="steps">'+L.map(function(t,i){
      var on=p.steps.indexOf(i)>-1;
-     return '<div class="step'+(on?' checked':'')+'"><input type="checkbox" data-step="'+i+'" id="s'+i+'"'+(on?' checked':'')+'>'+
+     return '<div class="step'+(on?' checked':'')+'">'+(learning?'':'<input type="checkbox" data-step="'+i+'" id="s'+i+'"'+(on?' checked':'')+'>')+
        '<label class="txt" for="s'+i+'"><span class="k">Step '+(i+1)+'</span>'+t+'</label></div>';}).join('')+'</div>';
 }
 
@@ -2288,7 +2289,7 @@ function vDay(n){
      window. This view returns the same shape as every other day view; the
      surrounding chrome is static markup, not a function. */
   if(!before && replaysClosed(d)){
-    if(typeof authState!=="undefined"&&authState==="limited")return '<div class="measure"><p class="eyebrow">Day '+n+'</p><h1>Replay window closed</h1>'+limitedAccessNotice()+concierge()+'</div>';
+    if(typeof authState!=="undefined"&&authState==="limited")return '<div class="measure"><p class="eyebrow">Day '+n+'</p><h1>Replay window closed</h1>'+concierge()+'</div>';
     return '<div class="measure">'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
       (replayCutoff(d)?'<h1>Replay is no longer available</h1>':'<h1>Replay availability is being confirmed</h1>')+
@@ -2358,7 +2359,6 @@ function vDay(n){
           it for Thursday */
        joinBlock;
 
-  if(typeof authState!=="undefined"&&authState==="limited")return '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>'+d.title+'</h1><div class="cols"><div class="mainCol">'+media+'</div><div class="aside">'+limitedAccessNotice()+'</div></div>'+concierge();
 
   /* The same square artwork that heads that day's post in the Facebook Group,
      so the Hub and the Group read as one thing rather than two. */
@@ -2374,6 +2374,10 @@ function vDay(n){
    : !started
    ? '<h3>Today&rsquo;s Quest</h3><p>Your Quest unlocks when we go live. Stay with me on the call and you&rsquo;ll have it written before we finish.</p>'
    : questBlock(d);
+
+  /* General learning content uses Ella's original art and Quest copy. No
+     account state, ticket claims, downloads or personalized Summit links. */
+  if(typeof authState!=="undefined"&&authState==="limited")return '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>'+d.title+'</h1><div class="cols"><div class="mainCol">'+media+art+quest+'</div></div>'+concierge();
 
   var ticket = (!started || !isQuestDay(d)) ? '' :
    '<div class="ticket'+(dn?' earned':'')+'"><div class="ticket-in">'+
