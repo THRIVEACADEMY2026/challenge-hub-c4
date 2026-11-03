@@ -1436,6 +1436,52 @@ var HUB_REPLAY_CUTOFFS = {
   challenge_2027_01_c3: "2027-01-10T21:00:00-08:00"
 };
 var ROUND_COHORT = "";
+
+/* THE TEAM. Ella, 3 Nov: our own people must be able to open the Hub with the
+   address they actually use, without being enrolled as a participant and
+   without a +tag variant to remember.
+
+   None of these six carry a Challenge enrolment, so the server authenticates
+   them and then truthfully reports no round, which until now dropped them on
+   the "access needs confirmation" notice. Sharla hit this with
+   sharla@thrive-academy.com while sj@thrive-academy.com worked, which is not
+   a difference anyone should have to know.
+
+   This decides nothing about WHO you are. The server has already said that
+   before any of this runs. All it decides is which round a signed-in
+   colleague is shown when they have no enrolment of their own. A participant
+   is never affected: anyone with a real enrolment keeps the round the server
+   gave them, and this never overrides it. */
+var HUB_TEAM_EMAILS = [
+  "sharla@thrive-academy.com",
+  "sj@thrive-academy.com",
+  "ella@thrive-academy.com",
+  "philippe@thrive-academy.com",
+  "mikah@thrive-academy.com",
+  "maite@thrive-academy.com",
+  "sarah@thrive-academy.com"
+];
+function isTeamEmail(value){
+  return HUB_TEAM_EMAILS.indexOf(String(value||"").trim().toLowerCase())>-1;
+}
+/* The round the team sees: the first one whose replays have not closed yet.
+   C1 today, C2 from 16 November, C3 in January, with nothing to edit. */
+function currentRoundCohort(){
+  var now=(typeof now_==="function"?now_():Date.now()),
+      ids=["challenge_2027_01_c1","challenge_2027_01_c2","challenge_2027_01_c3"];
+  for(var i=0;i<ids.length;i++){
+    var cut=Date.parse(HUB_REPLAY_CUTOFFS[ids[i]]||"");
+    if(isFinite(cut)&&now<cut) return ids[i];
+  }
+  return ids[ids.length-1];
+}
+/* Returns true only when the person is one of ours AND the server gave them
+   no round of its own. */
+function selectTeamRound(email){
+  if(!isTeamEmail(email)) return false;
+  var id=currentRoundCohort();
+  return selectRound({challenge_cohort_id:id, round:HUB_COHORT_ROUNDS[id]});
+}
 var preservationExpiresAt=0, preservationTimer=null, preservationExpired=false;
 function checkPreservationExpiry(){
   if(!preservationExpiresAt) return;
@@ -2642,13 +2688,17 @@ function wire(){
        submit would be swallowed by the bootstrap guard. */
     identitySelectionPending=false;
     var raw=(q("em").value||"").trim();
-
-    /* A link is bearer proof. It goes straight to the server to be redeemed,
-       and is never read, stored or reported from here. */
-    var proof=parseChallengeSignInLink(raw);
-    if(proof){ window.location.assign(proof); return; }
-
     var v=raw.toLowerCase();
+
+    /* One way in, and it is the address they registered with. Ella, 3 Nov,
+       choosing between the two: "just this."
+
+       Dropping the paste box costs nobody their link. A sign-in link is a URL
+       in an email: clicking it still works, because redeeming it happens on
+       the server and never involved this page. The box was only ever for
+       someone who copied the link instead of clicking it, and the Concierge
+       spent the morning of the 3rd walking people through exactly that copy
+       and paste. There is now nothing to walk anyone through. */
     /* The form carries novalidate, so nothing else is checking this. Tapping
        the big button on an empty field used to tell a lead her registration
        did not exist. */
@@ -2683,7 +2733,9 @@ function wire(){
         S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
         /* The cohort still comes from the server and nothing else. Typing an
            address proves who you are; it does not choose your round. */
-        if(!selectRound(result.hub_cohort)){
+        /* A participant keeps whatever round the server gave them. Only when
+           the server gives none does the team list get a look in. */
+        if(!selectRound(result.hub_cohort) && !selectTeamRound(result.email||v)){
           authState="login";authDown=false;cohortUnavailable=true;
           reportLogin("no_round","",response.status);
           handleUnavailableCohort(result);render();return;
@@ -3273,7 +3325,8 @@ async function bootstrapAuth(){
     var result=await refreshAuthSession(generation);
     if(generation!==cohortGeneration) return;
     cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
-    var enrolled=result.authorized===true && selectRound(result.hub_cohort);
+    var enrolled=result.authorized===true &&
+      (selectRound(result.hub_cohort) || selectTeamRound(result.email));
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
     if(cohortUnavailable) handleUnavailableCohort(result);
