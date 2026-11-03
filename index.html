@@ -1470,6 +1470,7 @@ var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com"
 var identitySelectionPending=false;
 var authState="loading", csrfToken=null, loginError=false, authDown=false;
 var loginLocked=false, loginTries=0, cohortUnavailable=false;
+var emailLoginPending=false,emailLoginSending=false,emailLoginFailure=false;
 var cohortRetryTimer=null,cohortRetryAttempt=0;
 var expectedIdentityContext=null,currentIdentityContext=null,identityHandoffInitialized=false;
 var activeSessionController=null;
@@ -2084,13 +2085,16 @@ function vLogin(err){
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
-      'Use your personal Challenge Hub sign-in link from your registration email.</p>'+
+      'Enter the email you registered with to continue securely.</p>'+
       loginNotice()+
+      (emailLoginPending?'<p role="status">If this email has Challenge access, your personal sign-in link will arrive shortly. Check your inbox and spam folder. Open the link in the browser you want to use.</p>':'')+
+      (emailLoginFailure?'<p role="alert">We could not start sign-in. Please try again or contact your Concierge.</p>':'')+
       '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
-        '<label class="fl" for="em">Your personal Challenge Hub link</label>'+
-        '<input type="url" id="em" placeholder="Paste your personal sign-in link" autocomplete="off" spellcheck="false" required>'+
-        '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
+        '<label class="fl" for="em">Your registered email</label>'+
+        '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
+        '<button class="btn btn-primary" type="submit" '+(emailLoginSending?'disabled':'')+'>'+(emailLoginSending?'Sending…':'Continue')+'</button>'+
       '</form>'+
+      '<details style="margin-top:14px"><summary>Use an existing personal link</summary><form id="personalLinkForm"><label class="fl" for="personalLink">Personal Challenge link</label><input type="url" id="personalLink" autocomplete="off" spellcheck="false"><button class="btn btn-primary" type="submit">Open personal link</button></form></details>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
       /* The one page where a stuck lead most needs a person used to be the one
          page with nobody on it. */
@@ -2600,14 +2604,23 @@ function wire(){
   var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
   var lf=q("loginForm");
   if(lf) lf.onsubmit=async function(e){
-    e.preventDefault();cancelCohortChecks();
-    var proof=parseChallengeSignInLink((q("em").value||"").trim());
-    if(!proof){loginError=true;authDown=false;loginLocked=false;render();return;}
-    // No browser state or email is authority. The existing server validates the
-    // bearer credential and rotates only after successful token redemption.
-    // Navigate directly; do not send the credential to telemetry or storage.
-    window.location.assign(proof);
+    e.preventDefault();if(emailLoginSending)return;
+    var email=(q("em").value||"").trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
+    emailLoginSending=true;emailLoginFailure=false;emailLoginPending=false;
+    var button=lf.querySelector('button');if(button){button.disabled=true;button.textContent='Continuing…';}
+    var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
+    try{
+      var session=await refreshAuthSession();
+      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"POST",credentials:"include",signal:controller.signal,
+        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},body:JSON.stringify({email:email})});
+      var result=await response.json();if(!response.ok)throw Error();
+      if(result.session_current===true){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+      emailLoginPending=true;
+    }catch(error){emailLoginFailure=true;}finally{clearTimeout(timer);emailLoginSending=false;render();}
   };
+  var pl=q("personalLinkForm");if(pl)pl.onsubmit=function(e){e.preventDefault();var proof=parseChallengeSignInLink((q("personalLink").value||"").trim());if(!proof){loginError=true;render();return;}window.location.assign(proof);};
 
   var ce=q("copyEmail");
   if(ce) ce.onclick=function(){
