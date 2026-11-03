@@ -2101,11 +2101,14 @@ function vLogin(err){
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
-      'Use your personal Challenge Hub sign-in link from your registration email.</p>'+
+      'Sign in with the email you signed up with.</p>'+
       loginNotice()+
       '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
-        '<label class="fl" for="em">Your personal Challenge Hub link</label>'+
-        '<input type="url" id="em" placeholder="Paste your personal sign-in link" autocomplete="off" spellcheck="false" required>'+
+        '<label class="fl" for="em">Your email</label>'+
+        /* type is text, not email, so a pasted sign-in link is not rejected by
+           the browser before our own handler sees it. inputmode keeps the
+           email keyboard on a phone, which is what nearly everyone types. */
+        '<input type="text" id="em" inputmode="email" placeholder="you@email.com" autocomplete="email" spellcheck="false" required>'+
         '<button class="btn btn-primary" type="submit">Enter the Hub</button>'+
       '</form>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
@@ -2616,14 +2619,101 @@ function wire(){
 
   var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
   var lf=q("loginForm");
+  /* ONE BOX, EITHER CREDENTIAL.
+
+     From 2 Nov this accepted only the personal sign-in link, and the email
+     field was gone. Maite escalated four people on the morning of the 3rd:
+     one was already in, one was enrolled with a link she had never managed to
+     use, one had registered under a different address, and one worked in
+     Chrome but not Safari. Her own note: locating the email, copying the
+     link, returning to the Hub and pasting it "is creating confusion".
+
+     Ella, 3 Nov: put the email back. So the box takes whichever a person has.
+     Anyone already following the emailed instructions can still paste their
+     link and it works exactly as before. Everyone else types the address they
+     registered with, which is what every script, every email and the
+     Concierge have always said. The page works out which it is instead of
+     asking the person to know. Neither is "wrong". */
   if(lf) lf.onsubmit=async function(e){
-    e.preventDefault();cancelCohortChecks();
-    var proof=parseChallengeSignInLink((q("em").value||"").trim());
-    if(!proof){loginError=true;authDown=false;loginLocked=false;render();return;}
-    // No browser state or email is authority. The existing server validates the
-    // bearer credential and rotates only after successful token redemption.
-    // Navigate directly; do not send the credential to telemetry or storage.
-    window.location.assign(proof);
+    e.preventDefault();
+    cancelCohortChecks();cohortRetryAttempt=0;
+    cohortUnavailable=false;
+    /* A deliberate sign-in ends the "use another account" pause, or the
+       submit would be swallowed by the bootstrap guard. */
+    identitySelectionPending=false;
+    var raw=(q("em").value||"").trim();
+
+    /* A link is bearer proof. It goes straight to the server to be redeemed,
+       and is never read, stored or reported from here. */
+    var proof=parseChallengeSignInLink(raw);
+    if(proof){ window.location.assign(proof); return; }
+
+    var v=raw.toLowerCase();
+    /* The form carries novalidate, so nothing else is checking this. Tapping
+       the big button on an empty field used to tell a lead her registration
+       did not exist. */
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+      authDown=false; loginError=false;
+      var box=lf.parentNode.querySelector(".errorbox");
+      if(!box){ box=document.createElement("div"); box.className="errorbox";
+        box.style.cssText="max-width:420px;margin:0 auto 20px"; lf.parentNode.insertBefore(box,lf); }
+      box.innerHTML="Pop your email in the box above and we&rsquo;ll take you straight in.";
+      q("em").focus(); return;
+    }
+    var btn=lf.querySelector('button[type="submit"]');
+    if(btn){btn.disabled=true;btn.textContent="Verifying";}
+    /* Preview hosts only. The auth service is locked to the production
+       hostname and can never answer from here. Never runs on a customer host. */
+    if(showReview){
+      S.email=v; S.first=displayFirst(S.first)||"Preview"; save();
+      authState="hub"; loginError=false; authDown=false;
+      location.hash="#/prechallenge"; render(); return;
+    }
+    try{
+      setExpectedIdentityContext(null);
+      await refreshAuthSession();
+      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{
+        method:"POST",credentials:"include",
+        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},
+        body:JSON.stringify({email:v})
+      });
+      var result=await response.json().catch(function(){return {};});
+      if(response.ok&&result.authorized===true){
+        acceptExplicitIdentity(result);
+        S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();
+        /* The cohort still comes from the server and nothing else. Typing an
+           address proves who you are; it does not choose your round. */
+        if(!selectRound(result.hub_cohort)){
+          authState="login";authDown=false;cohortUnavailable=true;
+          reportLogin("no_round","",response.status);
+          handleUnavailableCohort(result);render();return;
+        }
+        reportLogin("in","",response.status);
+        authState="hub";loginError=false;authDown=false;loginLocked=false;loginTries=0;
+        render();loadTicketTotal();
+        claimChallengeGa4Signup();
+        claimChallengeMetaLead();
+        claimChallengeGoogleRegistration();
+        return;
+      }
+      /* 429 is the per-visitor rate limit. Its body is identical to the 401,
+         so the status line is the only thing separating them, and it must
+         never be read as "not registered" - the address is often correct.
+         A 5xx means our service is unwell, not that this person is a stranger. */
+      if(response.status===429){ authDown=false; loginError=false; loginLocked=true;
+        reportLogin("rate_limited","",response.status); }
+      else if(response.status>=500){ authDown=true; loginError=false; loginLocked=false;
+        reportLogin("service_down","",response.status); }
+      else { authDown=false; loginError=true; loginLocked=false;
+        reportLogin("not_on_list","",response.status); loginTries++; }
+    }catch(error){
+      authDown=true; loginError=false; loginLocked=false;
+      reportLogin("unreachable","",0);
+    }
+    if(btn){btn.disabled=false;btn.textContent="Enter the Hub";}
+    render();
+    /* Put what they typed back so they are not retyping it to try again. */
+    var em=q("em");if(em){em.value=raw;em.focus();}
   };
 
   var ce=q("copyEmail");
