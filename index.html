@@ -2085,7 +2085,7 @@ function vLogin(err){
       '<p class="eyebrow">Book 5 Consults in 5 Days</p>'+
       '<h1>Welcome to the<br>Challenge Hub</h1>'+
       '<p class="lede">Everything you need for the Challenge, in one place. '+
-      'Enter the email you registered with to continue securely.</p>'+
+      'Enter your registered email to continue to the Challenge.</p>'+
       loginNotice()+
       (emailLoginPending?'<p role="status">If this email has Challenge access, your personal sign-in link will arrive shortly. Check your inbox and spam folder. Open the link in the browser you want to use.</p>':'')+
       (emailLoginFailure?'<p role="alert">We could not start sign-in. Please try again or contact your Concierge.</p>':'')+
@@ -2094,6 +2094,7 @@ function vLogin(err){
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
         '<button class="btn btn-primary" type="submit" '+(emailLoginSending?'disabled':'')+'>'+(emailLoginSending?'Sending…':'Continue')+'</button>'+
       '</form>'+
+      '<details style="margin-top:14px"><summary>Secure access to my personal Hub</summary><p>For personal progress and account features, email yourself your existing access link.</p><form id="emailAccessForm"><label class="fl" for="personalEmail">Registered email</label><input type="email" id="personalEmail" autocomplete="email" required><button class="btn btn-primary" type="submit">Email my personal link</button></form></details>'+
       '<details style="margin-top:14px"><summary>Use an existing personal link</summary><form id="personalLinkForm"><label class="fl" for="personalLink">Personal Challenge link</label><input type="url" id="personalLink" autocomplete="off" spellcheck="false"><button class="btn btn-primary" type="submit">Open personal link</button></form></details>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
       /* The one page where a stuck lead most needs a person used to be the one
@@ -2607,8 +2608,20 @@ function wire(){
     e.preventDefault();if(emailLoginSending)return;
     var email=(q("em").value||"").trim().toLowerCase();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
+    emailLoginSending=true;emailLoginFailure=false;
+    try{var session=await refreshAuthSession();
+      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+    }catch(error){/* Learning access is independent of identity lookup. */}
+    emailLoginSending=false;
+    // Discard submitted email: this navigation creates no identity or enrollment.
+    window.location.assign("/learn/");
+  };
+  var emailAccess=q("emailAccessForm");if(emailAccess) emailAccess.onsubmit=async function(e){
+    e.preventDefault();if(emailLoginSending)return;
+    var email=(q("personalEmail").value||"").trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
     emailLoginSending=true;emailLoginFailure=false;emailLoginPending=false;
-    var button=lf.querySelector('button');if(button){button.disabled=true;button.textContent='Continuing…';}
+    var button=emailAccess.querySelector('button');if(button){button.disabled=true;button.textContent='Continuing…';}
     var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
     try{
       var session=await refreshAuthSession();
