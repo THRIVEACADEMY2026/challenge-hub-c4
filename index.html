@@ -1657,7 +1657,7 @@ function prog(n){return S.progress[n]||(S.progress[n]={steps:[],quest:false});}
 function day_(n){for(var i=0;i<DAYS.length;i++){if(DAYS[i].n===n)return DAYS[i];}return null;}
 function open_(n){return phaseOf(n)!=="locked";}
 function isQuestDay(d){return d && d.quest && d.quest!=="none";}
-function done_(n){var d=day_(n); if(!isQuestDay(d)) return false;
+function done_(n){if(typeof authState!=="undefined"&&authState==="limited")return false;var d=day_(n); if(!isQuestDay(d)) return false;
   var p=prog(n); return d.quest==="day1" ? p.quest===true : p.steps.length===4;}
 function tickets(){return DAYS.filter(function(d){return isQuestDay(d)&&done_(d.n);}).length;}
 
@@ -1741,7 +1741,7 @@ function reportIssue(kind, detail){
           detail:String(detail||"").slice(0,480),
           challenge:CHALLENGE.id,
           round:(typeof ROUND_NAME==="string" && ROUND_NAME) || "",
-          email:(S && S.email) || "",
+          email:(typeof authState!=="undefined"&&authState==="limited")?"":((S && S.email) || ""),
           screen:(window.innerWidth||0)+"x"+(window.innerHeight||0),
           agent:(navigator.userAgent||"").slice(0,180),
           page:location.hash || "#/"
@@ -2011,7 +2011,7 @@ function winnerBlock(n){
 
 /* ---------------- sidebar (desktop) ---------------- */
 function sidebar(){
-  if(authState!=="hub") return "";
+  if(authState!=="hub"&&authState!=="limited") return "";
   var h=location.hash;
   var items='<a class="navitem'+(h==="#/prechallenge"?'" aria-current="page':'')+'" href="#/prechallenge">'+
             '<span class="n">Prepare</span></a>';
@@ -2022,15 +2022,16 @@ function sidebar(){
       '<span class="n">Day '+d.n+'</span>'+
       (live?'<span class="s">Live now</span>':(done_(d.n)?'<span class="ok">&#10003;</span>':'<span class="s">'+esc(d.short)+'</span>'))+'</a>';
   }).join('');
-  var t=tickets(), tot=DAYS.filter(function(d){return isQuestDay(d)&&open_(d.n);}).length;
+  var t=authState==="limited"?0:tickets(), tot=DAYS.filter(function(d){return isQuestDay(d)&&open_(d.n);}).length;
   return '<div class="stick">'+
     '<button type="button" id="navClose" class="navclose">Close</button>'+
     '<h2>Your Challenge</h2><nav class="navlist">'+items+'</nav>'+
-    ticketPanel()+
+    (authState==="limited"?limitedAccessNotice():ticketPanel())+
     '<div style="margin-top:28px">'+concierge()+'</div></div>';
 }
 
 function acct(){
+  if(authState==="limited")return '<span>Learning access</span><br><button class="personalHub">Personal Hub sign-in</button>';
   if(authState!=="hub") return '<span>Not signed in</span>';
   return esc(displayEmail(S.email)||'Email unavailable')+'<br><button id="signout">Sign out</button> <button id="switchaccount">Use another account</button>';
 }
@@ -2107,20 +2108,7 @@ function vLogin(err){
 }
 
 function vPre(){
-  var first=displayFirst(S.first);
-  var email=displayEmail(S.email);
-  /* Hierarchy set by Sharla on the 4 Sept call. Her words: the largest thing
-     on the page should be "take these two quick steps", then the Step headers,
-     then the greeting. She asked for at least five font sizes between each
-     level, so the .pre-* classes below step down deliberately rather than
-     reusing the general scale. */
-  return '<div class="measure prep">'+
-   /* Sharla, 6 Sept Loom: "we can shrink the size of this video... maybe even
-      make it two columns", because at full width the video pushed the steps
-      below the fold and "they may not realize they could scroll down".
-      Greeting and video now sit side by side, and the repeated start time is
-      said once here rather than again inside Step 1. */
-   '<div class="pre-top">'+
+  function welcomePanel(first){return '<div class="pre-top">'+
      '<div class="pre-top-copy">'+
          /* The "You're registered" eyebrow came out on 16 Oct. Sharla's
             Fathom note - take away "you're registered, you're in" - and Ella
@@ -2135,7 +2123,22 @@ function vPre(){
      '<div class="player"><video controls preload="none" playsinline poster="'+m_('welcome-poster.jpg')+'" '+
        'aria-label="Welcome to the Challenge"><source src="welcome.mp4" type="video/mp4">'+
        'Your browser cannot play this video. <a href="'+m_('welcome.mp4')+'">Download it instead.</a></video></div>'+
-   '</div>'+
+   '</div>';}
+  if(typeof authState!=="undefined"&&authState==="limited")return '<div class="measure prep">'+welcomePanel(null)+limitedAccessNotice()+'</div>';
+  var first=displayFirst(S.first);
+  var email=displayEmail(S.email);
+  /* Hierarchy set by Sharla on the 4 Sept call. Her words: the largest thing
+     on the page should be "take these two quick steps", then the Step headers,
+     then the greeting. She asked for at least five font sizes between each
+     level, so the .pre-* classes below step down deliberately rather than
+     reusing the general scale. */
+  return '<div class="measure prep">'+
+   /* Sharla, 6 Sept Loom: "we can shrink the size of this video... maybe even
+      make it two columns", because at full width the video pushed the steps
+      below the fold and "they may not realize they could scroll down".
+      Greeting and video now sit side by side, and the repeated start time is
+      said once here rather than again inside Step 1. */
+   welcomePanel(first)+
    '<h2 class="pre-do">Two quick steps to get the most clients from this Challenge</h2>'+
 
    /* Sharla: "put Challenge Events in your calendar now... I think we can
@@ -2285,6 +2288,7 @@ function vDay(n){
      window. This view returns the same shape as every other day view; the
      surrounding chrome is static markup, not a function. */
   if(!before && replaysClosed(d)){
+    if(typeof authState!=="undefined"&&authState==="limited")return '<div class="measure"><p class="eyebrow">Day '+n+'</p><h1>Replay window closed</h1>'+limitedAccessNotice()+concierge()+'</div>';
     return '<div class="measure">'+
       '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
       (replayCutoff(d)?'<h1>Replay is no longer available</h1>':'<h1>Replay availability is being confirmed</h1>')+
@@ -2353,6 +2357,8 @@ function vDay(n){
           Zoom room all week, so somebody catching up on Wednesday still needs
           it for Thursday */
        joinBlock;
+
+  if(typeof authState!=="undefined"&&authState==="limited")return '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p><h1>'+d.title+'</h1><div class="cols"><div class="mainCol">'+media+'</div><div class="aside">'+limitedAccessNotice()+'</div></div>'+concierge();
 
   /* The same square artwork that heads that day's post in the Facebook Group,
      so the Hub and the Group read as one thing rather than two. */
@@ -2428,6 +2434,7 @@ function vDay(n){
 }
 
 function vSubmit(n,sent){
+  if(authState==="limited")return limitedAccessNotice();
   var d=day_(n);
   if(sent) return '<div class="narrow"><a class="back" href="#/day/'+n+'">&larr; Back to Day '+n+'</a>'+
     '<h1>Got it</h1><div class="okbox">Your Day '+n+' Quest is counted. See you tomorrow at 10:00am PT.</div>'+
@@ -2466,7 +2473,7 @@ function render(keep){
     document.getElementById("acct").innerHTML="";
     return;
   }
-  if(authState!=="hub"){
+  if(authState!=="hub"&&authState!=="limited"){
     document.body.className="is-login";
     document.getElementById("main").innerHTML=vLogin(loginError);
     document.getElementById("side").innerHTML="";
@@ -2486,7 +2493,7 @@ function render(keep){
   document.getElementById("side").innerHTML=sidebar();
   document.getElementById("acct").innerHTML=acct();
   window.scrollTo(0, keep?y:0);
-  wire(); syncDemo();
+  wire(); if(authState!=="limited")syncDemo();
 }
 
 function wire(){
@@ -2551,6 +2558,7 @@ function wire(){
         'target="_blank" rel="noopener">Join LIVE on Zoom Now</a>';
     }
   }
+  Array.prototype.forEach.call(document.querySelectorAll(".personalHub"),function(personal){personal.onclick=function(){leaveLearningMode();cancelCohortChecks();identitySelectionPending=true;authState="login";cohortUnavailable=false;emailLoginPending=false;render();};});
   var sw=q("switchaccount");if(sw) sw.onclick=function(){
     identitySelectionPending=true;cancelCohortChecks();
     authState="login";loginError=false;authDown=false;loginLocked=false;
@@ -2608,18 +2616,11 @@ function wire(){
     e.preventDefault();if(emailLoginSending)return;
     var email=(q("em").value||"").trim().toLowerCase();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
-    emailLoginSending=true;emailLoginFailure=false;emailLoginPending=false;
-    var button=lf.querySelector('button');if(button){button.disabled=true;button.textContent='Continuing…';}
-    var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
-    try{
-      var session=await refreshAuthSession();
-      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
-      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"POST",credentials:"include",signal:controller.signal,
-        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},body:JSON.stringify({email:email})});
-      var result=await response.json();if(!response.ok)throw Error();
-      if(result.session_current===true){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
-      emailLoginPending=true;
-    }catch(error){emailLoginFailure=true;}finally{clearTimeout(timer);emailLoginSending=false;render();}
+    emailLoginSending=true;emailLoginFailure=false;
+    try{var session=await refreshAuthSession();
+      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;if(typeof leaveLearningMode==="function")leaveLearningMode();identitySelectionPending=false;await bootstrapAuth();return;}
+    }catch(error){/* General learning does not depend on account verification. */}
+    emailLoginSending=false;enterLearningMode();
   };
   var emailAccess=q("emailAccessForm");if(emailAccess) emailAccess.onsubmit=async function(e){
     e.preventDefault();if(emailLoginSending)return;
@@ -3184,10 +3185,24 @@ async function claimChallengeGa4Signup(){
   }
 }
 window.thriveHubClaimGa4Signup=claimChallengeGa4Signup;
+var LEARNING_MODE_KEY="thriveHubLearningMode";
+function learningModeRequested(){try{return new URLSearchParams(location.search).get("access")==="learning";}catch(error){return false;}}
+function leaveLearningMode(){try{sessionStorage.removeItem(LEARNING_MODE_KEY);}catch(error){}try{var u=new URL(location.href);u.searchParams.delete("access");history.replaceState(null,"",u.pathname+u.search+u.hash);}catch(error){}}
+function limitedAccessNotice(){return '<div class="card"><h3>Your personal Hub</h3><p>Learning access does not sign you into an account. Sign in for personal progress, Quest submissions, tickets and account resources.</p><button class="btn btn-outline personalHub">Personal Hub sign-in</button></div>';}
+function enterLearningMode(){
+  cancelCohortChecks();identitySelectionPending=false;setExpectedIdentityContext(null);currentIdentityContext=null;
+  // Public C1 schedule selection is presentation only, never a canonical enrollment.
+  selectRound({challenge_cohort_id:"challenge_2027_01_c1",round:HUB_COHORT_ROUNDS["challenge_2027_01_c1"]});
+  authState="limited";cohortUnavailable=false;emailLoginPending=false;
+  var learningURL=new URL(location.href);learningURL.searchParams.set("access","learning");if(!/^#\/(prechallenge|day\/\d+|submit\/\d+)$/.test(learningURL.hash))learningURL.hash="/prechallenge";history.replaceState(null,"",learningURL.pathname+learningURL.search+learningURL.hash);
+  render();
+}
+
 async function bootstrapAuth(){
   if(typeof identitySelectionPending!=="undefined"&&identitySelectionPending) return;
 
   if(!identityHandoffInitialized) initializeIdentityHandoff();
+  if(typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext){enterLearningMode();return;}
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
@@ -3207,7 +3222,7 @@ async function bootstrapAuth(){
       if(enrolled) cohortDiagnostic("COHORT_RESOLVED",result.request_id);
     }
     authDown=false;
-    if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
+    if(authState==="hub"){if(typeof leaveLearningMode==="function")leaveLearningMode();S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
     render();
     if(authState==="hub"){
       claimChallengeGa4Signup();
@@ -3218,6 +3233,7 @@ async function bootstrapAuth(){
   }catch(error){
     if(generation!==cohortGeneration) return;
     if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
+      if(typeof learningModeRequested==="function"&&learningModeRequested()){enterLearningMode();return;}
       authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
       cohortDiagnostic("AUTHENTICATION_FAILURE");render();return;
     }
