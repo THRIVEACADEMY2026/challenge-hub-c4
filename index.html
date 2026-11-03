@@ -2434,7 +2434,12 @@ function vDay(n){
   return '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
    '<h1>'+d.title+'</h1>'+
    '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+'<div class="summit-inline">'+summitBlock(true,true)+'</div>'+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+winnerBlock(n)+'</div>'+aside+'</div>'+
-   concierge();
+   /* Ella, 3 Nov: redundant on the day pages. The same block already sits in
+      the sidebar on a wide screen, and in the footer at every width, so a
+      desktop reader met it three times on one page. Kept on Day 1, where
+      somebody arriving for the first time may need it before they have found
+      the footer. */
+   (n===1 ? concierge() : '');
 }
 
 function vSubmit(n,sent){
