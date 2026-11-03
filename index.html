@@ -2608,13 +2608,18 @@ function wire(){
     e.preventDefault();if(emailLoginSending)return;
     var email=(q("em").value||"").trim().toLowerCase();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
-    emailLoginSending=true;emailLoginFailure=false;
-    try{var session=await refreshAuthSession();
+    emailLoginSending=true;emailLoginFailure=false;emailLoginPending=false;
+    var button=lf.querySelector('button');if(button){button.disabled=true;button.textContent='Continuing…';}
+    var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
+    try{
+      var session=await refreshAuthSession();
       if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
-    }catch(error){/* Learning access is independent of identity lookup. */}
-    emailLoginSending=false;
-    // Discard submitted email: this navigation creates no identity or enrollment.
-    window.location.assign("/learn/");
+      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"POST",credentials:"include",signal:controller.signal,
+        headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},body:JSON.stringify({email:email})});
+      var result=await response.json();if(!response.ok)throw Error();
+      if(result.session_current===true){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+      emailLoginPending=true;
+    }catch(error){emailLoginFailure=true;}finally{clearTimeout(timer);emailLoginSending=false;render();}
   };
   var emailAccess=q("emailAccessForm");if(emailAccess) emailAccess.onsubmit=async function(e){
     e.preventDefault();if(emailLoginSending)return;
