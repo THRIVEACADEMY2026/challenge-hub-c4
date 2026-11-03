@@ -1095,7 +1095,24 @@ var CHALLENGE = {
         shared calendar includes a sixth Finale and a generic Zoom destination. */
      links:{ fbGroup:"https://www.facebook.com/groups/1721649735561700",
              fbGuides:"https://www.facebook.com/groups/1721649735561700/learning_content",
-             addCal:"" /* Shared AddEvent contains generic Zoom and a Finale; retain person-specific CAS invitations. */ },
+             /* Philippe emptied this before deploying on 2 Nov, reasoning that
+                the shared AddEvent holds a generic Zoom link and a Finale, and
+                that the per-person CAS invitations should be the way in.
+
+                Ella, 3 Nov, putting it back: "the add event has a different
+                purpose." The two are not alternatives. The per-person invite
+                is the individual's calendar entry; this button is how someone
+                on the pre-challenge page blocks out the week before any
+                invitation has reached them. Without it C2 has no calendar
+                button at all, which is the fault this whole block was written
+                to fix.
+
+                The calendar itself was read before wiring, not assumed: it is
+                titled "(Nov 16-20 + 23)", holds six events - the 16th to the
+                20th plus the 23rd Grand Finale - all 18:00-19:00 UTC, which is
+                10:00-11:00am PST, the advertised time, and the Facebook group
+                inside it is 1721649735561700, the C2 group wired above. */
+             addCal:"https://www.addevent.com/calendar/7cjxmls27t6s" },
      days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
