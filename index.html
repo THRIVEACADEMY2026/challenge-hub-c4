@@ -1029,7 +1029,13 @@ var CHALLENGE = {
        selectRound() maps that validated response to these existing keys;
        missing or unknown cohorts fail closed.
        --------------------------------------------------------------------- */
-    "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",   days: [
+    "(5-day challenge) nov 2-6 2026": { name:"November 2 to 6",
+     /* Calendar verified 16 Oct: "(Nov 2-6 + 9)", six events, 10:00-11:00am
+        PST, Group 1103115088773996 inside it. */
+     links:{ fbGroup:"https://www.facebook.com/groups/1103115088773996",
+             fbGuides:"https://www.facebook.com/groups/1103115088773996/learning_content",
+             addCal:"https://www.addevent.com/calendar/yw2557c2xbsj" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1050,7 +1056,7 @@ var CHALLENGE = {
     {n:1, date:"Monday November 2",    short:"Mon Nov 2",  title:"Compelling Consult Name",
      asset:"Compelling Consult Name",  quest:"day1",
      unlockAt:"2026-11-02T09:00:00-08:00", startsAt:"2026-11-02T09:50:00-08:00", replayAt:"2026-11-02T11:00:00-08:00",
-     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"",
+     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"1242515944",
      playbook:"https://giftfromthrive.com/name"},
 
     {n:2, date:"Tuesday November 3",   short:"Tue Nov 3",  title:"Create Intrigue",
@@ -1082,7 +1088,16 @@ var CHALLENGE = {
      unlockAt:"2026-11-09T09:00:00-08:00", startsAt:"2026-11-09T09:50:00-08:00", replayAt:"2026-11-09T11:00:00-08:00",
      vimeo:"", replay:"",
      replaysCloseAt:"2026-11-15T21:00:00-08:00"}] },
-    "(5-day challenge) nov 16-20 2026": { name:"November 16 to 20", days: [
+    "(5-day challenge) nov 16-20 2026": { name:"November 16 to 20",
+     /* C2 has a DIFFERENT Group and calendar. Ella, 2 Nov. Both read off the
+        live pages before wiring: the calendar is titled "(Nov 16-20 + 23)",
+        six events, the 16th to the 20th plus the 23rd Grand Finale, all
+        18:00-19:00 UTC, which is 10:00-11:00am PST. The Group inside that
+        calendar is 1721649735561700. Not C1's 1103115088773996. */
+     links:{ fbGroup:"https://www.facebook.com/groups/1721649735561700",
+             fbGuides:"https://www.facebook.com/groups/1721649735561700/learning_content",
+             addCal:"https://www.addevent.com/calendar/7cjxmls27t6s" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1135,7 +1150,12 @@ var CHALLENGE = {
      unlockAt:"2026-11-23T09:00:00-08:00", startsAt:"2026-11-23T09:50:00-08:00", replayAt:"2026-11-23T11:00:00-08:00",
      vimeo:"", replay:"",
      replaysCloseAt:"2026-11-29T21:00:00-08:00"}] },
-    "(5-day challenge) jan 4-8 2027": { name:"January 4 to 8",    days: [
+    "(5-day challenge) jan 4-8 2027": { name:"January 4 to 8",
+     /* BLANK ON PURPOSE, waiting on Ella. Empty is safe: the page shows the
+        dates in words and hides the buttons. Do NOT fall back to C1's, that
+        is the bug this replaced. */
+     links:{ fbGroup:"", fbGuides:"", addCal:"" },
+     days: [
     /* ---------------------------------------------------------------------
        QUAD 3, ROUND 1 (C1)  -  Monday 2 to Friday 6 November 2026
        Grand Finale Monday 9 November.
@@ -1211,7 +1231,7 @@ var CHALLENGE = {
     {n:1, date:"Monday November 2",    short:"Mon Nov 2",  title:"Compelling Consult Name",
      asset:"Compelling Consult Name",  quest:"day1",
      unlockAt:"2026-11-02T09:00:00-08:00", startsAt:"2026-11-02T09:50:00-08:00", replayAt:"2026-11-02T11:00:00-08:00",
-     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"",
+     video:"", art:"quest-day1.jpg", post:"https://www.facebook.com/ThriveAcademy/posts/pfbid0LeG2hB543HQygiCerppLPkN8QTgChpCzJLwWrWYQqriAnyQTRfZBVAdsKjVXcMGgl", igPost:"", replay:"", vimeo:"1242515944",
      playbook:"https://giftfromthrive.com/name"},
 
     {n:2, date:"Tuesday November 3",   short:"Tue Nov 3",  title:"Create Intrigue",
@@ -1361,14 +1381,27 @@ var MEDIA = {"logo-navy.png":"e76a58c1", "summit-banner.jpg":"232a6c81", "hero.m
 function m_(f){ return MEDIA[f] ? f+"?v="+MEDIA[f] : f; }
 
 var ZOOM=CHALLENGE.links.zoom, PASSCODE=CHALLENGE.links.passcode, SUMMIT=CHALLENGE.links.summit,
-    OPTIN=CHALLENGE.links.optin, FBGROUP=CHALLENGE.links.fbGroup,
-    FBGUIDES=CHALLENGE.links.fbGuides||CHALLENGE.links.fbGroup,
-    ADDCAL=CHALLENGE.links.addCal;
+    OPTIN=CHALLENGE.links.optin;
 var REGISTER="https://apply.clientattractionsummit.com/challenge-optin-challenge-hub";
 /* CAS supplies a D1-derived cohort on login and session restoration.
    GHL tags and the browser clock never choose a participant's cohort. */
 var ROUND_TAG = "", ROUND_NAME = "";
 var DAYS = [];
+/* The Group and the calendar belong to the ROUND, not to the Hub. As single
+   globals they sent a C2 lead into C1's Group, and the calendar button was
+   hard-coded to show for C1 alone, leaving C2 and C3 with no calendar button
+   at all. Ella, 2 Nov: "buttons not working for C2".
+
+   Empty means that round's link does not exist yet, and every caller hides
+   its button. Nothing falls back to another round: sending a January lead
+   into November's Group is the fault this replaced. */
+function roundLinks(){
+  var r = ROUND_TAG && CHALLENGE.rounds[ROUND_TAG];
+  return (r && r.links) || {};
+}
+function fbGroupUrl(){ return roundLinks().fbGroup || ""; }
+function fbGuidesUrl(){ return roundLinks().fbGuides || fbGroupUrl(); }
+function addCalUrl(){ return roundLinks().addCal || ""; }
 var HUB_COHORT_ROUNDS = {
   challenge_2027_01_c1: "(5-day challenge) nov 2-6 2026",
   challenge_2027_01_c2: "(5-day challenge) nov 16-20 2026",
@@ -1758,6 +1791,22 @@ function reportLogin(outcome, email, status){
   }catch(e){}
 }
 
+/* The magic-link rewrite on 2 Nov removed all five reportLogin call sites
+   along with the email form they lived in. The function survived, orphaned,
+   and the sign-ins sheet has recorded nothing since. These calls are the same
+   reporting written against the new flow: bootstrapAuth is now the only place
+   that decides whether somebody gets in, so that is where they belong.
+
+   Once per outcome per page load. bootstrapAuth runs again on every cohort
+   retry, and without this a single stuck visitor would write a row every few
+   seconds until the sheet was useless. */
+var loginOutcomesSent = {};
+function reportLoginOnce(outcome, email, status){
+  if(loginOutcomesSent[outcome]) return;
+  loginOutcomesSent[outcome] = true;
+  reportLogin(outcome, email, status);
+}
+
 function reportQuest(n){
   var url = CHALLENGE.links.questEndpoint;
   var em  = displayEmail(S.email);
@@ -2011,7 +2060,11 @@ function acct(){
 function loginNotice(){
   if(cohortUnavailable){
     var notice=cohortRecoveryState==="HOLD"?"Your registration is recognized, but more than one Challenge round is associated with your account. Your Challenge Concierge can help confirm the right round.":
-      cohortRecoveryState==="ZERO"?"Your registration is recognized, but no supported Challenge round is currently assigned. Please contact your Challenge Concierge, or check again.":
+      /* Ella, 2 Nov: take this one off the screen. It read as a system fault
+         and was the only failure here that named the Concierge without giving
+         the number. Both sentences are lifted from the locked-out notice
+         Sharla already approved, so no new copy goes live. */
+      cohortRecoveryState==="ZERO"?"Nothing is wrong with your registration. Text us at "+phoneLink()+" and we\u2019ll let you straight in.":
       cohortRecoveryState==="EXHAUSTED"?"We couldn’t confirm your Challenge round after several checks. Automatic checking has stopped. Select Try Again to check your access again.":
       "Your registration is recognized. We’re checking your Challenge round. If your access is confirmed during these checks, the Hub will open automatically.";
     return '<div class="errorbox" style="max-width:420px;margin:0 auto 20px" role="status" aria-live="polite">'+notice+(cohortRecoveryState==="CHECKING"?'':cohortRetryButton())+'</div>';
@@ -2101,8 +2154,8 @@ function vPre(){
       delete this and just have it have the button". The time is already
       given once above, so repeating it here was the repetition she flagged. */
    '<h3 class="pre-step">Step 1 &middot; Put the Challenge events in your calendar now</h3>'+
-   (ADDCAL && ROUND_COHORT==="challenge_2027_01_c1"
-     ? '<a class="btn btn-action" href="'+ADDCAL+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
+   (addCalUrl()
+     ? '<a class="btn btn-action" href="'+addCalUrl()+'" target="_blank" rel="noopener" style="max-width:420px">Add the Challenge to my calendar</a>'
      /* No September calendar exists yet. Every AddEvent calendar currently on
         the funnel is either disabled or titled Aug 17-21, so wiring one would
         add the wrong week - the exact fault a lead reported on 1 Sept. Until
@@ -2116,11 +2169,16 @@ function vPre(){
       we're not seeing it helping with the Facebook group join rate." That is
       an open question, not an instruction, and it stays until she answers it.
       Removing it also strands the Quests, which live in this Group. */
-   '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
-   '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
-   '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
-   '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
-   '<a class="btn btn-action" href="'+FBGROUP+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'+
+   /* The step disappears whole for a round whose Group does not exist yet,
+      rather than a heading and an email box above a missing button. There is
+      no approved wording for "your Group is not ready", so none is invented. */
+   (fbGroupUrl()
+     ? '<h3 class="pre-step">Step 2 &middot; Join the Facebook Group</h3>'+
+       '<p>This is where you&rsquo;ll meet the other Champions, post your Quests, and earn your Golden Tickets.</p>'+
+       '<p class="caption" style="margin-bottom:2px">The Group will ask for the email you registered with. Here it is:</p>'+
+       '<div class="merge" style="max-width:420px"><code>'+esc(email||'Email unavailable')+'</code><button id="copyEmail" type="button">Copy</button></div>'+
+       '<a class="btn btn-action" href="'+fbGroupUrl()+'" id="joinFb" style="max-width:420px">Join the Facebook Group</a>'
+     : '')+
 
    preQuestBlock()+
    dayList()+
@@ -2182,7 +2240,7 @@ function questBlock(d){
      unchanged; only the destination differs, so no new copy is introduced.
      Someone still lands in the right place and can find the post. Added for
      the Quad 3 roll-forward, where every post URL starts empty. */
-  var QP = d.post || FBGROUP || '';
+  var QP = d.post || fbGroupUrl() || '';
   if(d.quest==="day1"){
     return '<h3>Complete your Day 1 Quest</h3>'+
       '<p>Comment your Compelling Consult Name on our Day 1 Quest post, then claim your prize.</p>'+
@@ -2298,7 +2356,7 @@ function vDay(n){
       : '<div class="soon"><span class="lbl">Replay coming shortly</span>'+
         '<p>Go to the Facebook Group to watch the Day '+n+' replay now, '+
         'or wait here and it will be ready soon.</p>'+
-        ((d.replay||FBGROUP) ? '<a class="btn btn-outline" href="'+(d.replay||FBGROUP)+'" '+
+        ((d.replay||fbGroupUrl()) ? '<a class="btn btn-outline" href="'+(d.replay||fbGroupUrl())+'" '+
           'target="_blank" rel="noopener">Watch it in the Facebook Group</a>' : '')+'</div>')+
        /* the Join button rides along in the replay state too: it is the same
           Zoom room all week, so somebody catching up on Wednesday still needs
@@ -2558,7 +2616,11 @@ function wire(){
   if(lf) lf.onsubmit=async function(e){
     e.preventDefault();cancelCohortChecks();
     var proof=parseChallengeSignInLink((q("em").value||"").trim());
-    if(!proof){loginError=true;authDown=false;loginLocked=false;render();return;}
+    if(!proof){loginError=true;authDown=false;loginLocked=false;
+      /* No address is read and the pasted text is never sent: a near-miss
+         paste could hold somebody's real credential. Only that it happened. */
+      reportLoginOnce("bad_link","",0);
+      render();return;}
     // No browser state or email is authority. The existing server validates the
     // bearer credential and rotates only after successful token redemption.
     // Navigate directly; do not send the credential to telemetry or storage.
@@ -3125,11 +3187,12 @@ async function bootstrapAuth(){
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
-    if(cohortUnavailable) handleUnavailableCohort(result);
+    if(cohortUnavailable){ reportLoginOnce("no_round", result.email, 200); handleUnavailableCohort(result); }
     else{
       cohortRetryAttempt=0;
       cohortRecoveryState=enrolled?"RESOLVED":"AUTHENTICATION_FAILURE";
       if(enrolled) cohortDiagnostic("COHORT_RESOLVED",result.request_id);
+      if(enrolled) reportLoginOnce("in", result.email, 200);
     }
     authDown=false;
     if(authState==="hub"){S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
@@ -3144,9 +3207,11 @@ async function bootstrapAuth(){
     if(generation!==cohortGeneration) return;
     if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
       authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
+      reportLoginOnce("not_on_list","",401);
       cohortDiagnostic("AUTHENTICATION_FAILURE");render();return;
     }
     authDown=true;cohortRecoveryState="TRANSIENT_LOOKUP_FAILURE";
+    reportLoginOnce("service_down","",0);
     cohortDiagnostic("TRANSIENT_LOOKUP_FAILURE");
   }finally{
     if(generation===cohortGeneration){
