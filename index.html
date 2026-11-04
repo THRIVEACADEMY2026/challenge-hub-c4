@@ -1475,6 +1475,39 @@ var cohortRetryTimer=null,cohortRetryAttempt=0;
 var expectedIdentityContext=null,currentIdentityContext=null,identityHandoffInitialized=false;
 var activeSessionController=null;
 var HUB_IDENTITY_NOTICE_KEY="thriveHubIdentityNotice",HUB_EXPECTED_CONTEXT_KEY="thriveHubExpectedIdentity";
+var HUB_LOGOUT_KEY="thriveHubLogoutFence",logoutInFlight=false,logoutIncomplete=false,lastFocusCheck=0;
+function logoutFenced(){try{return !!localStorage.getItem(HUB_LOGOUT_KEY);}catch(error){return logoutIncomplete;}}
+function clearLogoutFence(){try{localStorage.removeItem(HUB_LOGOUT_KEY);}catch(error){}logoutIncomplete=false;}
+function signedOutView(){
+  cancelCohortChecks();identitySelectionPending=true;setExpectedIdentityContext(null);currentIdentityContext=null;
+  selectRound(null);S.email=null;S.first=null;save();csrfToken=null;
+  authState="login";cohortUnavailable=false;loginError=false;authDown=false;loginLocked=false;loginTries=0;
+  if(typeof leaveLearningMode==="function")leaveLearningMode();
+  render();
+}
+async function signOutHub(){
+  if(logoutInFlight)return;
+  logoutInFlight=true;logoutIncomplete=true;
+  try{localStorage.setItem(HUB_LOGOUT_KEY,"pending");}catch(error){}
+  signedOutView();var generation=cohortGeneration;
+  var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
+  try{
+    await refreshAuthSession(generation);
+    if(generation!==cohortGeneration)return;
+    var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/logout",{method:"POST",credentials:"include",signal:controller.signal,
+      headers:{"Accept":"application/json","X-CAS-CSRF":csrfToken||""}});
+    var result=await response.json().catch(function(){return {};});
+    if(generation!==cohortGeneration)return;
+    if(!response.ok||result.logged_out!==true)throw Error("Logout unavailable");
+    var retained=await refreshAuthSession(generation);
+    if(generation!==cohortGeneration)return;
+    if(retained.authorized===true)throw Error("Logout cookie not retained");
+    logoutIncomplete=false;
+    try{localStorage.setItem(HUB_LOGOUT_KEY,"complete");}catch(error){}
+    signedOutView();publishIdentityNotice(null);location.hash="#/login";
+  }catch(error){if(generation===cohortGeneration){logoutIncomplete=true;render();}}
+  finally{clearTimeout(timer);logoutInFlight=false;if(authState==="login")render();}
+}
 function validIdentityContext(value){return typeof value==="string"&&/^[A-Za-z0-9_-]{43}$/.test(value);}
 function setExpectedIdentityContext(value){
   expectedIdentityContext=validIdentityContext(value)?value:null;
@@ -1487,6 +1520,8 @@ function publishIdentityNotice(context){
 }
 function identityNoticeReceived(context){
   if(context!==null&&!validIdentityContext(context)) return;
+  if(context===null){signedOutView();return;}
+  identitySelectionPending=false;
   cancelCohortChecks();setExpectedIdentityContext(context);currentIdentityContext=null;
   selectRound(null);authState="loading";cohortUnavailable=false;S.email=null;S.first=null;render();
   bootstrapAuth();
@@ -1499,7 +1534,7 @@ function initializeIdentityHandoff(){
     try{delete window.thriveHubIncomingIdentity;}catch(error){}
     var match=validIdentityContext(incoming)?["",incoming]:/^#cas-handoff=([A-Za-z0-9_-]{43})$/.exec(window.location.hash||"");
     if(match){
-      setExpectedIdentityContext(match[1]);
+      identitySelectionPending=false;setExpectedIdentityContext(match[1]);
       history.replaceState(null,"",window.location.pathname+window.location.search);
       publishIdentityNotice(match[1]);
     }else{
@@ -1509,19 +1544,28 @@ function initializeIdentityHandoff(){
   }catch(error){}
   if(window.addEventListener){
     window.addEventListener("storage",function(event){
+      if(event.key===HUB_LOGOUT_KEY&&event.newValue){logoutIncomplete=event.newValue==="pending";signedOutView();return;}
       if(event.key!==HUB_IDENTITY_NOTICE_KEY||!event.newValue) return;
       try{var notice=JSON.parse(event.newValue);if(notice&&Object.prototype.hasOwnProperty.call(notice,"context")) identityNoticeReceived(notice.context);}catch(error){}
+    });
+    window.addEventListener("pageshow",function(event){
+      if(!event.persisted)return;
+      if(authState==="limited"&&typeof learningModeRequested==="function"&&learningModeRequested())return;
+      if(logoutFenced()){signedOutView();return;}
+      if(authState==="hub"&&!identitySelectionPending){cancelCohortChecks();bootstrapAuth(true);}
     });
     // Also restore authoritative state after returning from another tab or
     // a Summit identity transition that did not pass through the Hub itself.
     window.addEventListener("focus",function(){
-      if(cohortCheckInFlight) return;
-      cancelCohortChecks();selectRound(null);authState="loading";render();bootstrapAuth();
+      if(cohortCheckInFlight||identitySelectionPending||authState!=="hub"||logoutFenced()) return;
+      if(Date.now()-lastFocusCheck<30000) return;
+      lastFocusCheck=Date.now();bootstrapAuth(true);
     });
   }
 }
 function acceptExplicitIdentity(result){
   setExpectedIdentityContext(null);
+  clearLogoutFence();
   currentIdentityContext=validIdentityContext(result.identity_context)?result.identity_context:null;
   if(currentIdentityContext) publishIdentityNotice(currentIdentityContext);
 }
@@ -2047,6 +2091,7 @@ function acct(){
    quietly loses real people who did nothing wrong. Each state now gets its own
    words, and the locked state gets a way out. */
 function loginNotice(){
+  if(logoutIncomplete)return '<div class="errorbox" role="status">'+(logoutInFlight?'Signing out securely…':'We could not confirm sign-out. Personal access is paused in this browser. <button type="button" id="retryLogout" class="btn btn-outline">Try sign out again</button>')+'</div>';
   if(cohortUnavailable){
     var notice=cohortRecoveryState==="HOLD"?"Your registration is recognized, but more than one Challenge round is associated with your account. Your Challenge Concierge can help confirm the right round.":
       cohortRecoveryState==="ZERO"?"Your Challenge access needs confirmation. Text us at "+phoneLink()+" and we\u2019ll help confirm your round.":
@@ -2472,7 +2517,7 @@ function render(keep){
   var y=window.scrollY, h=location.hash, html, m;
   if(authState==="loading"){
     document.body.className="";
-    document.getElementById("main").innerHTML="";
+    document.getElementById("main").innerHTML='<div role="status" aria-live="polite">Checking your Challenge access…</div>';
     document.getElementById("side").innerHTML="";
     document.getElementById("acct").innerHTML="";
     return;
@@ -2569,22 +2614,8 @@ function wire(){
     cohortUnavailable=false;preservationExpired=false;
     S.email=null;S.first=null;save();render();
   };
-  var so=q("signout"); if(so) so.onclick=async function(){
-    cancelCohortChecks();
-    try{
-      await refreshAuthSession();
-      var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/logout",{
-        method:"POST",credentials:"include",
-        headers:{"Accept":"application/json","X-CAS-CSRF":csrfToken||""}
-      });
-      var result=await response.json().catch(function(){return {};});
-      if(!response.ok||result.logged_out!==true) return;
-      if(typeof result.csrf_token==="string") csrfToken=result.csrf_token;
-      setExpectedIdentityContext(null);currentIdentityContext=null;publishIdentityNotice(null);
-      S.email=null;S.first=null;save();authState="login";loginError=false;loginLocked=false;loginTries=0;
-      location.hash="#/login";render();
-    }catch(error){}
-  };
+  var so=q("signout");if(so)so.onclick=signOutHub;
+  var retryLogout=q("retryLogout");if(retryLogout)retryLogout.onclick=signOutHub;
 
   /* Clearing the lockout. POST /logout rotates cas_vid to a brand new visitor,
      and the limit is keyed per visitor, so the new one signs in at once.
@@ -2620,6 +2651,7 @@ function wire(){
     e.preventDefault();if(emailLoginSending)return;
     var email=(q("em").value||"").trim().toLowerCase();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
+    if(logoutFenced()){enterLearningMode();return;}
     emailLoginSending=true;emailLoginFailure=false;
     try{var session=await refreshAuthSession();
       if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;if(typeof leaveLearningMode==="function")leaveLearningMode();identitySelectionPending=false;await bootstrapAuth();return;}
@@ -2635,11 +2667,11 @@ function wire(){
     var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);
     try{
       var session=await refreshAuthSession();
-      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+      if(!logoutFenced()&&session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
       var response=await fetch(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"POST",credentials:"include",signal:controller.signal,
         headers:{"Content-Type":"application/json","X-CAS-CSRF":csrfToken||""},body:JSON.stringify({email:email})});
       var result=await response.json();if(!response.ok)throw Error();
-      if(result.session_current===true){emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
+      if(result.session_current===true){if(logoutFenced())throw Error("Sign out must complete first");emailLoginSending=false;identitySelectionPending=false;await bootstrapAuth();return;}
       emailLoginPending=true;
     }catch(error){emailLoginFailure=true;}finally{clearTimeout(timer);emailLoginSending=false;render();}
   };
@@ -2969,6 +3001,7 @@ if(rt && rp) rt.onclick=function(){var open=rp.hasAttribute("hidden");
 
 window.addEventListener("hashchange",function(){render();});
 async function refreshAuthSession(expectedGeneration){
+  if(expectedGeneration===undefined)expectedGeneration=cohortGeneration;
   var controller=new AbortController();
   if(expectedGeneration!==undefined) activeSessionController=controller;
   var timeout=setTimeout(function(){controller.abort();},8000);
@@ -2985,7 +3018,7 @@ async function refreshAuthSession(expectedGeneration){
   if(expectedIdentityContext&&result.authorized===true&&result.identity_context!==expectedIdentityContext){
     var mismatch=new Error("Identity handoff was not confirmed");mismatch.cohortCode="AUTHENTICATION_FAILURE";throw mismatch;
   }
-  if(result.authorized===true&&validIdentityContext(result.identity_context)){
+  if(!logoutFenced()&&result.authorized===true&&validIdentityContext(result.identity_context)){
     currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);
   }
   csrfToken=result.csrf_token;
@@ -3203,20 +3236,25 @@ function enterLearningMode(){
 }
 
 async function bootstrapAuth(){
+  var background=arguments[0];
   if(typeof identitySelectionPending!=="undefined"&&identitySelectionPending) return;
 
   if(!identityHandoffInitialized) initializeIdentityHandoff();
   if(typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext){enterLearningMode();return;}
+  if(logoutFenced()&&!expectedIdentityContext){logoutIncomplete=(function(){try{return localStorage.getItem(HUB_LOGOUT_KEY)==="pending";}catch(error){return logoutIncomplete;}})();signedOutView();return;}
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
   stopCohortRetry();
-  authState="loading";loginError=false;authDown=false;cohortUnavailable=false;render();
+  var keepView=background===true&&authState==="hub",previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
+  if(!keepView){authState="loading";render();}
+  loginError=false;authDown=false;cohortUnavailable=false;
   try{
     var result=await refreshAuthSession(generation);
     if(generation!==cohortGeneration) return;
     cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
+    if(enrolled&&explicitHandoff){clearLogoutFence();currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);}
     authState=enrolled?"hub":"login";
     cohortUnavailable=result.authorized===true && !enrolled;
     if(cohortUnavailable) handleUnavailableCohort(result);
@@ -3227,7 +3265,7 @@ async function bootstrapAuth(){
     }
     authDown=false;
     if(authState==="hub"){if(typeof leaveLearningMode==="function")leaveLearningMode();S.email=displayEmail(result.email);S.first=displayFirst(result.first_name);save();}
-    render();
+    if(!keepView||!enrolled||previousContext!==result.identity_context||previousRound!==(typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT))render();
     if(authState==="hub"){
       claimChallengeGa4Signup();
       claimChallengeMetaLead();
