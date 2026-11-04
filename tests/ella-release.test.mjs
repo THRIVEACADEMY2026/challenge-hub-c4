@@ -6,3 +6,5 @@ for(const cohort of[2,3])for(const day of[1,2,3,4,5,8])test('C'+cohort+' day '+d
 test('C2 Prepare uses its group and retains approved person-specific calendar channel',()=>{const v=fixture(2).vPre();assert.match(v,/groups\/1721649735561700/);assert.match(v,/November 16 to 20/);assert.doesNotMatch(v,/1103115088773996|addevent.com/);});
 test('C3 Prepare hides unavailable links without borrowing another cohort',()=>{const v=fixture(3).vPre();assert.match(v,/January 4 to 8/);assert.doesNotMatch(v,/facebook.com\/groups|addevent.com|Join the Facebook Group|copyEmail/);});
 test('C1 retains approved backup AddEvent and group',()=>{const v=fixture(1).vPre();assert.match(v,/calendar\/yw2557c2xbsj/);assert.match(v,/groups\/1103115088773996/);});
+
+test('footer date year follows authoritative cohort schedule including January 2027',()=>{for(const n of[1,2,3]){const c=fixture(n),year={};c.document.querySelectorAll=selector=>selector==='[data-round-year]'?[year]:[];c.selectRound({challenge_cohort_id:'challenge_2027_01_c'+n,round:c.HUB_COHORT_ROUNDS['challenge_2027_01_c'+n]});assert.equal(year.textContent,n===3?'2027':'2026');}});

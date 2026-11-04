@@ -919,7 +919,7 @@ footer.site .f-base{border-top:1px solid var(--line);padding-top:16px;display:fl
     <div class="f-col">
       <span class="f-brand"><a href="https://www.thrive-academy.com" target="_blank" rel="noopener">Thrive Academy</a></span>
       <span>Book 5 Consults in 5 Days Challenge</span>
-      <span><span data-round-name>November 2 to 6</span>, 2026</span>
+      <span><span data-round-name>November 2 to 6</span>, <span data-round-year>2026</span></span>
     </div>
     <div class="f-col">
       <span class="f-h">Need a hand</span>
@@ -1464,6 +1464,8 @@ function selectRound(cohort){
   DAYS=CHALLENGE.rounds[key].days; CHALLENGE.days=DAYS;
   Array.prototype.forEach.call(document.querySelectorAll("[data-round-name]"),
     function(el){ el.textContent=ROUND_NAME; });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-round-year]"),
+    function(el){ el.textContent=DAYS[0].startsAt.slice(0,4); });
   return true;
 }
 var CAS_ORIGIN=window.THRIVE_CAS_ORIGIN||"https://id.clientattractionsummit.com";
