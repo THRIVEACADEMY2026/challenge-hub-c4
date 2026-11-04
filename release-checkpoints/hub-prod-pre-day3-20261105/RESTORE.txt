@@ -1,0 +1,8 @@
+Known-good Hub immediately before Day 3 replay.
+Source: 27c2aadff9add6ae2ed76e5c3ac2a506e4c93a28
+Index SHA256: 09f9fea8bd71d2f4030d23e3ad8a3c0286a7f22b14a4dc20b027793c530c3400
+Worker must remain 023f0606-02d2-4af5-9f8f-fd1268c21c42 or separately verified compatible newer release.
+All 36 origin files independently verified against this checkout.
+Restore only index.html through the existing authorized publisher after a then-current source/Worker drift check. Verify backup checksum, stage a neighboring temporary file preserving owner/mode, atomically replace index.html, and verify origin and normalized public checksums. Leave Worker, Edge, cookies, schemas, grants, identity, enrollment, tokens and attribution untouched. Preserve Day 1/2 replay IDs. No historical Worker rollback. Existing deployment scripts are historical references, not approved recovery commands.
+Hosting reference: /opt/github/apps/challenge-hub/htdocs on existing Hub host; direct artifact publication, not a branch merge. Edge hub-c1-config 0676fc2a-dd7b-4adc-a65e-9d0ea8b5fb3b remains separate.
+After authorized restore, verify synthetic C1/C2 cookie/email/name/account-switch/logout, C3/HOLD contract, Sharla grant read-only and both existing replays. No recovery/deployment executed during checkpoint creation.
