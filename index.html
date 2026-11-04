@@ -1557,7 +1557,7 @@ function initializeIdentityHandoff(){
     // Also restore authoritative state after returning from another tab or
     // a Summit identity transition that did not pass through the Hub itself.
     window.addEventListener("focus",function(){
-      if(cohortCheckInFlight||identitySelectionPending||authState!=="hub"||logoutFenced()) return;
+      if(cohortCheckInFlight||identitySelectionPending||(authState!=="hub"&&authState!=="limited")||logoutFenced()) return;
       if(Date.now()-lastFocusCheck<30000) return;
       lastFocusCheck=Date.now();bootstrapAuth(true);
     });
@@ -2656,7 +2656,7 @@ function wire(){
     try{var session=await refreshAuthSession();
       if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;if(typeof leaveLearningMode==="function")leaveLearningMode();identitySelectionPending=false;await bootstrapAuth();return;}
     }catch(error){/* General learning does not depend on account verification. */}
-    emailLoginSending=false;enterLearningMode();
+    emailLoginSending=false;enterLearningMode();bootstrapAuth(true);
   };
   var emailAccess=q("emailAccessForm");if(emailAccess) emailAccess.onsubmit=async function(e){
     e.preventDefault();if(emailLoginSending)return;
@@ -3240,18 +3240,26 @@ async function bootstrapAuth(){
   if(typeof identitySelectionPending!=="undefined"&&identitySelectionPending) return;
 
   if(!identityHandoffInitialized) initializeIdentityHandoff();
-  if(typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext){enterLearningMode();return;}
+  var requestedLearning=typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext;
+  if(requestedLearning){
+    if(authState!=="limited")enterLearningMode();
+    // A public presentation flag cannot suppress a valid server identity.
+    // A genuine sign-out still forbids silently restoring that identity.
+    if(logoutFenced())return;
+  }
   if(logoutFenced()&&!expectedIdentityContext){logoutIncomplete=(function(){try{return localStorage.getItem(HUB_LOGOUT_KEY)==="pending";}catch(error){return logoutIncomplete;}})();signedOutView();return;}
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
   stopCohortRetry();
-  var keepView=background===true&&authState==="hub",previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
+  var learningFallback=requestedLearning&&authState==="limited";
+  var keepView=learningFallback||(background===true&&authState==="hub"),previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
   if(!keepView){authState="loading";render();}
   loginError=false;authDown=false;cohortUnavailable=false;
   try{
     var result=await refreshAuthSession(generation);
     if(generation!==cohortGeneration) return;
+    if(result.authorized!==true&&learningFallback){enterLearningMode();return;}
     cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     if(enrolled&&explicitHandoff){clearLogoutFence();currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);}
@@ -3274,6 +3282,7 @@ async function bootstrapAuth(){
     return;
   }catch(error){
     if(generation!==cohortGeneration) return;
+    if(learningFallback){enterLearningMode();return;}
     if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
       if(typeof learningModeRequested==="function"&&learningModeRequested()){enterLearningMode();return;}
       authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
