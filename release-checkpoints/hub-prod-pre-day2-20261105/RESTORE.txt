@@ -1,0 +1,21 @@
+KNOWN-GOOD PRODUCTION HUB BEFORE DAY 2 REPLAY — 2026-11-05 Manila
+
+Hub source commit before backup metadata: f10159f2012bb01349dc342cf94a710bd9223c0a
+Exact origin index.html SHA256: e2806c5fc7ed68dc2bedbf37cc1edc6c3eee3bf2ac0c6bffdd32071d8440be4a
+Required shared Worker: 023f0606-02d2-4af5-9f8f-fd1268c21c42, or a separately verified compatible newer release.
+Worker SHA256: 5082c58010a1e99bae0184d85d5c8662a0c97c58815c05f7d0fc0ec44adaee41
+Edge: hub-c1-config 0676fc2a-dd7b-4adc-a65e-9d0ea8b5fb3b.
+Hosting: direct static publication, /opt/github/apps/challenge-hub/htdocs on existing authorized Hub host. Git push is not production publication.
+
+origin-manifest.json lists all 36 origin files captured read-only, including index.html, entry files, required media, and existing deployment references. Files listed here match the actual origin bytes. Other repository files are retained for history/testing and are not an instruction to publish them. Existing deploy.sh/preflight.sh/DEPLOY.md are historical captured references; do not execute them as the recovery procedure.
+
+RESTORE ONLY AFTER SEPARATE PRODUCTION AUTHORIZATION:
+1. Read the then-current Hub and Worker versions, capture current origin files and hashes, and stop on unreviewed shared-workstream drift.
+2. Resolve annotated tag hub-prod-known-good-pre-day2-20261105 to its commit and create an isolated checkout.
+3. Verify every file in origin-manifest.json against the checkout. For a replay-only rollback restore only this exact index.html; no other asset should have changed. Transfer to a temporary file next to live index.html through the existing authorized publishing channel.
+4. Recheck the current origin checksum against the approved rollback input; atomically replace index.html, preserving owner/mode. Do not publish the whole repository or invoke old deployment scripts.
+5. Re-read origin SHA256 and compare normalized public HTML, accounting only for the existing edge Summit link substitution and email obfuscation.
+6. Verify synthetic C1/C2 cookie/login/name/email, switching, refresh and logout; C3/HOLD contracts; Sharla grant read-only; replay dates and locks. Day 1 remains 1242515944; Day 2 returns to the prior coming-shortly state.
+7. Leave Worker, Edge, schemas, identities, tokens, grants, enrollment and attribution unchanged. Never restore the historical incompatible Worker.
+
+No production recovery or deployment was performed when creating this checkpoint.
