@@ -3242,18 +3242,17 @@ async function bootstrapAuth(){
   if(!identityHandoffInitialized) initializeIdentityHandoff();
   var requestedLearning=typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext;
   if(requestedLearning){
-    if(authState!=="limited")enterLearningMode();
-    // A public presentation flag cannot suppress a valid server identity.
-    // A genuine sign-out still forbids silently restoring that identity.
-    if(logoutFenced())return;
+    // Read authority before selecting a cohort on a stale direct URL. The
+    // email-entry path has already opened allowed general learning content.
+    if(logoutFenced()){if(authState!=="limited")enterLearningMode();return;}
   }
   if(logoutFenced()&&!expectedIdentityContext){logoutIncomplete=(function(){try{return localStorage.getItem(HUB_LOGOUT_KEY)==="pending";}catch(error){return logoutIncomplete;}})();signedOutView();return;}
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
   stopCohortRetry();
-  var learningFallback=requestedLearning&&authState==="limited";
-  var keepView=learningFallback||(background===true&&authState==="hub"),previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
+  var learningFallback=requestedLearning;
+  var keepView=(learningFallback&&authState==="limited")||(background===true&&authState==="hub"),previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
   if(!keepView){authState="loading";render();}
   loginError=false;authDown=false;cohortUnavailable=false;
   try{
