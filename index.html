@@ -1585,7 +1585,7 @@ function cohortDiagnostic(code,requestId){
 }
 function stopCohortRetry(){if(cohortRetryTimer!==null){clearTimeout(cohortRetryTimer);cohortRetryTimer=null;}}
 function cancelCohortChecks(){
-  stopCohortRetry();cohortGeneration++;
+  stopCohortRetry();cohortGeneration++;emailLoginSending=false;
   if(activeSessionController){activeSessionController.abort();activeSessionController=null;}
   cohortCheckInFlight=false;
 }
@@ -2110,8 +2110,7 @@ function loginNotice(){
     '<div style="margin-top:12px"><button type="button" id="freshsession" class="btn btn-primary" '+
     'style="width:auto;padding:10px 18px">Start a clean session</button></div>');
   if(!loginError) return '';
-  return box('Use the personal Challenge Hub sign-in link from your registration email. '+
-    'If you cannot find it, contact your Concierge at '+phoneLink()+'.');
+  return box('We could not confirm eligible Challenge access for that email. Check the address and try again, or contact your Concierge at '+phoneLink()+'.');
 
 }
 function parseChallengeSignInLink(value){
@@ -2133,15 +2132,12 @@ function vLogin(err){
       '<p class="lede">Everything you need for the Challenge, in one place. '+
       'Enter your registered email to continue to the Challenge.</p>'+
       loginNotice()+
-      (emailLoginPending?'<p role="status">If this email has Challenge access, your personal sign-in link will arrive shortly. Check your inbox and spam folder. Open the link in the browser you want to use.</p>':'')+
       (emailLoginFailure?'<p role="alert">We could not start sign-in. Please try again or contact your Concierge.</p>':'')+
       '<form id="loginForm" novalidate'+(cohortUnavailable&&cohortRecoveryState==="CHECKING"?' hidden':'')+'>'+
         '<label class="fl" for="em">Your registered email</label>'+
         '<input type="email" id="em" placeholder="you@email.com" autocomplete="email" required>'+
-        '<button class="btn btn-primary" type="submit" '+(emailLoginSending?'disabled':'')+'>'+(emailLoginSending?'Sending…':'Continue')+'</button>'+
+        '<button class="btn btn-primary" type="submit" '+(emailLoginSending?'disabled':'')+'>'+(emailLoginSending?'Continuing…':'Continue')+'</button>'+
       '</form>'+
-      '<details style="margin-top:14px"><summary>Secure access to my personal Hub</summary><p>For personal progress and account features, email yourself your existing access link.</p><form id="emailAccessForm"><label class="fl" for="personalEmail">Registered email</label><input type="email" id="personalEmail" autocomplete="email" required><button class="btn btn-primary" type="submit">Email my personal link</button></form></details>'+
-      '<details style="margin-top:14px"><summary>Use an existing personal link</summary><form id="personalLinkForm"><label class="fl" for="personalLink">Personal Challenge link</label><input type="url" id="personalLink" autocomplete="off" spellcheck="false"><button class="btn btn-primary" type="submit">Open personal link</button></form></details>'+
       '<p class="hint" style="margin-top:14px">Not yet registered for the Challenge? <a href="'+REGISTER+'">Register here</a>.</p>'+
       /* The one page where a stuck lead most needs a person used to be the one
          page with nobody on it. */
@@ -2646,18 +2642,7 @@ function wire(){
   };
 
   var cr=q("cohortRetry"); if(cr) cr.onclick=retryCohortNow;
-  var lf=q("loginForm");
-  if(lf) lf.onsubmit=async function(e){
-    e.preventDefault();if(emailLoginSending)return;
-    var email=(q("em").value||"").trim().toLowerCase();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
-    if(logoutFenced()){enterLearningMode();return;}
-    emailLoginSending=true;emailLoginFailure=false;
-    try{var session=await refreshAuthSession();
-      if(session.authorized===true&&displayEmail(session.email)===email){emailLoginSending=false;if(typeof leaveLearningMode==="function")leaveLearningMode();identitySelectionPending=false;await bootstrapAuth();return;}
-    }catch(error){/* General learning does not depend on account verification. */}
-    emailLoginSending=false;enterLearningMode();bootstrapAuth(true);
-  };
+  var lf=q("loginForm");if(lf)lf.onsubmit=async function(e){return registeredEmailSignIn(e);};
   var emailAccess=q("emailAccessForm");if(emailAccess) emailAccess.onsubmit=async function(e){
     e.preventDefault();if(emailLoginSending)return;
     var email=(q("personalEmail").value||"").trim().toLowerCase();
@@ -3235,30 +3220,55 @@ function enterLearningMode(){
   render();
 }
 
+async function registeredEmailSignIn(event){
+  event.preventDefault();if(emailLoginSending)return;
+  var form=document.getElementById("em"),email=(form&&form.value||"").trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return;
+  cancelCohortChecks();identitySelectionPending=true;emailLoginSending=true;emailLoginFailure=false;loginError=false;
+  var generation=cohortGeneration;render();
+  async function bounded(url,options){var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);try{return await fetch(url,Object.assign({},options,{signal:controller.signal}));}finally{clearTimeout(timer);}}
+  try{
+    if(!navigator.locks)throw Error("Session serialization unavailable");
+    await navigator.locks.request("cas-hub-verified-transition-v1",async function(){
+      if(generation!==cohortGeneration)return;
+      var start=await bounded(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"GET",credentials:"include",cache:"no-store",headers:{"Accept":"application/json"}});
+      var ticket=await start.json();if(!start.ok||typeof ticket.email_entry_token!=="string")throw Error("Sign-in unavailable");
+      if(generation!==cohortGeneration)return;
+      var response=await bounded(CAS_ORIGIN+"/browser/challenge-hub/login",{method:"POST",credentials:"include",cache:"no-store",headers:{"Content-Type":"application/json","X-CAS-CSRF":ticket.email_entry_token},body:JSON.stringify({email:email})});
+      var result=await response.json();if(generation!==cohortGeneration)return;
+      if(!response.ok||result.authorized!==true||!validIdentityContext(result.identity_context)){loginLocked=response.status===429;throw Error("Access not confirmed");}
+      setExpectedIdentityContext(result.identity_context);
+      var retained=await refreshAuthSession(generation);
+      if(generation!==cohortGeneration)return;
+      if(retained.authorized!==true||retained.identity_context!==result.identity_context||!displayFirst(retained.first_name)||!displayEmail(retained.email))throw Error("Browser did not retain sign-in");
+      acceptExplicitIdentity(retained);identitySelectionPending=false;leaveLearningMode();
+      S.email=displayEmail(retained.email);S.first=displayFirst(retained.first_name);save();
+      if(!selectRound(retained.hub_cohort)){authState="login";cohortUnavailable=true;handleUnavailableCohort(retained);render();return;}
+      authState="hub";cohortUnavailable=false;loginError=false;authDown=false;loginLocked=false;loginTries=0;
+      location.hash="#/prechallenge";render();
+      claimChallengeGa4Signup();claimChallengeMetaLead();claimChallengeGoogleRegistration();
+    });
+  }catch(error){if(generation===cohortGeneration){setExpectedIdentityContext(null);authState="login";loginError=true;emailLoginFailure=true;cohortUnavailable=false;}}
+  finally{if(generation===cohortGeneration){emailLoginSending=false;render();}}
+}
+
 async function bootstrapAuth(){
   var background=arguments[0];
   if(typeof identitySelectionPending!=="undefined"&&identitySelectionPending) return;
 
   if(!identityHandoffInitialized) initializeIdentityHandoff();
-  var requestedLearning=typeof learningModeRequested==="function"&&learningModeRequested()&&!expectedIdentityContext;
-  if(requestedLearning){
-    // Read authority before selecting a cohort on a stale direct URL. The
-    // email-entry path has already opened allowed general learning content.
-    if(logoutFenced()){if(authState!=="limited")enterLearningMode();return;}
-  }
+  if(typeof learningModeRequested==="function"&&learningModeRequested())leaveLearningMode();
   if(logoutFenced()&&!expectedIdentityContext){logoutIncomplete=(function(){try{return localStorage.getItem(HUB_LOGOUT_KEY)==="pending";}catch(error){return logoutIncomplete;}})();signedOutView();return;}
   if(cohortCheckInFlight) return;
   cohortCheckInFlight=true;
   var generation=cohortGeneration;
   stopCohortRetry();
-  var learningFallback=requestedLearning;
-  var keepView=(learningFallback&&authState==="limited")||(background===true&&authState==="hub"),previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
+  var keepView=background===true&&authState==="hub",previousContext=currentIdentityContext,previousRound=typeof ROUND_COHORT==="undefined"?"":ROUND_COHORT,explicitHandoff=!!expectedIdentityContext;
   if(!keepView){authState="loading";render();}
   loginError=false;authDown=false;cohortUnavailable=false;
   try{
     var result=await refreshAuthSession(generation);
     if(generation!==cohortGeneration) return;
-    if(result.authorized!==true&&learningFallback){enterLearningMode();return;}
     cohortDiagnostic(result.authorized===true?"SESSION_VALID":"AUTHENTICATION_FAILURE",result.request_id);
     var enrolled=result.authorized===true && selectRound(result.hub_cohort);
     if(enrolled&&explicitHandoff){clearLogoutFence();currentIdentityContext=result.identity_context;setExpectedIdentityContext(null);}
@@ -3281,9 +3291,7 @@ async function bootstrapAuth(){
     return;
   }catch(error){
     if(generation!==cohortGeneration) return;
-    if(learningFallback){enterLearningMode();return;}
     if(error&&error.cohortCode==="AUTHENTICATION_FAILURE"){
-      if(typeof learningModeRequested==="function"&&learningModeRequested()){enterLearningMode();return;}
       authDown=false;authState="login";cohortRecoveryState="AUTHENTICATION_FAILURE";
       cohortDiagnostic("AUTHENTICATION_FAILURE");render();return;
     }
