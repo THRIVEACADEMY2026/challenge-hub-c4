@@ -1269,7 +1269,12 @@ var CHALLENGE = {
      it appears on that day's tab. Leave blank and the block simply does not
      render, so an unfilled day never shows an empty placeholder. */
   winners: {
-    1:"", 2:"", 3:"", 4:"", 5:"", grand:""
+    /* Day 2's draw, from Ella on 4 Nov, recorded as she gave it: the Facebook
+       name people recognise from the Group with the real name beside it.
+       A filled name shows as soon as it is served. The date gate below only
+       stops an EMPTY box appearing before a draw has happened; it was never
+       meant to hold back a published result. */
+    1:"", 2:"TheRisen Phoenix (Cheryl Moya)", 3:"", 4:"", 5:"", grand:""
   },
 
   /* The four Pre-Challenge Quests on the Prepare page.
@@ -2477,7 +2482,11 @@ function vDay(n){
   return '<p class="eyebrow">Day '+n+' &middot; '+esc(d.date)+'</p>'+
    '<h1>'+d.title+'</h1>'+
    '<div class="cols"><div class="mainCol">'+'<div class="day-tickets">'+ticketPanel()+'</div>'+media+'<div class="summit-inline">'+summitBlock(true,true)+'</div>'+(d.playbook?'<div class="playbook-inline"><div class="card"><h3>Today&rsquo;s Playbook</h3>'+'<a class="btn btn-action" href="'+d.playbook+'" target="_blank" rel="noopener">Download the Playbook</a></div></div>':'')+art+quest+ticket+winnerBlock(n)+'</div>'+aside+'</div>'+
-   concierge();
+   /* Ella, 3 Nov: redundant. The same block already sits in the sidebar on a
+      wide screen and in the footer at every width, so a desktop reader met it
+      three times on one page. Day 1 keeps it, for somebody arriving for the
+      first time who has not yet found the footer. */
+   (n===1 ? concierge() : '');
 }
 
 function vSubmit(n,sent){
